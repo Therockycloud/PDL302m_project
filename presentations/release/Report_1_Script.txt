@@ -1,0 +1,133 @@
+# Kịch bản thuyết trình (Presentation Script)
+## Đề tài: Hệ thống đỗ xe thông minh bằng xác thực chéo thông tin xe
+**Môn học:** DPL302m – Deep Learning (Học sâu)  
+**Nhóm:** Nhóm 7 – Lớp DPL302m  
+**Giảng viên hướng dẫn:** Thầy Lương Trung Kiên  
+
+---
+
+### 🖥️ Slide 1: Tiêu đề (Title Slide)
+Kính chào thầy Lương Trung Kiên và các bạn học sinh lớp DPL302m. Em tên là [Tên bạn], đại diện cho Nhóm 7. Hôm nay, nhóm chúng em xin phép được trình bày đề tài nghiên cứu cho dự án cuối khóa: **'Hệ thống đỗ xe thông minh bằng xác thực chéo thông tin xe'** (Smart Parking Security System via Cross-Verification). Đây là một giải pháp ứng dụng học sâu (Deep Learning) nhằm giải quyết bài toán an ninh và nâng cấp quy trình xác thực ra vào tại các bãi đỗ xe thông minh hiện nay.
+
+---
+
+### 🖥️ Slide 2: 1.1 Bối cảnh & Nhu cầu: Parking Access Control
+Đầu tiên, chúng ta cùng nhìn vào bối cảnh thực tế. Trong xu hướng đô thị hóa và xây dựng Smart City, số lượng ô tô cá nhân tại Việt Nam đang tăng trưởng vô cùng nhanh chóng. Do đó, việc quản lý và kiểm soát phương tiện ra vào bãi đỗ xe (Parking Access Control) trở thành một bài toán an ninh sống còn đối với các tòa nhà, chung cư hay trung tâm thương mại.
+
+Điểm mấu chốt của toàn bộ hệ thống kiểm soát này chính là **quy trình xác thực (Authentication) tại đầu Check-in và Check-out**. Một hệ thống chuẩn mực bắt buộc phải đảm bảo việc nhận danh tính xe phải cực kỳ chính xác và nhanh chóng để vừa đảm bảo an ninh, vừa tránh gây ùn tắc giao thông.
+
+---
+
+### 🖥️ Slide 3: 1.2 Lỗ hổng bảo mật: Single-Factor ANPR
+Tuy nhiên, các bãi giữ xe thông minh phổ biến ở Việt Nam hiện nay đang gặp một lỗ hổng bảo mật cực kỳ lớn. Hệ thống camera ANPR truyền thống hiện chỉ sử dụng cơ chế **xác thực đơn nhân tố (Single-Factor Authentication)**, nghĩa là chỉ dựa vào duy nhất chuỗi ký tự biển số xe làm mã định danh để mở barie.
+
+Điểm yếu ở đây là biển số xe là thông tin hiển thị công khai. Kẻ gian có thể dễ dàng in ấn biển số giả hoặc thực hiện hành vi **hoán đổi biển số xe (Plate Swapping)** từ xe hợp pháp sang một chiếc xe trộm cắp. Khi hệ thống duyệt sai (False Grant), kẻ gian dễ dàng lấy xe ra khỏi bãi mà bảo vệ rất khó phát hiện kịp thời.
+
+---
+
+### 🖥️ Slide 4: 2.1 Giải pháp: Xác thực đa nhân tố (Multi-Factor Parking Auth)
+Để giải quyết triệt để lỗ hổng này, nhóm 7 đề xuất giải pháp: **Xác thực đa nhân tố (Multi-Factor Parking Auth)**. Tương tự như cơ chế bảo mật MFA trong phần mềm, hệ thống của chúng em không chỉ đọc biển số, mà còn trích xuất chéo thêm các đặc trưng độc lập của xe bao gồm:
+
+* **Thứ nhất là Biển số xe (License Plate):** Nhận diện vùng biển số bằng YOLOv8 và đọc ký tự qua OCR.
+* **Thứ hai là Hãng xe (Car Brand):** Nhận diện hãng xe (Toyota, Mazda, VinFast...) bằng mạng CNN ResNet50.
+* **Thứ ba là Màu sắc xe (Car Color):** Nhận diện màu sắc chủ đạo bằng MobileNetV2.
+
+Sự kết hợp của 3 nhân tố này sẽ tạo nên một bộ khóa bảo mật cực kỳ vững chắc cho phương tiện.
+
+---
+
+### 🖥️ Slide 5: 2.2 Kịch bản hoạt động: Check-in vs Check-out
+Kịch bản hoạt động thực tế của hệ thống sẽ diễn ra như sau:
+
+* **Khi xe VÀO (Check-in):** Hệ thống chụp ảnh xe, chạy mô hình trích xuất đặc trưng và lưu bộ ba thông tin đăng ký: `{30F-12345, Toyota Vios, Trắng}` vào cơ sở dữ liệu CSV.
+* **Khi xe RA (Check-out):** Hệ thống quét lại xe đang muốn ra. Nếu camera đọc biển số vẫn là `30F-12345` (trùng khớp biển số) nhưng hệ thống nhận diện thực tế xe là `Hyundai Accent` và có màu `Đỏ`, Logic Matcher sẽ lập tức phát hiện sự sai lệch (Mismatch), từ chối mở barie, khóa barie và phát còi hú cảnh báo hành vi gian lận biển số xe.
+
+---
+
+### 🖥️ Slide 6: 3. Kiến trúc hệ thống (System Architecture)
+Tiếp theo, em xin phép trình bày về Kiến trúc hệ thống. Quy trình xử lý của chúng em đi theo một pipeline khép kín 4 bước từ hình ảnh đầu vào đến quyết định đầu ra:
+
+* **Bước 1:** Nhận luồng hình ảnh từ camera đỗ xe, đưa qua mô hình YOLOv8-nano để định vị vùng xe ô tô và biển số.
+* **Bước 2:** Cắt (crop) ảnh và xử lý song song. Ảnh biển số được đưa qua engine OCR; Ảnh xe được đưa vào ResNet50 để phân loại hãng xe và MobileNetV2 để nhận diện màu sắc.
+* **Bước 3:** Trích xuất kết quả nhận diện, đưa vào Logic Matcher để so sánh chéo với dữ liệu cũ lưu trong database.csv.
+* **Bước 4:** Xuất trạng thái xác thực lên giao diện Web Dashboard Streamlit và điều khiển thiết bị cảnh báo vật lý.
+
+---
+
+### 🖥️ Slide 7: 4.1 Công nghệ: Deep Learning Frameworks & Models
+Về mặt công nghệ Deep Learning, nhóm đã lựa chọn các mô hình tối ưu cho khả năng chạy thời gian thực trên các thiết bị máy tính cá nhân thông thường:
+
+* **YOLOv8-nano:** Phiên bản SOTA siêu nhẹ chỉ khoảng 6 megabytes của Ultralytics, đảm bảo phát hiện vật thể FPS cao trên CPU.
+* **PaddleOCR hoặc EasyOCR:** Thư viện nhận diện ký tự quang học mạnh mẽ, xử lý chữ số rõ ràng ngay cả khi biển số bị nghiêng góc hoặc thiếu sáng.
+* **ResNet50 & MobileNetV2:** Sử dụng Keras/TensorFlow để Transfer Learning từ ImageNet. Mạng ResNet50 có độ sâu tốt để phân loại các chi tiết hãng xe; trong khi MobileNetV2 siêu nhẹ, tối ưu cho việc phân loại màu sắc xe.
+
+---
+
+### 🖥️ Slide 8: 4.2 Công nghệ: Phần mềm & Tích hợp hệ thống
+Để tích hợp toàn bộ các mô hình học sâu này thành một ứng dụng hoàn chỉnh, chúng em xây dựng trên nền tảng phần mềm đơn giản nhưng hiệu quả:
+
+* Ngôn ngữ chủ đạo là **Python 3.10+** để đồng bộ các thư viện học sâu.
+* Sử dụng **Streamlit** để thiết kế giao diện Web Dashboard demo trực quan nhanh chóng.
+* Quản lý cơ sở dữ liệu đăng ký bằng tệp phẳng **CSV** thông qua thư viện Pandas, đảm bảo việc truy vấn nhẹ nhàng và không phụ thuộc dịch vụ Cloud phức tạp.
+
+---
+
+### 🖥️ Slide 9: 5.1 Chiến lược dữ liệu: Đa dạng hóa nguồn (Multi-Source)
+Một hệ thống AI tốt đòi hỏi dữ liệu huấn luyện phải chất lượng. Nhóm chúng em sử dụng chiến lược đa dạng hóa dữ liệu từ Kaggle, Roboflow Universe, Hugging Face và tự thu thập:
+
+* Với biển số xe, chúng em kết hợp ảnh chuẩn của Kaggle với ảnh thực tế bãi xe Việt Nam trên Roboflow Universe và Hugging Face để mô hình học được các biển số bẩn, biển bị mờ do thời tiết phức tạp.
+* Với hãng xe, ngoài bộ Stanford Cars chuẩn quốc tế, nhóm quyết định **tự thu thập và cào ảnh các dòng xe VinFast** (như VF5, VF8, VF9, VFe34) đang cực kỳ phổ biến tại Việt Nam để khớp với tình hình giao thông thực tế.
+* Với màu sắc xe, nhóm kết hợp bộ dữ liệu Car Color Recognition trên Kaggle và vehicle-color trên Hugging Face để tăng góc chụp đa dạng.
+
+---
+
+### 🖥️ Slide 10: 5.2 Tiền xử lý & Tăng cường dữ liệu (Data Augmentation)
+Do camera bãi xe thực tế luôn có chất lượng không hoàn hảo, nhóm áp dụng các kỹ thuật tăng cường dữ liệu để giúp mô hình vững chắc hơn:
+
+* **Độ sáng ngẫu nhiên:** Giúp mô hình nhận diện tốt cả ban ngày nắng gắt chiếu trực tiếp lẫn ban đêm tối trời xe bật đèn pha.
+* **Xoay ảnh ±15°:** Giúp nhận diện biển số và xe khi đi lệch góc camera.
+* **Gaussian Noise & Blur:** Giả lập chất lượng camera giám sát cũ bị mờ nhòe hạt, hoặc ảnh bị mờ do xe di chuyển nhanh.
+
+---
+
+### 🖥️ Slide 11: 6. Chỉ số đo lường hiệu năng (Key Metrics)
+Để đánh giá sự thành công của dự án, nhóm đặt ra bộ chỉ số KPIs cụ thể:
+
+* Độ chính xác mô hình phát hiện biển số YOLOv8 đạt mAP@0.5 $\ge 90\%$.
+* Độ chính xác đọc chữ số OCR $\ge 90\%$.
+* Độ chính xác phân loại hãng xe $\ge 85\%$ và màu sắc xe $\ge 92\%$.
+* Mục tiêu cao nhất của hệ thống là **Tỷ lệ phát hiện xe biển số giả/hoán đổi (Fake Plate Detection Rate) phải $\ge 95\%$** trên tập test và **Tổng thời gian xử lý toàn trình (End-to-End Latency) phải dưới 1.0 giây** để barie phản hồi lập tức.
+
+---
+
+### 🖥️ Slide 12: 7. Kế hoạch thực hiện (Project Timeline)
+Kế hoạch thực hiện dự án của nhóm được phân chia rõ ràng làm 4 giai đoạn bám sát theo chương trình học:
+
+* **Giai đoạn 1 (Hiện tại):** Đề xuất ý tưởng, thiết kế kiến trúc hệ thống và chuẩn bị tài liệu Report 1.
+* **Giai đoạn 2:** Thu thập dữ liệu đa nguồn, xử lý wrangling, augmentation và phân tích EDA.
+* **Giai đoạn 3:** Huấn luyện các mô hình độc lập và điều chỉnh siêu tham số trên Google Colab.
+* **Giai đoạn 4:** Tích hợp pipeline, chạy unit test và hoàn thiện giao diện demo.
+
+---
+
+### 🖥️ Slide 13: 8. Quản lý rủi ro (Risk Management)
+Chúng em cũng đã xây dựng bảng Quản lý rủi ro cho dự án:
+
+* Rủi ro lớn nhất là mô hình OCR có thể đọc sai khi biển số bị mờ. Giải pháp là nhóm sẽ tiền xử lý ảnh (grayscale, adaptive thresholding) trước khi đưa vào OCR.
+* Đối với rủi ro tốc độ xử lý chậm, nhóm sẽ dùng kiến trúc mạng nhẹ và triển khai Multi-threading để xử lý song song.
+* Đặc biệt, đối với việc **huấn luyện local**, nhóm thống nhất giải pháp huấn luyện mô hình local rồi tải file model lên Git để các thành viên tiện tải về chạy test kiểm thử trực tiếp trên thiết bị cá nhân.
+
+---
+
+### 🖥️ Slide 14: 9. Ánh xạ chuẩn đầu ra (CLO Mapping)
+Dự án đỗ xe thông minh này đáp ứng đầy đủ các Chuẩn đầu ra (CLOs) của môn học Deep Learning:
+
+* **CLO1 & CLO2:** Xây dựng các lớp Dense và tối ưu hóa hyperparameter trên TensorFlow.
+* **CLO3:** Phân tích Confusion Matrix để chẩn đoán lỗi mô hình và ứng dụng Transfer Learning từ ImageNet weights.
+* **CLO4:** Thiết lập các mạng CNN nhận diện hình ảnh.
+* **CLO6 & CLO7:** Xây dựng toàn bộ pipeline DL hoàn chỉnh từ dữ liệu đến báo cáo, đồng thời sử dụng hiệu quả các AI tools.
+
+---
+
+### 🖥️ Slide 15: Hỏi & Đáp (Q&A)
+Trên đây là toàn bộ nội dung đề xuất dự án Proposal của Nhóm 7 cho đề tài 'Hệ thống đỗ xe thông minh bằng xác thực chéo thông tin xe'. Cảm ơn thầy Lương Trung Kiên và các bạn đã chú ý lắng nghe. Sau đây, nhóm chúng em rất mong nhận được những ý kiến đóng góp, nhận xét từ thầy và câu hỏi từ các bạn để dự án được hoàn thiện tốt hơn. Em xin chân thành cảm ơn!

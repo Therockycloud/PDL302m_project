@@ -1,0 +1,54 @@
+# System Paths Configuration
+paths:
+  database_csv: "main/data/database.csv"
+  raw_data_dir: "main/data/raw"
+  processed_data_dir: "main/data/processed"
+  model_save_dir: "main/data/models"
+
+# YOLOv8 Plate Detector Parameters
+detector:
+  model_name: "yolov8n.pt"
+  conf_threshold: 0.25
+  crop_padding: 0.05  # Padding around the cropped plate (5%)
+
+# OCR Reader Parameters
+ocr:
+  languages: ["en"]  # English is standard for alphanumeric plates
+  gpu: false         # Toggle CPU vs GPU for OCR
+
+# Keras EfficientNet-B0 Brand Classifier Parameters
+brand_classifier:
+  input_shape: [224, 224, 3]
+  batch_size: 32
+  initial_epochs: 10
+  fine_tune_epochs: 10
+  learning_rate: 0.0001
+  fine_tune_learning_rate: 0.00001
+  dropout_rate: 0.5
+  num_classes: 8
+  classes:
+    - Toyota
+    - Hyundai
+    - Kia
+    - Mazda
+    - Honda
+    - VinFast
+    - Ford
+    - Mitsubishi
+
+# Keras MobileNetV3-Small Color Classifier Parameters
+color_classifier:
+  input_shape: [224, 224, 3]
+  batch_size: 32
+  epochs: 10
+  learning_rate: 0.0001
+  num_classes: 8
+  classes:
+    - White
+    - Black
+    - Grey
+    - Silver
+    - Red
+    - Blue
+    - Brown
+    - Yellow
