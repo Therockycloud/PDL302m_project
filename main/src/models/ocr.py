@@ -82,6 +82,7 @@ class PlateOCR:
             self.reader: easyocr.Reader = easyocr.Reader(
                 languages,
                 gpu=gpu,
+                download_enabled=False,
             )
         except Exception as exc:  # noqa: BLE001
             print(

@@ -84,6 +84,7 @@ def _build_brand_model(cfg: dict) -> tf.keras.Model:
     base.trainable = False
 
     model = tf.keras.Sequential([
+        tf.keras.layers.Rescaling(255.0),
         base,
         tf.keras.layers.GlobalAveragePooling2D(),
         tf.keras.layers.Dropout(dropout),
@@ -133,6 +134,7 @@ def _build_color_model(cfg: dict) -> tf.keras.Model:
     base.trainable = False
 
     model = tf.keras.Sequential([
+        tf.keras.layers.Rescaling(scale=2.0, offset=-1.0),
         base,
         tf.keras.layers.GlobalAveragePooling2D(),
         tf.keras.layers.Dropout(0.3),

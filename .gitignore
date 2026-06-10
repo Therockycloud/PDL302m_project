@@ -48,3 +48,11 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Large raw training datasets (retaining license_plates for test runs)
+main/data/raw/car_brands/
+main/data/raw/car_colors/
+
+# Model training logs
+main/data/models/logs/
+

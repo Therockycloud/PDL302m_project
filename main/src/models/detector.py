@@ -45,15 +45,8 @@ def _select_device() -> str:
     """Auto-detect the best available device (MPS or CPU).
 
     Returns:
-        ``'mps'`` on Apple Silicon when MPS is available,
-        otherwise ``'cpu'``.
+        ``'cpu'`` to avoid driver hangs on macOS.
     """
-    try:
-        import torch
-        if torch.backends.mps.is_available():
-            return "mps"
-    except Exception:  # noqa: BLE001
-        pass
     return "cpu"
 
 
@@ -110,6 +103,8 @@ class PlateDetector:
 
         # Load model ----------------------------------------------------------
         try:
+            from ultralytics import settings
+            settings.update({"sync": False})
             self.model = YOLO(resolved_path)
         except Exception as exc:  # noqa: BLE001
             print(
