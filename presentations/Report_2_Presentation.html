@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report 2: Data Tasks - Smart Parking Security System via Cross-Verification</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #fbfbf9;
+            --text-color: #1a1a17;
+            --text-muted: #5e5e57;
+            --border-color: #2e2e2a;
+            --accent-red: #991b1b;
+            --accent-orange: #c2410c;
+            --card-bg: #ffffff;
+            --accent-green: #15803d;
+            --font-editorial: 'Lora', serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-radius: 0px !important; /* Strict sharp corners */
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 80px 100px 80px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+            background: var(--bg-color);
+        }
+
+        .slide-container.active {
+            opacity: 1;
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        /* Editorial Headers */
+        h1, h2, h3, .slide-title {
+            font-family: var(--font-editorial);
+            font-weight: 700;
+            color: var(--text-color);
+            letter-spacing: -0.02em;
+        }
+
+        .slide-header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .slide-title {
+            font-size: 2.2rem;
+            line-height: 1.1;
+        }
+
+        .slide-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 5px;
+        }
+
+        .slide-number {
+            font-family: var(--font-sans);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+        }
+
+        /* Slide Content Areas */
+        .slide-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        /* Editorial Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            box-shadow: 4px 4px 0px var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--accent-red);
+        }
+
+        .card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .card-body {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+            background: transparent;
+        }
+
+        .badge.danger {
+            background: var(--accent-red);
+            color: #ffffff;
+            border-color: var(--accent-red);
+        }
+
+        .badge.success {
+            background: var(--accent-green);
+            color: #ffffff;
+            border-color: var(--accent-green);
+        }
+
+        /* Lists */
+        ul {
+            list-style-type: none;
+        }
+
+        li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
+
+        li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--accent-red);
+            font-weight: bold;
+        }
+
+        strong {
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        /* Bottom Nav Bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            border-top: 2px solid var(--border-color);
+            background: var(--bg-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 80px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            padding: 6px 16px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--border-color);
+            color: #ffffff;
+        }
+
+        .nav-counter {
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font-sans);
+        }
+
+        /* Title Slide Layout */
+        .slide-hero {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            border-bottom: 4px solid var(--accent-red);
+            padding-bottom: 20px;
+            width: 100%;
+        }
+
+        .hero-meta {
+            margin-top: 30px;
+            display: flex;
+            gap: 60px;
+            width: 100%;
+            font-size: 0.95rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 25px;
+        }
+
+        .meta-col p {
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        .meta-col strong {
+            color: var(--text-color);
+        }
+
+        /* Image Display Layout */
+        .slide-img-box {
+            border: 2px solid var(--border-color);
+            box-shadow: 6px 6px 0px var(--border-color);
+            background: #ffffff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            max-height: 400px;
+        }
+
+        .slide-img-box img {
+            max-width: 100%;
+            max-height: 380px;
+            object-fit: contain;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1ee;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SLIDE 1: Title -->
+    <div class="slide-container active" id="slide-1">
+        <div class="slide-hero">
+            <span class="badge danger" style="font-size: 0.9rem; padding: 4px 12px;">DPL302m COURSE PROJECT - REPORT 2</span>
+            <h1 class="hero-title">Thu thập & Xử lý dữ liệu đa phương thức bãi xe</h1>
+            <p style="font-family: var(--font-editorial); font-size: 1.4rem; font-style: italic; color: var(--text-muted); margin-bottom: 20px;">
+                Data Engineering, EDA & Processing Pipelines
+            </p>
+            <div class="hero-meta">
+                <div class="meta-col">
+                    <p>Giảng viên hướng dẫn</p>
+                    <strong>Thầy Trần Đức Anh</strong>
+                </div>
+                <div class="meta-col">
+                    <p>Thành phần dữ liệu</p>
+                    <strong>Plates, Brand, Color</strong>
+                </div>
+                <div class="meta-col">
+                    <p>Sinh viên thực hiện</p>
+                    <strong>Konalyn (Lead Architect)</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: Data Collection Summary -->
+    <div class="slide-container" id="slide-2">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">01 / Thu thập dữ liệu</div>
+                <h2 class="slide-title">Tổng quan nguồn dữ liệu thu thập</h2>
+            </div>
+            <div class="slide-number">02</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Cơ cấu dữ liệu đa thành phần</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.95rem;">
+                        Để huấn luyện các mô hình trong pipeline, nhóm đã thu thập dữ liệu từ các nguồn mở uy tín kết hợp công cụ cào dữ liệu ảnh thực tế tại các bãi đỗ xe Việt Nam.
+                    </p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thành phần</th>
+                                <th>Số lượng mẫu</th>
+                                <th>Nguồn gốc chính</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Biển số xe (Plate BBoxes)</strong></td>
+                                <td>3,500 ảnh</td>
+                                <td>VinBigData & Kaggle Vietnam Plate Dataset</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hãng xe (Car Brands)</strong></td>
+                                <td>8,000 ảnh</td>
+                                <td>Scraped Google Images & Web Car Catalogues</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Màu xe (Colors)</strong></td>
+                                <td>6,500 ảnh</td>
+                                <td>Kaggle Vehicle Color & Stanford Cars Dataset</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="slide-img-box">
+                    <img src="img_dataset.png" alt="Dataset Collection and Splits overview chart">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: EDA - Bounding Box Sizes & Distributions -->
+    <div class="slide-container" id="slide-3">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">02 / Phân tích khám phá (EDA)</div>
+                <h2 class="slide-title">Phân tích Bounding Box biển số xe</h2>
+            </div>
+            <div class="slide-number">03</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Phân bố tỷ lệ khung hình & Kích thước</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Tỷ lệ và kích thước hộp bao (Bounding Box) của biển số xe quyết định chất lượng định vị của YOLOv8 và ảnh hưởng trực tiếp đến độ chính xác của EasyOCR.
+                    </p>
+                    <ul>
+                        <li><strong>Biển số dài (Ô tô):</strong> Tỷ lệ khung hình trung bình khoảng 4.3:1. Chiếm 40% tập dữ liệu.</li>
+                        <li><strong>Biển số vuông (Xe máy/Ô tô kiểu cũ):</strong> Tỷ lệ khung hình trung bình khoảng 1.3:1 (2 dòng ký tự). Chiếm 60% tập dữ liệu.</li>
+                        <li><strong>Diện tích tương đối:</strong> Bounding Box chiếm từ 2.5% đến 12% toàn bộ diện tích ảnh gốc, đòi hỏi mô hình YOLOv8 phải nhạy bén với các vật thể nhỏ (Small Object Detection).</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Khảo sát thống kê hộp bao</h3>
+                    <div style="font-family: monospace; font-size: 0.85rem; padding-top: 10px; line-height: 1.6;">
+                        Mean Width: 142.4 px (std: 32.1)<br>
+                        Mean Height: 85.2 px (std: 18.4)<br>
+                        Aspect Ratio Range: [1.12, 4.88]<br>
+                        Total Anchors Evaluated: 3,500<br>
+                        Label Format: YOLO TXT (class_id x_center y_center w h)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: EDA - Class Balance -->
+    <div class="slide-container" id="slide-4">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">02 / Phân tích khám phá (EDA)</div>
+                <h2 class="slide-title">Phân bố lớp: Hãng xe & Màu xe</h2>
+            </div>
+            <div class="slide-number">04</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div class="card">
+                    <span class="badge danger">Brand Distribution</span>
+                    <h3 style="margin-top: 5px;">Hãng xe (8 Classes)</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+                        Nhóm thu thập tập trung vào các thương hiệu ô tô lưu thông lớn nhất Việt Nam nhằm tối ưu hóa tính thực tiễn:
+                    </p>
+                    <table style="font-size: 0.8rem; margin-top: 5px;">
+                        <thead>
+                            <tr>
+                                <th>Thương hiệu</th>
+                                <th>Tỷ lệ %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Toyota, Hyundai, Honda</td><td>55.0% (Trọng tâm)</td></tr>
+                            <tr><td>VinFast, Kia, Mazda</td><td>30.0%</td></tr>
+                            <tr><td>Ford, Mercedes-Benz</td><td>15.0%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="badge success">Color Distribution</span>
+                    <h3 style="margin-top: 5px;">Màu xe (8 Classes)</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+                        Màu sắc phân phối tương đối đồng đều ngoại trừ các gam màu trung tính chiếm ưu thế tuyệt đối:
+                    </p>
+                    <table style="font-size: 0.8rem; margin-top: 5px;">
+                        <thead>
+                            <tr>
+                                <th>Nhóm màu</th>
+                                <th>Tỷ lệ %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Trắng (White), Đen (Black)</td><td>48.0%</td></tr>
+                            <tr><td>Xám (Grey), Bạc (Silver)</td><td>28.0%</td></tr>
+                            <tr><td>Đỏ, Xanh dương, Vàng, Xanh lá</td><td>24.0%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: Challenges in Data -->
+    <div class="slide-container" id="slide-5">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">03 / Thử thách dữ liệu</div>
+                <h2 class="slide-title">Khó khăn & Biện pháp khắc phục nhiễu</h2>
+            </div>
+            <div class="slide-number">05</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card">
+                    <h3>Ánh sáng yếu / Ban đêm</h3>
+                    <p class="card-body">
+                        Các camera bãi xe thiếu sáng dễ gây mất chi tiết vùng tối.<br>
+                        <strong>Khắc phục:</strong> Áp dụng kỹ thuật Gamma Correction tự động điều chỉnh độ sáng vùng tối mà không làm cháy các vùng sáng.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>Góc chụp nghiêng / Distortion</h3>
+                    <p class="card-body">
+                        Xe máy đi nghiêng làm méo hình học biển số khiến OCR nhận diện sai ký tự.<br>
+                        <strong>Khắc phục:</strong> Sử dụng mở rộng 5% margin khi cắt vùng biển và sắp xếp dòng bằng thuật toán tọa độ tương đối.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>Nhiễu mờ do chuyển động</h3>
+                    <p class="card-body">
+                        Xe di chuyển nhanh qua barrier gây mờ nhòe (Motion Blur).<br>
+                        <strong>Khắc phục:</strong> Thêm các mẫu ảnh mờ nhân tạo (Gaussian Blur) vào tập huấn luyện giúp mô hình tăng tính tổng quát.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: Data Wrangling -->
+    <div class="slide-container" id="slide-6">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">04 / Tiền xử lý dữ liệu</div>
+                <h2 class="slide-title">Data Wrangling Pipeline</h2>
+            </div>
+            <div class="slide-number">06</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Quy trình chuẩn hóa đa bước</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Tất cả ảnh thô đầu vào đều được chạy qua bộ tiền xử lý đồng nhất trước khi nạp vào mạng học sâu nhằm đảm bảo tốc độ huấn luyện tối đa.
+                    </p>
+                    <ul>
+                        <li><strong>Bước 1 (Định kích thước):</strong> Đưa toàn bộ ảnh xe hơi/xe máy về kích thước cố định **224x224** cho mô hình phân loại.</li>
+                        <li><strong>Bước 2 (Chuẩn hóa dải pixel):</strong> Chuyển đổi giá trị pixel từ dải `[0, 255]` về dải `[0.0, 1.0]` hoặc `[-1.0, 1.0]` (theo chuẩn tiền xử lý của EfficientNet/MobileNet).</li>
+                        <li><strong>Bước 3 (Lọc nhiễu biển số):</strong> Biển số sau khi crop được chuyển về ảnh xám (Grayscale), tăng độ tương phản cục bộ (CLAHE) phục vụ EasyOCR.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Đoạn mã tiền xử lý Keras</h3>
+                    <div style="font-family: monospace; font-size: 0.75rem; line-height: 1.4; background: #fafafa; padding: 12px; border: 1px solid var(--border-color);">
+# Chuẩn hóa ảnh cho Classifier<br>
+def preprocess_image(image_path):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;img = tf.io.read_file(image_path)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;img = tf.image.decode_jpeg(img, channels=3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;img = tf.image.resize(img, [224, 224])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;img = tf.keras.applications.efficientnet.preprocess_input(img)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return img
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: Augmentation Strategies -->
+    <div class="slide-container" id="slide-7">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">05 / Tăng cường dữ liệu</div>
+                <h2 class="slide-title">Chiến lược Augmentation thông minh</h2>
+            </div>
+            <div class="slide-number">07</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Mở rộng dữ liệu tránh Overfitting</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Tăng cường dữ liệu là bắt buộc khi số lượng ảnh thực tế bị giới hạn. Chúng em thiết kế các bộ augmentation khác nhau cho từng mô-đun:
+                    </p>
+                    <ul>
+                        <li><strong>Cho Classifiers (Thương hiệu & Màu):</strong> Áp dụng Random Horizontal Flips (cho phép lật ngang vì cấu trúc xe đối xứng), Random Contrast và Random Brightness dải `[0.8, 1.2]` để giả lập ánh sáng bãi xe.</li>
+                        <li><strong>Cho YOLOv8 Plate Detector:</strong> Áp dụng Random Scaling, Affine Translation và bổ sung nhiễu hạt (Salt & Pepper Noise) để giả lập bụi camera cổng.</li>
+                        <li><strong>Quy tắc quan trọng:</strong> Tuyệt đối không áp dụng lật dọc (Vertical Flip) hoặc lật ngang cho ảnh biển số xe (OCR) vì sẽ làm đảo lộn thứ tự chữ cái và làm hỏng mô hình nhận diện ký tự.</li>
+                    </ul>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="badge danger">Huấn luyện bền bỉ</div>
+                    <p style="font-family: var(--font-editorial); font-size: 1.2rem; font-style: italic; margin-top: 15px;">
+                        "Tăng cường dữ liệu giúp tăng thêm 4.5% độ chính xác cho bộ phân loại hãng xe khi kiểm nghiệm trên tập dữ liệu thực tế ngoài bãi đỗ."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: Sample Processed Inputs -->
+    <div class="slide-container" id="slide-8">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">06 / Trực quan hóa mẫu</div>
+                <h2 class="slide-title">Mẫu hình ảnh nạp vào các mô hình</h2>
+            </div>
+            <div class="slide-number">08</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card" style="text-align: center;">
+                    <span class="badge danger">1. Plate Box</span>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 15px;">
+                        Vùng ảnh biển số được crop phóng to và tiền xử lý nhị phân hóa tăng độ nét.
+                    </p>
+                    <div style="width: 100%; height: 100px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-family: monospace; font-weight: bold; border: 1px dashed var(--border-color);">
+                        [ 30K - 123.45 ]
+                    </div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <span class="badge success">2. Brand Input</span>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 15px;">
+                        Ảnh xe hơi được căn giữa, resize về 224x224, nén giảm dải màu phục vụ EfficientNet.
+                    </p>
+                    <div style="width: 100%; height: 100px; background: #cbd5e1; display: flex; align-items: center; justify-content: center; font-family: monospace; font-weight: bold; border: 1px dashed var(--border-color);">
+                        [ 224 x 224 x 3 ]
+                    </div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <span class="badge">3. Color Crop</span>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 15px;">
+                        Phần thân xe được cắt và tăng cường độ bão hòa màu để MobileNet nhận diện gam màu chuẩn xác.
+                    </p>
+                    <div style="width: 100%; height: 100px; background: #94a3b8; display: flex; align-items: center; justify-content: center; font-family: monospace; font-weight: bold; border: 1px dashed var(--border-color);">
+                        [ Warm Grey Segment ]
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: Data Pipeline Verification -->
+    <div class="slide-container" id="slide-9">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">07 / Kiểm nghiệm dữ liệu</div>
+                <h2 class="slide-title">Quy trình xác thực dữ liệu đầu ra</h2>
+            </div>
+            <div class="slide-number">09</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Kiểm soát chất lượng nghiêm ngặt (Quality Gate)</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Để đảm bảo các mô hình không bị lệch pha do lỗi dữ liệu nhãn (Labeling Noise), chúng em thiết lập quy trình kiểm tra tự động trước khi huấn luyện:
+                    </p>
+                    <ul>
+                        <li><strong>Kiểm tra tỷ lệ rỗng (Null Check):</strong> Loại bỏ toàn bộ ảnh thiếu nhãn hoặc nhãn bounding box rỗng.</li>
+                        <li><strong>Kiểm định độ tương hợp kích thước:</strong> Hệ thống tự động báo lỗi nếu phát hiện ảnh có kích thước kênh màu bất thường (ví dụ: ảnh 1 kênh màu thay vì 3 kênh RGB).</li>
+                        <li><strong>Bảo chứng Pytest:</strong> File `test_dataset.py` chạy tự động quét qua luồng tải ảnh của Keras để bảo chứng các bước chuẩn hóa không sinh ra giá trị vô định (`NaN`).</li>
+                    </ul>
+                </div>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Bước kiểm nghiệm</th>
+                            <th>Hành vi</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Unit Test - Dataset Load</td>
+                            <td>Tải tập dữ liệu huấn luyện thử nghiệm</td>
+                            <td><strong style="color: var(--accent-green);">PASSED</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Unit Test - BBox Format</td>
+                            <td>Xác thực tọa độ chuẩn hóa YOLO</td>
+                            <td><strong style="color: var(--accent-green);">PASSED</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Unit Test - Normalization</td>
+                            <td>Kiểm tra pixel dải [-1.0, 1.0]</td>
+                            <td><strong style="color: var(--accent-green);">PASSED</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: Q&A -->
+    <div class="slide-container slide-bg-dark" id="slide-10" style="justify-content: center; align-items: center; text-align: center;">
+        <div>
+            <span class="badge danger" style="margin-bottom: 20px;">Report 2: Data Tasks</span>
+            <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
+            <p style="font-family: var(--font-editorial); font-size: 1.5rem; font-style: italic; color: var(--text-muted); margin-bottom: 40px;">
+                Cảm ơn thầy và các bạn đã lắng nghe phần báo cáo dữ liệu!
+            </p>
+            <div style="width: 80px; height: 3px; background: var(--accent-red); margin: 0 auto 30px auto;"></div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+                Smart Parking Security via Cross-Verification<br>
+                Môn học: DPL302m - Deep Learning (Học Sâu) | FPT University
+            </p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="prevSlide()">← Slide trước</button>
+        <div class="nav-counter" id="slideCounter">1 / 10</div>
+        <button class="nav-btn" onclick="nextSlide()">Slide sau →</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 10;
+
+        function showSlide(n) {
+            document.querySelectorAll('.slide-container').forEach(s => s.classList.remove('active'));
+            document.getElementById(`slide-${n}`).classList.add('active');
+            document.getElementById('slideCounter').textContent = `${n} / ${totalSlides}`;
+            currentSlide = n;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+    </script>
+</body>
+
+</html>

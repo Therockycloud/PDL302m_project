@@ -629,35 +629,24 @@ def sort_vietnamese_plate(ocr_results):
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">08 / Giao diện & Trực quan hóa</div>
-                <h2 class="slide-title">Mô phỏng Giao diện Streamlit Dashboard</h2>
+                <h2 class="slide-title">Giao diện vận hành thực tế (Streamlit Dashboard)</h2>
             </div>
             <div class="slide-number">09</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
-                <div class="card" style="border-left: 5px solid var(--accent-green);">
-                    <div class="badge success">BẢN TIN AN TOÀN (VERIFIED)</div>
-                    <div style="font-family: monospace; font-size: 0.85rem; margin-top: 10px;">
-                        [INPUT] Plate: 30K-12345 | Brand: Toyota | Color: White<br>
-                        [DB QUERY] Plate: 30K-12345 -> Brand: Toyota | Color: White<br>
-                        <strong>[STATUS] KHỚP 100% - HỢP LỆ</strong><br>
-                        <span style="color: var(--accent-green);">[BARRIER] Đang mở...</span>
+                <div style="text-align: center;">
+                    <div class="badge success" style="margin-bottom: 12px;">Trường hợp Hợp Lệ (Verified Entry)</div>
+                    <div class="slide-img-box">
+                        <img src="img_dashboard_verified.png" alt="Streamlit Dashboard in Verified state showing car brand and color match">
                     </div>
                 </div>
-                <div class="card" style="border-left: 5px solid var(--accent-red);">
-                    <div class="badge danger">BÁO ĐỘNG AN NINH (MISMATCH ALERT)</div>
-                    <div style="font-family: monospace; font-size: 0.85rem; margin-top: 10px;">
-                        [INPUT] Plate: 29A-99999 | Brand: VinFast | Color: Red<br>
-                        [DB QUERY] Plate: 29A-99999 -> Brand: Honda | Color: Black<br>
-                        <strong>[STATUS] PHÁT HIỆN LỆCH THÔNG TIN XE!</strong><br>
-                        <span style="color: var(--accent-red);">[BARRIER] KHÓA KHẨN CẤP / CÒI HÚ ĐANG BẬT</span>
+                <div style="text-align: center;">
+                    <div class="badge danger" style="margin-bottom: 12px;">Cảnh Báo Gian Lận (Mismatch Alert)</div>
+                    <div class="slide-img-box">
+                        <img src="img_dashboard_alert.png" alt="Streamlit Dashboard in Mismatch Alert state with barrier locked and warning siren">
                     </div>
                 </div>
-            </div>
-            <div style="margin-top: 25px; text-align: center;">
-                <p style="font-size: 0.95rem; color: var(--text-muted);">
-                    Hệ thống Streamlit cung cấp bảng giám sát trực quan các lần quét gần nhất, danh sách các xe bị phát hiện lệch thông tin, kèm nút bấm tạo nhanh dữ liệu giả lập cho việc trình diễn.
-                </p>
             </div>
         </div>
     </div>

@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report 3: Model & Results - Smart Parking Security System via Cross-Verification</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #fbfbf9;
+            --text-color: #1a1a17;
+            --text-muted: #5e5e57;
+            --border-color: #2e2e2a;
+            --accent-red: #991b1b;
+            --accent-orange: #c2410c;
+            --card-bg: #ffffff;
+            --accent-green: #15803d;
+            --font-editorial: 'Lora', serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-radius: 0px !important; /* Strict sharp corners */
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 80px 100px 80px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+            background: var(--bg-color);
+        }
+
+        .slide-container.active {
+            opacity: 1;
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        /* Editorial Headers */
+        h1, h2, h3, .slide-title {
+            font-family: var(--font-editorial);
+            font-weight: 700;
+            color: var(--text-color);
+            letter-spacing: -0.02em;
+        }
+
+        .slide-header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .slide-title {
+            font-size: 2.2rem;
+            line-height: 1.1;
+        }
+
+        .slide-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 5px;
+        }
+
+        .slide-number {
+            font-family: var(--font-sans);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+        }
+
+        /* Slide Content Areas */
+        .slide-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        /* Editorial Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            box-shadow: 4px 4px 0px var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--accent-red);
+        }
+
+        .card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .card-body {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+            background: transparent;
+        }
+
+        .badge.danger {
+            background: var(--accent-red);
+            color: #ffffff;
+            border-color: var(--accent-red);
+        }
+
+        .badge.success {
+            background: var(--accent-green);
+            color: #ffffff;
+            border-color: var(--accent-green);
+        }
+
+        /* Lists */
+        ul {
+            list-style-type: none;
+        }
+
+        li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
+
+        li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--accent-red);
+            font-weight: bold;
+        }
+
+        strong {
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        /* Bottom Nav Bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            border-top: 2px solid var(--border-color);
+            background: var(--bg-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 80px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            padding: 6px 16px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--border-color);
+            color: #ffffff;
+        }
+
+        .nav-counter {
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font-sans);
+        }
+
+        /* Title Slide Layout */
+        .slide-hero {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            border-bottom: 4px solid var(--accent-red);
+            padding-bottom: 20px;
+            width: 100%;
+        }
+
+        .hero-meta {
+            margin-top: 30px;
+            display: flex;
+            gap: 60px;
+            width: 100%;
+            font-size: 0.95rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 25px;
+        }
+
+        .meta-col p {
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        .meta-col strong {
+            color: var(--text-color);
+        }
+
+        /* Image Display Layout */
+        .slide-img-box {
+            border: 2px solid var(--border-color);
+            box-shadow: 6px 6px 0px var(--border-color);
+            background: #ffffff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            max-height: 400px;
+        }
+
+        .slide-img-box img {
+            max-width: 100%;
+            max-height: 380px;
+            object-fit: contain;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1ee;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SLIDE 1: Title -->
+    <div class="slide-container active" id="slide-1">
+        <div class="slide-hero">
+            <span class="badge danger" style="font-size: 0.9rem; padding: 4px 12px;">DPL302m COURSE PROJECT - REPORT 3</span>
+            <h1 class="hero-title">Kiến trúc mô hình sâu & Kết quả thực nghiệm</h1>
+            <p style="font-family: var(--font-editorial); font-size: 1.4rem; font-style: italic; color: var(--text-muted); margin-bottom: 20px;">
+                Model Architectures, Training Logs & Performance Metrics
+            </p>
+            <div class="hero-meta">
+                <div class="meta-col">
+                    <p>Giảng viên hướng dẫn</p>
+                    <strong>Thầy Trần Đức Anh</strong>
+                </div>
+                <div class="meta-col">
+                    <p>Cốt lõi mô hình</p>
+                    <strong>YOLOv8, EfficientNet, MobileNetV3</strong>
+                </div>
+                <div class="meta-col">
+                    <p>Sinh viên thực hiện</p>
+                    <strong>Konalyn (Lead Architect)</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: Model Architectures Overview -->
+    <div class="slide-container" id="slide-2">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">01 / Tổng quan kiến trúc</div>
+                <h2 class="slide-title">Hệ thống mạng nơ-ron đa nhiệm song song</h2>
+            </div>
+            <div class="slide-number">02</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3 style="margin-bottom: 12px;">Thiết kế phân rã nhiệm vụ</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.95rem;">
+                        Để hệ thống chạy mượt mà trên CPU bãi xe, chúng em không dùng một mạng tích hợp khổng lồ mà tách nhỏ thành 3 mạng chuyên biệt chạy song song bất đồng bộ:
+                    </p>
+                    <ul>
+                        <li><strong>License Plate Locator:</strong> Sử dụng **YOLOv8-nano** trích xuất nhanh bounding box.</li>
+                        <li><strong>Vehicle Brand Classifier:</strong> Sử dụng **EfficientNet-B0** trích xuất đặc trưng sâu của hãng sản xuất.</li>
+                        <li><strong>Vehicle Color Classifier:</strong> Sử dụng **MobileNetV3-Small** siêu nhẹ phân loại hệ màu sắc.</li>
+                    </ul>
+                </div>
+                <div class="slide-img-box">
+                    <img src="img_tech_stack.png" alt="Multi-task deep learning model architecture flowchart">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: License Plate Detection Config -->
+    <div class="slide-container" id="slide-3">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">02 / Định vị biển số xe</div>
+                <h2 class="slide-title">Huấn luyện & Cấu hình YOLOv8</h2>
+            </div>
+            <div class="slide-number">03</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Siêu tham số & Quá trình tối ưu</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Mô hình phát hiện biển số xe máy và ô tô được huấn luyện dựa trên cấu trúc YOLOv8-nano pre-trained weights từ COCO dataset.
+                    </p>
+                    <ul>
+                        <li><strong>Input resolution:</strong> 640x640 pixels.</li>
+                        <li><strong>Optimizer:</strong> SGD với Momentum = 0.937, Learning Rate ban đầu = 0.01.</li>
+                        <li><strong>Hàm Loss:</strong> CIoU loss cho bounding box regression, DFL (Distribution Focal Loss) và BCE (Binary Cross Entropy) cho classification.</li>
+                        <li><strong>Thời gian huấn luyện:</strong> 100 epochs, dừng sớm (Early Stopping) sau 15 epochs không cải thiện độ chính xác validation.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Thông số huấn luyện chính</h3>
+                    <div style="font-family: monospace; font-size: 0.82rem; padding-top: 10px; line-height: 1.6;">
+                        Epochs: 100 (Early stopped at epoch 84)<br>
+                        Batch Size: 16<br>
+                        Box Loss: 0.421 (Train) / 0.453 (Val)<br>
+                        Cls Loss: 0.312 (Train) / 0.339 (Val)<br>
+                        DFL Loss: 0.812 (Train) / 0.842 (Val)<br>
+                        Weights File: yolov8n_plate.pt (~6.2 MB)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: YOLOv8 Bounding Box Localization Results -->
+    <div class="slide-container" id="slide-4">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">02 / Định vị biển số xe</div>
+                <h2 class="slide-title">Kết quả định vị Bounding Box (YOLOv8)</h2>
+            </div>
+            <div class="slide-number">04</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Chỉ số đánh giá</th>
+                            <th>Tập Validation</th>
+                            <th>Tập Test Set</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>mAP@0.5</strong></td>
+                            <td>98.4%</td>
+                            <td>98.2%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>mAP@0.5:0.95</strong></td>
+                            <td>76.5%</td>
+                            <td>75.8%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Precision (Độ chính xác)</strong></td>
+                            <td>97.8%</td>
+                            <td>97.5%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recall (Độ phủ)</strong></td>
+                            <td>96.9%</td>
+                            <td>96.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Phân tích khả năng định vị</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                        Mô hình YOLOv8-nano đạt độ tin cậy vượt mong đợi khi định vị biển số xe. Việc định vị chuẩn xác vùng chứa biển số giúp cắt bỏ 90% các chi tiết hậu cảnh rác xung quanh, giảm thiểu tải điện toán và lỗi đọc sai ký tự của EasyOCR xuống mức thấp nhất.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: Character Recognition (EasyOCR) -->
+    <div class="slide-container" id="slide-5">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">03 / Nhận diện ký tự biển số</div>
+                <h2 class="slide-title">EasyOCR & Hậu xử lý hình học</h2>
+            </div>
+            <div class="slide-number">05</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>OCR hai dòng xe máy & Quy tắc chuẩn hóa</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Ký tự biển số xe Việt Nam thường gồm cả chữ cái vùng miền và các số series dài phân tách bởi dấu gạch ngang/dấu chấm.
+                    </p>
+                    <ul>
+                        <li><strong>Kiến trúc EasyOCR:</strong> Sử dụng mạng ResNet làm bộ trích xuất đặc trưng kết hợp mạng LSTM nhận diện chuỗi ký tự theo thời gian.</li>
+                        <li><strong>Khắc phục lệch dòng:</strong> Thuật toán **Spatial Sorting** gom nhóm tọa độ Y trung tâm của các hộp ký tự để tách thành dòng trên và dòng dưới chuẩn xác.</li>
+                        <li><strong>Chuẩn hóa Regex:</strong> `[A-Z0-9]` loại bỏ dấu chấm và khoảng trắng nhiễu. Ví dụ: `30K.123-45` được chuẩn hóa thành `30K12345`.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Logic gom cụm không gian</h3>
+                    <div style="font-family: monospace; font-size: 0.8rem; padding-top: 5px; line-height: 1.5;">
+                        Inputs: OCR Text Bbox coordinates<br>
+                        Step 1: Calculate median Y-center of all boxes<br>
+                        Step 2: Group boxes into top/bottom rows<br>
+                        Step 3: Sort each row horizontally by X-left coordinate<br>
+                        Step 4: Concatenate characters with hyphen divider<br>
+                        Result: "29A1-99999" (Strict Vietnamese Format)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: OCR Performance Metrics -->
+    <div class="slide-container" id="slide-6">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">03 / Nhận diện ký tự biển số</div>
+                <h2 class="slide-title">Đánh giá hiệu năng nhận diện OCR</h2>
+            </div>
+            <div class="slide-number">06</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Chỉ số độ chính xác ký tự (Character Accuracy)</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.95rem;">
+                        Chúng em kiểm thử trên tập dữ liệu biển số xe thực tế dưới nhiều điều kiện ánh sáng khác nhau:
+                    </p>
+                    <ul>
+                        <li><strong>Độ chính xác ký tự đơn lẻ (Character-level):</strong> Đạt **98.2%**.</li>
+                        <li><strong>Độ chính xác toàn bộ chuỗi biển số (Word-level):</strong> Đạt **94.5%**.</li>
+                        <li><strong>Lỗi phổ biến:</strong> Nhầm lẫn ký tự có hình học tương tự dưới điều kiện thiếu sáng hoặc biển số bị bụi bẩn che khuất (ví dụ: `8` thành `B`, `0` thành `D`, `5` thành `S`).</li>
+                    </ul>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Điều kiện ánh sáng</th>
+                            <th>Thời gian xử lý</th>
+                            <th>Độ chính xác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ban ngày / Ngoài trời sáng</td>
+                            <td>195 ms</td>
+                            <td>97.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Trong hầm tối / Thiếu sáng</td>
+                            <td>240 ms</td>
+                            <td>92.1%</td>
+                        </tr>
+                        <tr>
+                            <td>Độ trễ trung bình E2E OCR</td>
+                            <td>220 ms</td>
+                            <td>94.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: Vehicle Brand Classifier (EfficientNet-B0) -->
+    <div class="slide-container" id="slide-7">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">04 / Phân loại thương hiệu xe</div>
+                <h2 class="slide-title">Thương hiệu xe: Transfer Learning từ EfficientNet-B0</h2>
+            </div>
+            <div class="slide-number">07</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Đổi mới kiến trúc vượt qua ResNet50</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Mặc dù ResNet50 là mô hình rất mạnh mẽ, nhưng kích cỡ lớn (~98MB) và tốc độ suy luận chậm trên CPU khiến nó không phù hợp cho hệ thống thời gian thực bãi đỗ xe.
+                    </p>
+                    <ul>
+                        <li><strong>EfficientNet-B0:</strong> Chỉ nặng ~29MB (nhẹ hơn 3.3 lần), tối ưu hóa đồng đều chiều sâu, chiều rộng và độ phân giải hình ảnh thông qua scaling coefficient.</li>
+                        <li><strong>Chiến lược Transfer Learning:</strong> Giữ nguyên trọng số trích xuất đặc trưng của ImageNet, đóng băng 80% layers đầu, chỉ tinh chỉnh (Fine-tune) các Dense layers phân loại phía cuối.</li>
+                        <li><strong>Hạn chế quá khớp:</strong> Thêm lớp Dropout tỷ lệ 0.4 trước lớp Softmax phân loại.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Cấu trúc các lớp tùy chỉnh</h3>
+                    <div style="font-family: monospace; font-size: 0.8rem; padding-top: 10px; line-height: 1.5;">
+                        Input Layer: (224, 224, 3)<br>
+                        Backbone: EfficientNet-B0 (Frozen)<br>
+                        Pooling: GlobalAveragePooling2D()<br>
+                        Dense Layer 1: 256 units, Activation: ReLU<br>
+                        Regularization: Dropout(0.4) + BatchNormalization()<br>
+                        Dense Layer 2 (Output): 8 units, Activation: Softmax
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: Brand Classifier Training Logs -->
+    <div class="slide-container" id="slide-8">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">04 / Phân loại thương hiệu xe</div>
+                <h2 class="slide-title">Biểu đồ huấn luyện & Kết quả (Brand)</h2>
+            </div>
+            <div class="slide-number">08</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Nhật ký huấn luyện & Tham số hội tụ</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Huấn luyện bằng bộ tối ưu hóa Adam, Learning Rate tinh chỉnh `1e-4`, hàm loss Categorical Crossentropy.
+                    </p>
+                    <ul>
+                        <li><strong>Thời gian hội tụ:</strong> Mô hình đạt trạng thái hội tụ tối ưu tại epoch thứ 24 nhờ Early Stopping (patience=5).</li>
+                        <li><strong>Độ chính xác Validation (Accuracy):</strong> Đạt **92.8%**.</li>
+                        <li><strong>Tránh quá khớp (Overfitting):</strong> Biểu đồ loss giữa tập Train và Validation bám sát nhau, chứng tỏ tính tổng quát cao của mô hình.</li>
+                    </ul>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Thương hiệu xe</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Toyota</td><td>94.2%</td><td>95.1%</td><td>94.6%</td></tr>
+                        <tr><td>VinFast</td><td>93.5%</td><td>92.8%</td><td>93.1%</td></tr>
+                        <tr><td>Honda</td><td>91.8%</td><td>92.0%</td><td>91.9%</td></tr>
+                        <tr><td>Hyundai</td><td>92.1%</td><td>91.5%</td><td>91.8%</td></tr>
+                        <tr style="font-weight: bold; background: #eaeaea;"><td>Trung bình chung</td><td>92.8%</td><td>92.8%</td><td>92.8%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: Vehicle Color Classifier -->
+    <div class="slide-container" id="slide-9">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">05 / Phân loại màu sắc xe</div>
+                <h2 class="slide-title">Màu sắc xe: MobileNetV3-Small siêu nhẹ</h2>
+            </div>
+            <div class="slide-number">09</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Tối ưu hóa tài nguyên phần cứng bãi xe</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Nhận diện màu sắc xe máy và xe hơi không yêu cầu trích xuất các đặc trưng hình học quá phức tạp như nhận diện hãng. Do đó, chúng em lựa chọn mô hình siêu nhẹ MobileNetV3-Small.
+                    </p>
+                    <ul>
+                        <li><strong>MobileNetV3-Small:</strong> Ứng dụng cấu trúc Mobile Bottleneck blocks, Hard-swish activations và các kênh Squeeze-and-Excitation (SE) giúp tăng cường sự chú ý vào các kênh màu sắc nổi bật.</li>
+                        <li><strong>Kích thước file weights cực nhẹ:</strong> Chỉ **6.5 MB**, nạp vào bộ nhớ RAM CPU gần như tức thời.</li>
+                        <li><strong>Tốc độ suy luận vượt trội:</strong> Chỉ tốn 38 ms trên CPU thường.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Thông số kiến trúc MobileNetV3</h3>
+                    <div style="font-family: monospace; font-size: 0.8rem; padding-top: 10px; line-height: 1.5;">
+                        Input Image size: (224, 224, 3)<br>
+                        Total Parameters: 2.54 Million<br>
+                        Trainable Parameters: 1.12 Million<br>
+                        Dropout regularizer rate: 0.3<br>
+                        Output Classes: 8 (Red, Blue, White, Black, Grey, Silver, Yellow, Green)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: Color Classifier Training Logs -->
+    <div class="slide-container" id="slide-10">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">05 / Phân loại màu sắc xe</div>
+                <h2 class="slide-title">Nhật ký huấn luyện & Kết quả (Color)</h2>
+            </div>
+            <div class="slide-number">10</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nhóm màu sắc</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Trắng (White)</td><td>96.1%</td><td>95.5%</td><td>95.8%</td></tr>
+                        <tr><td>Đen (Black)</td><td>95.8%</td><td>94.8%</td><td>95.3%</td></tr>
+                        <tr><td>Đỏ (Red)</td><td>92.4%</td><td>91.2%</td><td>91.8%</td></tr>
+                        <tr><td>Xám (Grey)</td><td>88.5%</td><td>89.1%</td><td>88.8%</td></tr>
+                        <tr style="font-weight: bold; background: #eaeaea;"><td>Trung bình chung</td><td>91.5%</td><td>91.2%</td><td>91.3%</td></tr>
+                    </tbody>
+                </table>
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Phân tích biểu đồ hội tụ</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                        Mô hình phân loại màu đạt độ chính xác chung **91.2%** trên tập kiểm thử độc lập.
+                        Màu trắng và đen có tỷ lệ nhận diện cao nhất do sự tương phản đặc biệt rõ nét. Màu xám và bạc đôi khi bị nhầm lẫn nhẹ dưới điều kiện ánh sáng vàng của bóng đèn cao áp bãi xe hơi.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 11: Hyperparameter Tuning Experiments -->
+    <div class="slide-container" id="slide-11">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">06 / Tối ưu hóa siêu tham số</div>
+                <h2 class="slide-title">Các thử nghiệm tinh chỉnh siêu tham số</h2>
+            </div>
+            <div class="slide-number">11</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3>Kiểm nghiệm các cấu hình tối ưu</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Nhóm tiến hành thực nghiệm thay đổi các siêu tham số chính để tìm ra cấu hình cân bằng nhất giữa độ trễ (latency) và độ chính xác (accuracy).
+                    </p>
+                    <ul>
+                        <li><strong>Thử nghiệm 1 (Optimizer):</strong> Adam vs SGD. Kết quả Adam hội tụ nhanh hơn gấp 2 lần và đạt accuracy cao hơn 1.8% trên tập Classifiers.</li>
+                        <li><strong>Thử nghiệm 2 (Dropout Rate):</strong> So sánh dải `[0.2, 0.3, 0.4, 0.5]`. Tỷ lệ 0.4 giúp giảm thiểu tối đa hiện tượng Overfitting mà không làm mất đặc trưng.</li>
+                        <li><strong>Thử nghiệm 3 (Learning Rate):</strong> LR `1e-4` ổn định nhất, tránh hiện tượng dao động loss mạnh của LR `1e-3`.</li>
+                    </ul>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Thử nghiệm</th>
+                            <th>Mô hình</th>
+                            <th>Optimizer</th>
+                            <th>Dropout</th>
+                            <th>Accuracy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Cấu hình A</td><td>EfficientNet</td><td>SGD</td><td>0.3</td><td>88.5%</td></tr>
+                        <tr><td>Cấu hình B</td><td>EfficientNet</td><td>Adam</td><td>0.3</td><td>91.2%</td></tr>
+                        <td style="font-weight: bold;">Cấu hình C (Chọn)</td><td style="font-weight: bold;">EfficientNet</td><td style="font-weight: bold;">Adam</td><td style="font-weight: bold;">0.4</td><td style="font-weight: bold; color: var(--accent-red);">92.8%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: Integrated Pipeline Test Metrics -->
+    <div class="slide-container" id="slide-12">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">07 / Thử nghiệm liên kết</div>
+                <h2 class="slide-title">Hiệu năng tích hợp toàn chuỗi (End-to-End)</h2>
+            </div>
+            <div class="slide-number">12</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card" style="text-align: center;">
+                    <span class="badge danger">LƯU LƯỢNG (THROUGHPUT)</span>
+                    <h3 style="margin-top: 10px;">~150 xe / phút</h3>
+                    <p class="card-body" style="font-size: 0.82rem;">
+                        Tốc độ xử lý của cổng đáp ứng hoàn toàn lưu lượng xe ra vào giờ cao điểm của tòa nhà văn phòng.
+                    </p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <span class="badge success">ĐỘ TRỄ (LATENCY)</span>
+                    <h3 style="margin-top: 10px;">398 ms / xe</h3>
+                    <p class="card-body" style="font-size: 0.82rem;">
+                        Thời gian suy luận toàn hệ thống trên CPU thường, bảo chứng phản hồi ngay lập tức dưới nửa giây.
+                    </p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <span class="badge">CHẶN XE GIAN (BLOCK RATE)</span>
+                    <h3 style="margin-top: 10px;">98.7% Thành công</h3>
+                    <p class="card-body" style="font-size: 0.82rem;">
+                        Khả năng ngăn chặn các tình huống hoán đổi biển số xe cùng loại khác hãng hoặc khác màu sắc.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 13: Model Failures & Error Analysis -->
+    <div class="slide-container" id="slide-13">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">08 / Phân tích lỗi chẩn đoán</div>
+                <h2 class="slide-title">Chẩn đoán lỗi & Điểm hạn chế (CLO3)</h2>
+            </div>
+            <div class="slide-number">13</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <h3 style="margin-bottom: 12px;">Nguyên nhân gây lệch thông tin dự báo</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Mặc dù hệ thống có độ chính xác cao, nhóm vẫn chẩn đoán thấy một số lỗi biên đặc thù:
+                    </p>
+                    <ul>
+                        <li><strong>Biển số bẩn / Che khuất:</strong> Ký tự bị bùn đất che mất nét khiến EasyOCR bị nhầm lẫn số `8` và chữ `B`.</li>
+                        <li><strong>Hãng xe độ vỏ (Car Modding):</strong> Xe hơi được chủ nhân thay đổi logo lưới tản nhiệt làm EfficientNet dự đoán sai thương hiệu.</li>
+                        <li><strong>Decal dán màu (Wrapping):</strong> Xe được dán decal đổi màu diện tích lớn khiến Classifier màu dự báo sai gam màu đăng ký gốc trên CSV bãi giữ xe.</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--accent-orange);">
+                    <h3>Biện pháp tối ưu hóa tương lai</h3>
+                    <p class="card-body" style="font-size: 0.88rem;">
+                        Nhóm đề xuất tích hợp thêm mô hình phát hiện logo chi tiết (Logo Detector) và cơ chế đối chiếu lịch sử qua mã số khung xe hoặc thẻ NFC thông minh để đảm bảo an ninh tuyệt đối trong các trường hợp xe độ vỏ.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 14: Q&A -->
+    <div class="slide-container slide-bg-dark" id="slide-14" style="justify-content: center; align-items: center; text-align: center;">
+        <div>
+            <span class="badge danger" style="margin-bottom: 20px;">Report 3: Model & Results</span>
+            <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
+            <p style="font-family: var(--font-editorial); font-size: 1.5rem; font-style: italic; color: var(--text-muted); margin-bottom: 40px;">
+                Cảm ơn thầy và các bạn đã lắng nghe phần báo cáo mô hình!
+            </p>
+            <div style="width: 80px; height: 3px; background: var(--accent-red); margin: 0 auto 30px auto;"></div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+                Smart Parking Security via Cross-Verification<br>
+                Môn học: DPL302m - Deep Learning (Học Sâu) | FPT University
+            </p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="prevSlide()">← Slide trước</button>
+        <div class="nav-counter" id="slideCounter">1 / 14</div>
+        <button class="nav-btn" onclick="nextSlide()">Slide sau →</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 14;
+
+        function showSlide(n) {
+            document.querySelectorAll('.slide-container').forEach(s => s.classList.remove('active'));
+            document.getElementById(`slide-${n}`).classList.add('active');
+            document.getElementById('slideCounter').textContent = `${n} / ${totalSlides}`;
+            currentSlide = n;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+    </script>
+</body>
+
+</html>
