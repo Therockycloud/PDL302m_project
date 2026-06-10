@@ -94,7 +94,33 @@ def create_mock_data():
         with open(os.path.join(plates_dir, f"{img_name}.txt"), "w") as f:
             f.write(anno_text)
 
-    print("Mock datasets created successfully!")
+    # 4. Generate Test Dataset for E2E Evaluation
+    print("Generating mock test dataset...")
+    test_dir = "main/data/test"
+    os.makedirs(test_dir, exist_ok=True)
+    
+    # test_authorized.jpg (Plate: 30F-12345, Brand: Toyota [Redish], Color: White)
+    img_auth = Image.new("RGB", (640, 640), (200, 50, 50)) # Redish Toyota
+    draw_auth = ImageDraw.Draw(img_auth)
+    draw_auth.rectangle([220, 370, 420, 430], fill=(240, 240, 240), outline=(0, 0, 0), width=3)
+    draw_auth.text((250, 390), "30F-12345", fill=(0, 0, 0))
+    img_auth.save(os.path.join(test_dir, "test_authorized.jpg"))
+    
+    # test_mismatch.jpg (Plate: 51G-67890 [Black Hyundai], but color is Red)
+    img_mism = Image.new("RGB", (640, 640), (255, 0, 0)) # Red
+    draw_mism = ImageDraw.Draw(img_mism)
+    draw_mism.rectangle([220, 370, 420, 430], fill=(240, 240, 240), outline=(0, 0, 0), width=3)
+    draw_mism.text((250, 390), "51G-67890", fill=(0, 0, 0))
+    img_mism.save(os.path.join(test_dir, "test_mismatch.jpg"))
+    
+    # test_unregistered.jpg (Plate: 99A-99999 [Unregistered])
+    img_unreg = Image.new("RGB", (640, 640), (100, 100, 100))
+    draw_unreg = ImageDraw.Draw(img_unreg)
+    draw_unreg.rectangle([220, 370, 420, 430], fill=(240, 240, 240), outline=(0, 0, 0), width=3)
+    draw_unreg.text((250, 390), "99A-99999", fill=(0, 0, 0))
+    img_unreg.save(os.path.join(test_dir, "test_unregistered.jpg"))
+
+    print("Mock datasets and test dataset created successfully!")
 
 if __name__ == "__main__":
     create_mock_data()
