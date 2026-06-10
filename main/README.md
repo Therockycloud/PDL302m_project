@@ -153,12 +153,22 @@ pytest main/tests/
 ### 3. Khởi động Backend API (FastAPI)
 Chạy server API REST tiếp nhận ảnh quét:
 ```bash
+./run.sh api
+```
+
+Hoặc chạy trực tiếp:
+```bash
 uvicorn main.src.api.app:app --reload --port 8000
 ```
 Tài liệu hướng dẫn API trực quan có sẵn tại: `http://localhost:8000/docs`.
 
 ### 4. Khởi động Giao diện Giám sát (Streamlit)
-Mở một Terminal mới và chạy lệnh sau để mở Dashboard:
+Mở một Terminal mới và chạy một trong hai lệnh sau để mở Dashboard:
+```bash
+./run.sh ui
+```
+
+Hoặc, nếu bạn đã kích hoạt đúng môi trường Python:
 ```bash
 streamlit run main/src/ui/dashboard.py
 ```
