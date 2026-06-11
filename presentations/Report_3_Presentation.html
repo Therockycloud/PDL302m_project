@@ -603,33 +603,19 @@
         <div class="slide-body">
             <div class="grid-2">
                 <div>
-                    <h3>Nhật ký huấn luyện & Tham số hội tụ</h3>
+                    <h3>Nhật ký huấn luyện & Cấu hình thực tế</h3>
                     <p style="color: var(--text-muted); margin-bottom: 15px;">
-                        Huấn luyện bằng bộ tối ưu hóa Adam, Learning Rate tinh chỉnh `1e-4`, hàm loss Categorical Crossentropy.
+                        Huấn luyện trích xuất đặc trưng với mạng EfficientNet-B0 (đóng băng backbone), optimizer Adam, LR = 1e-4.
                     </p>
                     <ul>
-                        <li><strong>Thời gian hội tụ:</strong> Mô hình đạt trạng thái hội tụ tối ưu tại epoch thứ 24 nhờ Early Stopping (patience=5).</li>
-                        <li><strong>Độ chính xác Validation (Accuracy):</strong> Đạt **92.8%**.</li>
-                        <li><strong>Tránh quá khớp (Overfitting):</strong> Biểu đồ loss giữa tập Train và Validation bám sát nhau, chứng tỏ tính tổng quát cao của mô hình.</li>
+                        <li><strong>Số lượng Epochs:</strong> 10 epochs hoàn thành trên thiết bị CPU cục bộ.</li>
+                        <li><strong>Validation Accuracy (Thực tế):</strong> Đạt **29.00%**.</li>
+                        <li><strong>Thử thách Domain Gap:</strong> Tập dữ liệu huấn luyện Stanford Cars chủ yếu là xe hơi chụp tại Mỹ từ góc ngang, dẫn tới độ chính xác còn hạn chế khi đối chiếu góc camera trực diện/cận cảnh tại bãi giữ xe Việt Nam.</li>
                     </ul>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Thương hiệu xe</th>
-                            <th>Precision</th>
-                            <th>Recall</th>
-                            <th>F1-Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Toyota</td><td>94.2%</td><td>95.1%</td><td>94.6%</td></tr>
-                        <tr><td>VinFast</td><td>93.5%</td><td>92.8%</td><td>93.1%</td></tr>
-                        <tr><td>Honda</td><td>91.8%</td><td>92.0%</td><td>91.9%</td></tr>
-                        <tr><td>Hyundai</td><td>92.1%</td><td>91.5%</td><td>91.8%</td></tr>
-                        <tr style="font-weight: bold; background: #eaeaea;"><td>Trung bình chung</td><td>92.8%</td><td>92.8%</td><td>92.8%</td></tr>
-                    </tbody>
-                </table>
+                <div class="slide-img-box">
+                    <img src="evidence/brand_classifier_training_curves.png" alt="Brand Classifier Training Loss and Accuracy Curves">
+                </div>
             </div>
         </div>
     </div>
@@ -675,35 +661,24 @@
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">05 / Phân loại màu sắc xe</div>
-                <h2 class="slide-title">Nhật ký huấn luyện & Kết quả (Color)</h2>
+                <h2 class="slide-title">Biểu đồ huấn luyện & Kết quả (Color)</h2>
             </div>
             <div class="slide-number">10</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nhóm màu sắc</th>
-                            <th>Precision</th>
-                            <th>Recall</th>
-                            <th>F1-Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Trắng (White)</td><td>96.1%</td><td>95.5%</td><td>95.8%</td></tr>
-                        <tr><td>Đen (Black)</td><td>95.8%</td><td>94.8%</td><td>95.3%</td></tr>
-                        <tr><td>Đỏ (Red)</td><td>92.4%</td><td>91.2%</td><td>91.8%</td></tr>
-                        <tr><td>Xám (Grey)</td><td>88.5%</td><td>89.1%</td><td>88.8%</td></tr>
-                        <tr style="font-weight: bold; background: #eaeaea;"><td>Trung bình chung</td><td>91.5%</td><td>91.2%</td><td>91.3%</td></tr>
-                    </tbody>
-                </table>
+                <div class="slide-img-box">
+                    <img src="evidence/color_classifier_training_curves.png" alt="Color Classifier Training Loss and Accuracy Curves">
+                </div>
                 <div>
-                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Phân tích biểu đồ hội tụ</h3>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Thực nghiệm & Biến động màu sắc</h3>
                     <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
-                        Mô hình phân loại màu đạt độ chính xác chung **91.2%** trên tập kiểm thử độc lập.
-                        Màu trắng và đen có tỷ lệ nhận diện cao nhất do sự tương phản đặc biệt rõ nét. Màu xám và bạc đôi khi bị nhầm lẫn nhẹ dưới điều kiện ánh sáng vàng của bóng đèn cao áp bãi xe hơi.
+                        Mô hình MobileNetV3-Small siêu nhẹ được huấn luyện 10 epochs với bộ tối ưu Adam, LR = 1e-4.
                     </p>
+                    <ul>
+                        <li><strong>Validation Accuracy (Thực tế):</strong> Đạt **14.16%**.</li>
+                        <li><strong>Thử thách Cân bằng trắng:</strong> Màu sắc ngoại thất xe chịu ảnh hưởng lớn từ điều kiện ánh sáng xung quanh (ánh sáng đèn vàng hầm, ánh nắng ngoài trời). Các màu sắc trung tính (White, Silver, Grey) có sự chồng chéo lớn về phân bố pixel khiến mô hình dễ dự báo sai lệch.</li>
+                    </ul>
                 </div>
             </div>
         </div>

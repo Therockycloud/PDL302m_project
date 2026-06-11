@@ -437,7 +437,7 @@
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">02 / Phân tích khám phá (EDA)</div>
-                <h2 class="slide-title">Phân bố lớp: Hãng xe & Màu xe</h2>
+                <h2 class="slide-title">Phân bố lớp thực tế: Hãng xe & Màu xe</h2>
             </div>
             <div class="slide-number">04</div>
         </div>
@@ -445,41 +445,43 @@
             <div class="grid-2">
                 <div class="card">
                     <span class="badge danger">Brand Distribution</span>
-                    <h3 style="margin-top: 5px;">Hãng xe (8 Classes)</h3>
+                    <h3 style="margin-top: 5px;">Hãng xe (Tổng cộng: 1,209 ảnh)</h3>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
-                        Nhóm thu thập tập trung vào các thương hiệu ô tô lưu thông lớn nhất Việt Nam nhằm tối ưu hóa tính thực tiễn:
+                        Số lượng ảnh thực tế được làm sạch và chuẩn bị cho huấn luyện phân lớp:
                     </p>
                     <table style="font-size: 0.8rem; margin-top: 5px;">
                         <thead>
                             <tr>
-                                <th>Thương hiệu</th>
+                                <th>Thương hiệu xe</th>
+                                <th>Số lượng ảnh</th>
                                 <th>Tỷ lệ %</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td>Toyota, Hyundai, Honda</td><td>55.0% (Trọng tâm)</td></tr>
-                            <tr><td>VinFast, Kia, Mazda</td><td>30.0%</td></tr>
-                            <tr><td>Ford, Mercedes-Benz</td><td>15.0%</td></tr>
+                            <tr><td>Toyota, Hyundai, Ford</td><td>568 ảnh</td><td>47.0%</td></tr>
+                            <tr><td>Honda, Kia, Mazda</td><td>401 ảnh</td><td>33.2%</td></tr>
+                            <tr><td>VinFast, Mitsubishi</td><td>240 ảnh</td><td>19.8%</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="card">
                     <span class="badge success">Color Distribution</span>
-                    <h3 style="margin-top: 5px;">Màu xe (8 Classes)</h3>
+                    <h3 style="margin-top: 5px;">Màu xe (Tổng cộng: 1,130 ảnh)</h3>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
-                        Màu sắc phân phối tương đối đồng đều ngoại trừ các gam màu trung tính chiếm ưu thế tuyệt đối:
+                        Thống kê phân bố 8 gam màu cơ bản trong tập dữ liệu thực nghiệm:
                     </p>
                     <table style="font-size: 0.8rem; margin-top: 5px;">
                         <thead>
                             <tr>
-                                <th>Nhóm màu</th>
+                                <th>Nhóm màu sắc</th>
+                                <th>Số lượng ảnh</th>
                                 <th>Tỷ lệ %</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td>Trắng (White), Đen (Black)</td><td>48.0%</td></tr>
-                            <tr><td>Xám (Grey), Bạc (Silver)</td><td>28.0%</td></tr>
-                            <tr><td>Đỏ, Xanh dương, Vàng, Xanh lá</td><td>24.0%</td></tr>
+                            <tr><td>Trắng, Đen, Xám, Bạc, Xanh dương</td><td>960 ảnh</td><td>85.0%</td></tr>
+                            <tr><td>Đỏ (Red)</td><td>110 ảnh</td><td>9.7%</td></tr>
+                            <tr><td>Nâu, Vàng (Brown, Yellow)</td><td>60 ảnh</td><td>5.3%</td></tr>
                         </tbody>
                     </table>
                 </div>

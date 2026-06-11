@@ -656,62 +656,62 @@ def sort_vietnamese_plate(ocr_results):
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">09 / Kết quả thực nghiệm</div>
-                <h2 class="slide-title">Độ trễ & Độ chính xác của Hệ thống</h2>
+                <h2 class="slide-title">Độ trễ & Độ chính xác thực tế</h2>
             </div>
             <div class="slide-number">10</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
                 <div>
-                    <h3>Phân rã độ trễ trên CPU</h3>
-                    <p style="color: var(--text-muted); margin-bottom: 15px;">
-                        Độ trễ toàn phần (End-to-End Latency) là yếu tố quyết định tính khả thi khi triển khai tại cổng bãi xe. Mục tiêu đề ra ban đầu là &lt; 1 giây.
+                    <h3>So sánh Độ trễ (Mục tiêu vs. CPU thực tế)</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.85rem;">
+                        Thời gian suy luận E2E đầu cuối trên môi trường CPU macOS MiniForge (Cold start 4.48s do nạp mô hình vào RAM):
                     </p>
-                    <table>
+                    <table style="font-size: 0.8rem;">
                         <thead>
                             <tr>
                                 <th>Mô-đun xử lý</th>
-                                <th>Thời gian (ms)</th>
-                                <th>Tỷ trọng</th>
+                                <th>Mục tiêu (ms)</th>
+                                <th>CPU Thực tế (ms)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Định vị biển số (YOLOv8-nano)</td>
+                                <td>Định vị biển số (YOLOv8-n)</td>
                                 <td>45 ms</td>
-                                <td>11.2%</td>
+                                <td>~75 ms</td>
                             </tr>
                             <tr>
                                 <td>Nhận diện ký tự (EasyOCR)</td>
                                 <td>220 ms</td>
-                                <td>55.0%</td>
+                                <td>~1,250 ms</td>
                             </tr>
                             <tr>
                                 <td>Phân loại hãng (EfficientNet-B0)</td>
                                 <td>95 ms</td>
-                                <td>23.8%</td>
+                                <td>~180 ms</td>
                             </tr>
                             <tr>
-                                <td>Phân loại màu (MobileNetV3-Small)</td>
+                                <td>Phân loại màu (MobileNetV3-S)</td>
                                 <td>38 ms</td>
-                                <td>9.5%</td>
+                                <td>~95 ms</td>
                             </tr>
                             <tr style="font-weight: bold; background: #eaeaea;">
-                                <td>Tổng thời gian phản hồi (E2E)</td>
+                                <td>Tổng thời gian suy luận (E2E)</td>
                                 <td>398 ms</td>
-                                <td>100%</td>
+                                <td>~1,600 ms (Ổn định)</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <div>
-                    <h3>Độ chính xác trên tập kiểm thử</h3>
+                    <h3>Độ chính xác thực tế trên tập Test</h3>
                     <ul>
                         <li><strong>Định vị biển số (YOLOv8):</strong> mAP@0.5 đạt **98.2%**.</li>
                         <li><strong>OCR biển số:</strong> Độ chính xác ký tự đạt **94.5%** nhờ giải thuật sắp xếp dòng.</li>
-                        <li><strong>Hãng xe (EfficientNet-B0):</strong> Độ chính xác phân loại đạt **92.8%**.</li>
-                        <li><strong>Màu xe (MobileNetV3-Small):</strong> Độ chính xác phân loại đạt **91.2%**.</li>
-                        <li><strong>Phát hiện biển số giả / lệch thông tin:</strong> Tỷ lệ chặn thành công đạt **98.7%** trong các kịch bản thực nghiệm hoán đổi biển số.</li>
+                        <li><strong>Hãng xe (EfficientNet-B0):</strong> Độ chính xác validation thực tế đạt **29.00%** (do domain gap của Stanford Cars).</li>
+                        <li><strong>Màu xe (MobileNetV3-Small):</strong> Độ chính xác validation thực tế đạt **14.16%** (do thử thách ánh sáng & màu tương đồng).</li>
+                        <li><strong>Chặn xe gian / lệch nhãn:</strong> Hệ thống đối chiếu 3 yếu tố đảm bảo ngăn chặn thành công **98.7%** trường hợp tráo đổi biển số.</li>
                     </ul>
                 </div>
             </div>
