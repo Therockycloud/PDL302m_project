@@ -446,50 +446,96 @@ with col_feed:
                 st.error("Could not decode the uploaded image.")
 
     elif mode == "Upload Video":
+        def _ensure_sample_video() -> str:
+            import urllib.request
+            dest_dir = _PROJECT_ROOT / "main" / "data" / "test"
+            dest_path = dest_dir / "sample_parking.mp4"
+            if dest_path.exists():
+                return str(dest_path)
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            
+            urls = [
+                "https://github.com/intel-iot-devkit/sample-videos/raw/master/car-detection-courtyard.mp4",
+                "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/car-detection-courtyard.mp4",
+                "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/car-detection.mp4"
+            ]
+            
+            downloaded = False
+            for url in urls:
+                try:
+                    req = urllib.request.Request(
+                        url,
+                        headers={'User-Agent': 'Mozilla/5.0'}
+                    )
+                    with urllib.request.urlopen(req) as response:
+                        data = response.read()
+                        with open(dest_path, 'wb') as out_file:
+                            out_file.write(data)
+                    downloaded = True
+                    break
+                except Exception:
+                    continue
+            
+            if not downloaded:
+                st.error("Failed to auto-download sample video from all sources.")
+            return str(dest_path)
+
         uploaded_vid = st.file_uploader(
             "Drop a video",
             type=["mp4", "avi", "mov", "mkv"],
             label_visibility="collapsed",
         )
-        if uploaded_vid is not None:
-            # Write to a temp file so OpenCV can read it
-            import tempfile, os
+        play_default = False
+        if uploaded_vid is None:
+            play_default = st.checkbox("📹 Play Default Parking Video")
 
-            tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-            tfile.write(uploaded_vid.read())
-            tfile.flush()
+        if uploaded_vid is not None or play_default:
+            video_path = None
+            tfile = None
+            if uploaded_vid is not None:
+                import tempfile
+                tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+                tfile.write(uploaded_vid.read())
+                tfile.flush()
+                video_path = tfile.name
+            else:
+                video_path = _ensure_sample_video()
 
-            cap = cv2.VideoCapture(tfile.name)
-            frame_slot = st.empty()
-            stop = st.button("⏹ Stop Processing")
+            if video_path and os.path.exists(video_path):
+                cap = cv2.VideoCapture(video_path)
+                frame_slot = st.empty()
+                stop = st.button("⏹ Stop Processing")
 
-            while cap.isOpened() and not stop:
-                ret, frame = cap.read()
-                if not ret:
-                    break
+                while cap.isOpened() and not stop:
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
 
-                _current_results, _current_latency = _run_pipeline(
-                    frame, models, conf_threshold
-                )
-                if _current_results:
-                    frame = draw_detection_overlay(
-                        frame, _current_results, _current_results[0]
+                    _current_results, _current_latency = _run_pipeline(
+                        frame, models, conf_threshold
                     )
-                    # Update counters
-                    st.session_state["total_processed"] += 1
-                    st.session_state["latencies"].append(_current_latency)
-                    for r in _current_results:
-                        if r.get("status") in ("MISMATCH", "UNREGISTERED"):
-                            st.session_state["alert_count"] += 1
+                    if _current_results:
+                        frame = draw_detection_overlay(
+                            frame, _current_results, _current_results[0]
+                        )
+                        # Update counters
+                        st.session_state["total_processed"] += 1
+                        st.session_state["latencies"].append(_current_latency)
+                        for r in _current_results:
+                            if r.get("status") in ("MISMATCH", "UNREGISTERED"):
+                                st.session_state["alert_count"] += 1
 
-                display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame_slot.image(display_rgb, use_container_width=True)
+                    display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    frame_slot.image(display_rgb, use_container_width=True)
 
-            cap.release()
-            try:
-                os.unlink(tfile.name)
-            except OSError:
-                pass
+                cap.release()
+                if tfile is not None:
+                    try:
+                        os.unlink(tfile.name)
+                    except OSError:
+                        pass
+            else:
+                st.error("Default parking video not found or could not be loaded.")
 
     elif mode == "Webcam":
         cam_input = st.camera_input("Capture a frame")
