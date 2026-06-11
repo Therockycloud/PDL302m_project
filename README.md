@@ -1,6 +1,7 @@
 # 🚗 Smart Parking Security System via Cross-Verification
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg?logo=docker)](https://www.docker.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg?style=flat&logo=FastAPI)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31.0-FF4B4B.svg?style=flat&logo=Streamlit)](https://streamlit.io/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://github.com/ultralytics/ultralytics)
@@ -43,8 +44,9 @@ Hệ thống được thiết kế theo mô hình Microservices phân tách đ�
        ▼                                              │ (Phân loại màu)
  ┌───────────┐                                        ▼
  │  EasyOCR  │ (Đọc ký tự biển số)              ┌───────────┐
- └─────┬─────┘                                  │MobileNetV3│
-       ▼                                        └─────┬─────┘
+ │           │                                  │MobileNetV3│
+ └─────┬─────┘                                  └─────┬─────┘
+       ▼                                              │
  ┌───────────┐                                        │
  │  Spatial  │ (Sắp xếp không gian 2 dòng)            │
  │  Sorting  │                                        │
@@ -75,95 +77,53 @@ Hệ thống được huấn luyện và đánh giá trên bộ dữ liệu th�
 
 ---
 
+## 🛠️ Hướng dẫn cài đặt & Vận hành (Installation & Setup via Docker)
+
+Hệ thống hỗ trợ cài đặt và chạy tức thời bằng Docker và Docker Compose trên mọi hệ điều hành (macOS, Windows, Linux) mà không cần cài đặt môi trường Python hay các thư viện OpenCV/Học sâu trên máy chủ:
+
+### 1. Khởi động hệ thống (Start API & Dashboard)
+Chạy lệnh sau từ thư mục gốc của dự án:
+```bash
+docker compose up --build
+```
+*Lệnh này sẽ tự động tải các dependencies, tải trước các mô hình YOLOv8 và EasyOCR để chạy ngoại tuyến, khởi động Backend FastAPI (cổng 8000) và Dashboard Streamlit (cổng 8501) song song.*
+
+*   **API Documentation (Swagger UI)**: Truy cập tại `http://localhost:8000/docs`
+*   **Vận hành Dashboard UI**: Truy cập tại `http://localhost:8501`
+
+### 2. Dừng và dọn dẹp môi trường (Clear Environment)
+Để dừng các container và giải phóng bộ nhớ, chạy:
+```bash
+docker compose down
+```
+
+---
+
+## 🏃 Kiểm thử hệ thống (Running Tests inside Container)
+
+Để thực thi bộ unit test tự động (gồm 15 bài test kiểm tra OCR, so khớp CSDL, logic tiền xử lý) bên trong môi trường Docker đang chạy:
+
+```bash
+docker compose exec backend pytest main/tests/
+```
+
+---
+
 ## ⚡ Tối ưu hóa suy luận trên CPU ngoại tuyến (Offline CPU Optimizations)
 
 Để hệ thống hoạt động với hiệu năng ổn định nhất trên các PC bãi đỗ chạy CPU thông thường và không cần kết nối Internet, dự án tích hợp các giải pháp tối ưu sau:
 
 ### 1. Khắc phục nghẽn luồng / Treo CPU (Thread Deadlock Fix)
 Khi TensorFlow và PyTorch chạy song song, việc tranh chấp luồng tính toán có thể làm đơ hệ thống. Chúng ta bắt buộc phải cấu hình giới hạn đơn luồng cho các thư viện xử lý trước khi chạy:
-```bash
-export OMP_NUM_THREADS=1
-export MKL_NUM_THREADS=1
-export OPENBLAS_NUM_THREADS=1
-export VECLIB_MAXIMUM_THREADS=1
-export NUMEXPR_NUM_THREADS=1
-```
-*Giải pháp này đưa độ trễ suy luận ổn định về mức cực thấp chỉ **~1.6 giây / xe**.*
+*   Được tự động cấu hình trong `Dockerfile` và `docker-compose.yml` thông qua các biến môi trường:
+    *   `OMP_NUM_THREADS=1`
+    *   `MKL_NUM_THREADS=1`
+    *   `OPENBLAS_NUM_THREADS=1`
+    *   `VECLIB_MAXIMUM_THREADS=1`
+    *   `NUMEXPR_NUM_THREADS=1`
+*   *Giải pháp này đưa độ trễ suy luận ổn định về mức cực thấp chỉ **~1.6 giây / xe**.*
 
 ### 2. Cấu hình chạy ngoại tuyến hoàn toàn (100% Offline Mode)
 *   **EasyOCR**: Tắt tính năng tự động tải hoặc kiểm tra mô hình qua mạng bằng cách khởi tạo: `easyocr.Reader(..., download_enabled=False)`.
 *   **YOLOv8**: Tắt tính năng đồng bộ telemetry của Ultralytics qua: `settings.update({"sync": False})`. Sao chép thủ công tệp font hệ thống `Arial.ttf` vào thư mục mặc định `~/.config/Ultralytics/` để chặn việc YOLOv8 tự động tải font mỗi lần suy luận.
-
----
-
-## 🛠️ Hướng dẫn cài đặt đa nền tảng (Installation Setup)
-
-Khuyến khích sử dụng **Miniconda** (Python 3.12) để tránh xung đột thư viện hệ thống.
-
-### 🍏 1. Hướng dẫn cho macOS
-1.  Khởi tạo và kích hoạt môi trường:
-    ```bash
-    conda create -n dpl302m python=3.12 -y
-    conda activate dpl302m
-    ```
-2.  Cài đặt dependencies:
-    ```bash
-    pip install -r main/requirements.txt
-    ```
-3.  Thiết lập môi trường chạy cục bộ:
-    ```bash
-    export KMP_DUPLICATE_LIB_OK=TRUE
-    export PYTHONPATH=main
-    ```
-
-### 🐧 2. Hướng dẫn cho Linux (Ubuntu/Debian)
-1.  Cài đặt thư viện đồ họa hệ thống cho OpenCV & EasyOCR:
-    ```bash
-    sudo apt-get update && sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
-    ```
-2.  Khởi tạo môi trường và cài đặt:
-    ```bash
-    conda create -n dpl302m python=3.12 -y
-    conda activate dpl302m
-    pip install -r main/requirements.txt
-    export PYTHONPATH=main
-    ```
-
-### 🪟 3. Hướng dẫn cho Windows
-1.  Mở Anaconda Prompt (Run as Administrator).
-2.  Tạo và kích hoạt môi trường:
-    ```cmd
-    conda create -n dpl302m python=3.12 -y
-    conda activate dpl302m
-    pip install -r main/requirements.txt
-    ```
-3.  Cấu hình môi trường CMD:
-    ```cmd
-    set KMP_DUPLICATE_LIB_OK=TRUE
-    set PYTHONPATH=main
-    ```
-
----
-
-## 🏃 Vận hành & Kiểm thử (Execution & Testing)
-
-Tất cả lệnh dưới đây phải chạy từ **thư mục gốc** (`PDL302m_project`):
-
-### 1. Khởi động Backend API (FastAPI)
-```bash
-python -m uvicorn main.src.api.app:app --reload --port 8000
-```
-*Tài liệu hướng dẫn endpoints trực quan có sẵn tại: `http://localhost:8000/docs`.*
-
-### 2. Khởi động Giao diện Giám sát (Streamlit)
-Mở một Terminal mới và chạy:
-```bash
-streamlit run main/src/ui/dashboard.py
-```
-*Giao diện Dashboard vận hành sẽ mở tại: `http://localhost:8501`.*
-
-### 3. Chạy Unit Tests tự động
-Hệ thống tích hợp 15 bài kiểm thử unit test chạy qua pytest:
-```bash
-pytest main/tests/
-```
+*   *Lưu ý: Dockerfile đã tự động tải trước các model weights này trong quá trình build để container hoạt động hoàn toàn ngoại tuyến.*
