@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from src.engine.parking_trigger import READY_TO_DECIDE, DECIDED, IDLE
+from src.engine.parking_trigger import READY_TO_DECIDE, TRACKING, IDLE
 
 
 class ParkingSession:
@@ -50,6 +50,10 @@ class ParkingSession:
         if state == IDLE:
             self._collected = []
             self._decision = None
+        elif state == TRACKING:
+            # Vehicle re-entered motion before parking: discard the partial
+            # collection so one decision only mixes a single stable window.
+            self._collected = []
         elif state == READY_TO_DECIDE:
             self._collect(detections)
             if len(self._collected) >= self.collect_frames:
@@ -65,8 +69,17 @@ class ParkingSession:
             detections,
             key=lambda d: (d["bbox"][2] - d["bbox"][0]) * (d["bbox"][3] - d["bbox"][1]),
         )
-        plate = self.plate_reader.read(veh["crop"])
-        color, _conf = self.color_clf.predict(veh["crop"])
+        crop = veh.get("crop")
+        # Guard against degenerate boxes (zero/tiny crops) that would crash the
+        # downstream OCR / colour resize. A bad frame contributes no vote rather
+        # than aborting the whole video loop.
+        if crop is None or crop.size == 0 or crop.shape[0] < 2 or crop.shape[1] < 2:
+            return
+        try:
+            plate = self.plate_reader.read(crop)
+            color, _conf = self.color_clf.predict(crop)
+        except Exception:
+            return
         self._collected.append({"plate_text": plate["text"], "color": color})
 
     def _output(self) -> dict[str, Any]:

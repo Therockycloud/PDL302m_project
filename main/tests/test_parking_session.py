@@ -59,3 +59,35 @@ def test_non_sampled_frames_skip_heavy_work():
     out = sess.process_frame(frame)  # frame 1, not a multiple of 5
     assert out["decision"] is None
     assert out["state"] in ("IDLE",)
+
+
+class DegenerateCropDetector:
+    """Returns a large, low, centered box but with a zero-size crop."""
+
+    def detect(self, frame):
+        return [{"bbox": (220, 240, 420, 480), "conf": 0.9,
+                 "crop": np.zeros((0, 10, 3), dtype=np.uint8)}]
+
+
+class ExplodingColorClf:
+    def predict(self, crop):
+        raise ValueError("resize on zero-size axis")
+
+
+def test_degenerate_crop_does_not_crash_and_yields_no_decision():
+    from src.engine.decision_engine import DecisionEngine
+    from src.engine.parking_trigger import ParkingTrigger
+
+    sess = ParkingSession(
+        vehicle_detector=DegenerateCropDetector(),
+        plate_reader=FakePlateReader(),
+        color_clf=ExplodingColorClf(),
+        decision_engine=DecisionEngine(FakeMatcher()),
+        trigger=ParkingTrigger(min_area_ratio=0.15, stable_frames=2, move_eps=0.05),
+        sample_interval=1,
+        collect_frames=2,
+    )
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    for _ in range(10):
+        out = sess.process_frame(frame)  # must not raise
+    assert out["decision"] is None
