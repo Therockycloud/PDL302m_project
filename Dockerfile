@@ -34,7 +34,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Pre-download models for offline execution
 RUN python -c "import easyocr; easyocr.Reader(['en'])" && \
-    python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+    python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')" && \
+    python -c "import tensorflow as tf; tf.keras.applications.EfficientNetB0(include_top=False, weights='imagenet'); tf.keras.applications.MobileNetV3Small(include_top=False, weights='imagenet')"
 
 # Copy the rest of the application
 COPY . /app
