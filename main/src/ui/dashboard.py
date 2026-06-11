@@ -149,6 +149,44 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
     except Exception:
         logger.exception("DatabaseMatcher load failed.")
 
+    # Two-stage parking session (best-effort; UI still works if parts missing)
+    try:
+        from src.models.vehicle_detector import VehicleDetector
+        from src.models.plate_reader import PlateReader
+        from src.engine.parking_trigger import ParkingTrigger
+        from src.engine.decision_engine import DecisionEngine
+        from src.engine.parking_session import ParkingSession
+
+        pcfg = cfg.get("pipeline", {})
+        tcfg = pcfg.get("trigger", {})
+        det_model = str(_PROJECT_ROOT / cfg["paths"]["model_save_dir"] / cfg["detector"]["model_name"])
+        plate_model = str(_PROJECT_ROOT / cfg["paths"]["model_save_dir"] / cfg["plate_detector"]["model_name"])
+
+        vehicle_det = VehicleDetector(model_path=det_model, conf=cfg["detector"].get("conf_threshold", 0.3))
+        plate_det = VehicleDetector(
+            model_path=plate_model,
+            conf=cfg["plate_detector"].get("conf_threshold", 0.3),
+            vehicle_classes=None,
+        )
+        if models.get("ocr") is not None and models.get("color_clf") is not None and models.get("matcher") is not None:
+            session = ParkingSession(
+                vehicle_detector=vehicle_det,
+                plate_reader=PlateReader(plate_det, models["ocr"]),
+                color_clf=models["color_clf"],
+                decision_engine=DecisionEngine(models["matcher"]),
+                trigger=ParkingTrigger(
+                    roi=tcfg.get("roi"),
+                    min_area_ratio=tcfg.get("min_area_ratio", 0.15),
+                    stable_frames=tcfg.get("stable_frames", 5),
+                    move_eps=tcfg.get("move_eps", 0.02),
+                ),
+                sample_interval=pcfg.get("frame_sample_interval", 5),
+                collect_frames=pcfg.get("collect_frames", 5),
+            )
+            models["session"] = session
+    except Exception:
+        logger.exception("ParkingSession construction failed.")
+
     st.session_state["models"] = models
     return models
 
@@ -511,19 +549,25 @@ with col_feed:
                     if not ret:
                         break
 
-                    _current_results, _current_latency = _run_pipeline(
-                        frame, models, conf_threshold
-                    )
-                    if _current_results:
-                        frame = draw_detection_overlay(
-                            frame, _current_results, _current_results[0]
+                    session = models.get("session")
+                    if session is not None:
+                        out = session.process_frame(frame)
+                        for d in out["overlay_results"]:
+                            x1, y1, x2, y2 = d["bbox"]
+                            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 135, 90), 2)
+                        cv2.putText(
+                            frame, f"STATE: {out['state']}", (10, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 135, 90), 2,
                         )
-                        # Update counters
-                        st.session_state["total_processed"] += 1
-                        st.session_state["latencies"].append(_current_latency)
-                        for r in _current_results:
-                            if r.get("status") in ("MISMATCH", "UNREGISTERED"):
+                        if out["decision"] is not None:
+                            dec = out["decision"]
+                            st.session_state["total_processed"] += 1
+                            if dec["status"] in ("MISMATCH", "UNREGISTERED"):
                                 st.session_state["alert_count"] += 1
+                            cv2.putText(
+                                frame, f"{dec['status']}: {dec['plate']}", (10, 65),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
+                            )
 
                     display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame_slot.image(display_rgb, use_container_width=True)
@@ -540,18 +584,21 @@ with col_feed:
     elif mode == "Webcam":
         cam_input = st.camera_input("Capture a frame")
         if cam_input is not None:
-            raw = np.frombuffer(cam_input.getvalue(), dtype=np.uint8)
-            frame = cv2.imdecode(raw, cv2.IMREAD_COLOR)
-            if frame is not None:
-                _current_results, _current_latency = _run_pipeline(
-                    frame, models, conf_threshold
-                )
-                if _current_results:
-                    frame = draw_detection_overlay(
-                        frame, _current_results, _current_results[0]
+            file_bytes = np.frombuffer(cam_input.getvalue(), np.uint8)
+            frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            session = models.get("session")
+            if session is not None and frame is not None:
+                out = session.process_frame(frame)
+                for d in out["overlay_results"]:
+                    x1, y1, x2, y2 = d["bbox"]
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 135, 90), 2)
+                if out["decision"] is not None:
+                    dec = out["decision"]
+                    cv2.putText(
+                        frame, f"{dec['status']}: {dec['plate']}", (10, 35),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
                     )
-                display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                st.image(display_rgb, use_container_width=True)
+                st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), use_container_width=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
