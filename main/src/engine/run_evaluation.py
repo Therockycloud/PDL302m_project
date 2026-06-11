@@ -83,7 +83,7 @@ def main():
 
             # 5. Database verification
             match_result = matcher.verify_vehicle(
-                plate_text, brand, color
+                plate_text, color
             )
             result["status"] = match_result.get("status", "ERROR")
             result["action"] = match_result.get("action", "DENY_ALERT")

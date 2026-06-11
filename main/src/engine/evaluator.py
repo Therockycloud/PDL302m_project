@@ -34,7 +34,7 @@ class SystemEvaluator:
         color_classifier: Color classifier exposing
             ``predict(image)`` → tuple[str, float].
         matcher: ``DatabaseMatcher`` instance with
-            ``verify_vehicle(plate, brand, color)`` → dict.
+            ``verify_vehicle(plate, color)`` → dict.
     """
 
     def __init__(
@@ -130,7 +130,7 @@ class SystemEvaluator:
 
             # 5. Database verification
             match_result = self.matcher.verify_vehicle(
-                plate_text, brand, color
+                plate_text, color
             )
             result["status"] = match_result.get("status", "ERROR")
             result["action"] = match_result.get("action", "DENY_ALERT")

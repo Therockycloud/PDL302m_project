@@ -311,7 +311,6 @@ async def verify_vehicle(file: UploadFile = File(...)) -> JSONResponse:
             try:
                 verification = matcher.verify_vehicle(
                     detected_plate=plate_text,
-                    detected_brand=brand,
                     detected_color=color,
                 )
             except Exception:

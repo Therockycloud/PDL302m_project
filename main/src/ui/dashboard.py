@@ -231,7 +231,7 @@ def _run_pipeline(
         }
         if matcher is not None and plate_text:
             try:
-                verification = matcher.verify_vehicle(plate_text, brand, color)
+                verification = matcher.verify_vehicle(plate_text, color)
             except Exception:
                 logger.exception("Matcher error.")
 
