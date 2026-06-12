@@ -25,8 +25,11 @@ def measure(model_path: str, data_yaml: str) -> dict:
     size_mb = round(os.path.getsize(model_path) / 1e6, 2) if os.path.exists(model_path) else 0.0
     speed = getattr(metrics, "speed", {}) or {}
     latency_ms = round(float(speed.get("inference", 0.0)), 3)
+    # Label by the run directory name (".../plate_finetune/weights/best.pt"
+    # -> "plate_finetune") so the two candidates are distinguishable.
+    run_name = os.path.basename(os.path.dirname(os.path.dirname(model_path)))
     return {
-        "name": os.path.basename(model_path),
+        "name": run_name or os.path.basename(model_path),
         "mAP50": round(float(metrics.box.map50), 4),
         "mAP50_95": round(float(metrics.box.map), 4),
         "latency_ms": latency_ms,

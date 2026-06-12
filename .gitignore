@@ -52,7 +52,12 @@ Thumbs.db
 # Large raw training datasets (retaining license_plates for test runs)
 main/data/raw/car_brands/
 main/data/raw/car_colors/
+main/data/raw/plate_det/
 
-# Model training logs
+# Model training runs (checkpoints/plots) and logs — keep only exported ONNX
+main/data/models/plate_runs/
 main/data/models/logs/
+
+# Stray downloaded base weights
+main/yolov8n.pt
 
