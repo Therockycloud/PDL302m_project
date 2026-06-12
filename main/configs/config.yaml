@@ -55,6 +55,20 @@ color_classifier:
     - Yellow
 
 # Two-stage parking pipeline
+#
+# Camera-angle calibration (no code changes needed):
+#   The trigger fires when the largest vehicle is (a) inside `roi`, (b) at least
+#   `min_area_ratio` of the frame, and (c) still for `stable_frames` samples.
+#   These are tuned for a camera mounted IN THE PARKING SLOT CORNER looking OUT,
+#   where a reverse-parking car backs toward the camera (rear plate facing it)
+#   and grows large + low in the frame before stopping.
+#
+#   To calibrate for a new camera/clip, run:
+#     python scripts/calibrate_roi.py --source <your_clip.mp4> --frame-frac 0.7
+#   and adjust `roi` (x0 y0 x1 y1, normalized 0..1) and `min_area_ratio` until
+#   the parked car shows GATE (green). Example corner-out preset:
+#     roi: [0.15, 0.30, 0.85, 1.0]   # wider, taller catch zone for a close car
+#     min_area_ratio: 0.20           # car fills more of the frame when backed in
 pipeline:
   frame_sample_interval: 5
   collect_frames: 5
@@ -62,7 +76,7 @@ pipeline:
     min_area_ratio: 0.15
     stable_frames: 5
     move_eps: 0.02
-    roi: null   # null => default middle-bottom ROI
+    roi: null   # null => default middle-bottom ROI (0.2,0.4,0.8,1.0)
 
 # Dedicated license-plate detector (stage 2)
 plate_detector:
