@@ -50,11 +50,12 @@ try:
 except ImportError:
     PlateOCR = None  # type: ignore[assignment,misc]
 
+# PyTorch colour classifier — the TF ColorClassifier crashes when PaddleOCR is
+# also loaded (``mutex lock failed``), so TF is kept out of the runtime entirely.
 try:
-    from src.models.classifiers import BrandClassifier, ColorClassifier
-except ImportError:
-    BrandClassifier = None  # type: ignore[assignment,misc]
-    ColorClassifier = None  # type: ignore[assignment,misc]
+    from src.models.torch_color import TorchColorClassifier
+except Exception:  # noqa: BLE001
+    TorchColorClassifier = None  # type: ignore[assignment,misc]
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -116,31 +117,16 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
         except Exception:
             logger.exception("PlateOCR load failed.")
 
-    # Brand classifier
-    if BrandClassifier is not None:
-        try:
-            brand_model_path = str(
-                _PROJECT_ROOT / cfg["paths"]["model_save_dir"] / "brand_classifier.keras"
-            )
-            brand_clf = BrandClassifier()
-            brand_clf.build_model()
-            brand_clf.load_weights(brand_model_path)
-            models["brand_clf"] = brand_clf
-        except Exception:
-            logger.exception("BrandClassifier load failed.")
-
-    # Color classifier
-    if ColorClassifier is not None:
+    # Vehicle colour classifier (PyTorch MobileNetV3 from Benchmark A).
+    # Brand classification was dropped from the decision (plate + colour only).
+    if TorchColorClassifier is not None:
         try:
             color_model_path = str(
-                _PROJECT_ROOT / cfg["paths"]["model_save_dir"] / "color_classifier.keras"
+                _PROJECT_ROOT / cfg["paths"]["model_save_dir"] / "color_MobileNetV3Small.pt"
             )
-            color_clf = ColorClassifier()
-            color_clf.build_model()
-            color_clf.load_weights(color_model_path)
-            models["color_clf"] = color_clf
+            models["color_clf"] = TorchColorClassifier(color_model_path)
         except Exception:
-            logger.exception("ColorClassifier load failed.")
+            logger.exception("TorchColorClassifier load failed.")
 
     # Database matcher
     try:
@@ -168,10 +154,19 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
             conf=cfg["plate_detector"].get("conf_threshold", 0.3),
             vehicle_classes=None,
         )
-        if models.get("ocr") is not None and models.get("color_clf") is not None and models.get("matcher") is not None:
+        # Pick the OCR engine (PaddleOCR won Benchmark C; EasyOCR is the fallback).
+        plate_ocr = models.get("ocr")
+        if cfg.get("ocr", {}).get("engine", "easyocr") == "ppocr":
+            try:
+                from src.models.ppocr_reader import PaddleOCRReader
+                plate_ocr = PaddleOCRReader(lang=cfg["ocr"].get("languages", ["en"])[0])
+            except Exception:
+                logger.exception("PaddleOCR unavailable; falling back to EasyOCR.")
+
+        if plate_ocr is not None and models.get("color_clf") is not None and models.get("matcher") is not None:
             session = ParkingSession(
                 vehicle_detector=vehicle_det,
-                plate_reader=PlateReader(plate_det, models["ocr"]),
+                plate_reader=PlateReader(plate_det, plate_ocr),
                 color_clf=models["color_clf"],
                 decision_engine=DecisionEngine(models["matcher"]),
                 trigger=ParkingTrigger(

@@ -3,7 +3,9 @@ ultralytics>=8.0.0
 onnxruntime>=1.16.0
 tensorflow>=2.10.0
 opencv-python>=4.6.0
-easyocr>=1.6.2
+easyocr>=1.6.2          # fallback OCR engine
+paddleocr>=3.0.0        # primary OCR engine (won Benchmark C)
+paddlepaddle>=3.0.0     # PaddleOCR backend (CPU)
 
 # Data Processing & Utilities
 numpy>=1.21.6

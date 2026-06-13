@@ -15,7 +15,7 @@ detector:
 ocr:
   languages: ["en"]  # English is standard for alphanumeric plates
   gpu: false         # Toggle CPU vs GPU for OCR
-  engine: "easyocr"   # easyocr | ppocr
+  engine: "ppocr"   # ppocr | easyocr  (PaddleOCR won Benchmark C: 81% vs 0% exact-match)
 
 # Keras EfficientNet-B0 Brand Classifier Parameters
 brand_classifier:

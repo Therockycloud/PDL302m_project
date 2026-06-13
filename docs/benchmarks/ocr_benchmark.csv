@@ -1,0 +1,5 @@
+method,exact_match,mean_cer,latency_ms
+easyocr,0.0,0.278,31.7
+easyocr+enhance,0.062,0.289,47.2
+ppocr,0.812,0.031,423.2
+ppocr+enhance,0.438,0.092,423.3
