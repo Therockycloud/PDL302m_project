@@ -557,10 +557,12 @@ with col_feed:
                         if out["decision"] is not None:
                             dec = out["decision"]
                             st.session_state["total_processed"] += 1
-                            if dec["status"] in ("MISMATCH", "UNREGISTERED"):
+                            warn = dec.get("action") == "ALLOW_WARN"
+                            if dec["status"] == "UNREGISTERED" or warn:
                                 st.session_state["alert_count"] += 1
+                            label = f"{dec['status']}: {dec['plate']}" + (" (colour?)" if warn else "")
                             cv2.putText(
-                                frame, f"{dec['status']}: {dec['plate']}", (10, 65),
+                                frame, label, (10, 65),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
                             )
 
@@ -616,7 +618,7 @@ with col_results:
 
         for res in _current_results:
             st.session_state["results_log"].insert(0, res)
-            if res.get("status") in ("MISMATCH", "UNREGISTERED"):
+            if res.get("status") == "UNREGISTERED" or res.get("action") == "ALLOW_WARN":
                 st.session_state["alert_count"] += 1
                 # Inject alarm audio
                 alarm_html = get_alarm_html(res["status"])

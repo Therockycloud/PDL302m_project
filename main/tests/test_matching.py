@@ -35,11 +35,14 @@ class TestDatabaseMatcher(unittest.TestCase):
         self.assertEqual(result['status'], 'UNREGISTERED')
         self.assertEqual(result['action'], 'DENY_ALERT')
 
-    def test_color_mismatch(self):
+    def test_color_warning_is_authorized_not_denied(self):
+        # Plate-primary: a correct plate with a differing colour is AUTHORIZED
+        # but flagged (soft warning), not hard-denied.
         result = self.matcher.verify_vehicle("30F-12345", "Black")
-        self.assertEqual(result['status'], 'MISMATCH')
-        self.assertEqual(result['action'], 'DENY_ALERT')
-        self.assertIn("Color Mismatch", result['message'])
+        self.assertEqual(result['status'], 'AUTHORIZED')
+        self.assertEqual(result['action'], 'ALLOW_WARN')
+        self.assertTrue(result['color_warning'])
+        self.assertIn("colour", result['message'].lower())
 
 
 if __name__ == '__main__':

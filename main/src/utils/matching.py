@@ -26,18 +26,24 @@ class DatabaseMatcher:
     def verify_vehicle(self, detected_plate: str, detected_color: str) -> dict:
         """Verify a detected vehicle against the registered database.
 
-        Matching is plate-first; colour is a secondary verification layer
-        to catch a real plate cloned onto a different vehicle.
+        Plate-primary: the plate is the key. A registered plate is AUTHORIZED;
+        colour is a *soft* secondary signal — if it differs (possible plate
+        cloning, or just a noisy colour prediction) the vehicle is still
+        AUTHORIZED but flagged with ``action='ALLOW_WARN'`` and
+        ``color_warning=True`` rather than hard-denied. This avoids false
+        denials from an imperfect colour classifier while still surfacing the
+        discrepancy. An unregistered plate is denied.
 
         Args:
             detected_plate: The recognized plate sequence.
             detected_color: The classified car colour.
 
         Returns:
-            dict with 'status', 'action', and 'message' keys.
+            dict with 'status', 'action', 'message' and 'color_warning' keys.
         """
         if self.db is None:
-            return {'status': 'ERROR', 'action': 'DENY', 'message': 'Database not loaded'}
+            return {'status': 'ERROR', 'action': 'DENY', 'message': 'Database not loaded',
+                    'color_warning': False}
 
         clean_plate = str(detected_plate).replace(' ', '').replace('-', '').replace('.', '').upper()
         clean_color = str(detected_color).strip().upper()
@@ -49,19 +55,23 @@ class DatabaseMatcher:
                 'status': 'UNREGISTERED',
                 'action': 'DENY_ALERT',
                 'message': f"Plate {detected_plate} is not registered in the system.",
+                'color_warning': False,
             }
 
         registered_color = record.iloc[0]['car_color']
-        color_match = clean_color == registered_color
-
-        if color_match:
+        if clean_color == registered_color:
             return {
                 'status': 'AUTHORIZED',
                 'action': 'ALLOW',
-                'message': f"Vehicle {detected_plate} authorized: Match confirmed.",
+                'message': f"Vehicle {detected_plate} authorized: plate and colour match.",
+                'color_warning': False,
             }
         return {
-            'status': 'MISMATCH',
-            'action': 'DENY_ALERT',
-            'message': f"Color Mismatch (Detected: {detected_color}, Registered: {record.iloc[0]['car_color']})",
+            'status': 'AUTHORIZED',
+            'action': 'ALLOW_WARN',
+            'message': (
+                f"Vehicle {detected_plate} authorized by plate; colour differs "
+                f"(detected {detected_color}, registered {record.iloc[0]['car_color']})."
+            ),
+            'color_warning': True,
         }
