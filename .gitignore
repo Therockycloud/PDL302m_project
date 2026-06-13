@@ -61,3 +61,7 @@ main/data/models/logs/
 # Stray downloaded base weights
 main/yolov8n.pt
 
+# Benchmark backbone checkpoints (large; results live in docs/benchmarks)
+main/data/models/color_*.pt
+main/data/models/color_*.keras
+

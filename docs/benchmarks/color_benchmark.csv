@@ -1,0 +1,4 @@
+name,accuracy,macro_f1,latency_ms,num_params,size_mb
+MobileNetV3Small,0.5973,0.6252,99.78,1526056,6.24
+EfficientNetB0,0.6239,0.6274,280.95,4017796,16.37
+ResNet50,0.5796,0.6119,44.7,23524424,94.41
