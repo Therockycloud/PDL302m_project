@@ -18,6 +18,19 @@ is by far the largest (94 MB). **MobileNetV3-Small** sits within ~3 pts of the
 best accuracy at **a quarter of EfficientNet's size (6.24 MB) and ~3× lower
 latency** — the best accuracy↔cost trade-off for the edge/CPU target.
 
+### CCTV domain adaptation (runtime model)
+
+The frozen-head models above were trained on clean `car_colors` photos and
+**failed on real garage CCTV** — washed-out under fluorescent light, they
+predicted "Blue" for both a black and a white car. Re-running with
+**domain-randomisation augmentation** (CCTV-mimicking blur + brightness/
+contrast/saturation jitter + random downscale; `scripts/retrain_color.py`)
+fixed the known cases: the black car → **Black (0.55)** and the white car →
+**White (0.67)**. This augmented MobileNetV3-Small is the model shipped at
+runtime (`color_MobileNetV3Small.pt`). Clean-val accuracy dips slightly
+(0.60 → 0.52) because augmentation makes the clean set harder, but real-CCTV
+behaviour is qualitatively correct.
+
 **Selected: MobileNetV3-Small** (matches the model already wired into the
 pipeline). Absolute accuracy (~60 %) is modest because only the head is trained
 on an imbalanced 8-class set (Yellow 25, Brown 35 images); unfreezing the
