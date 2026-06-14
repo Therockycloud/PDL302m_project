@@ -6,7 +6,9 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31.0-FF4B4B.svg?style=flat&logo=Streamlit)](https://streamlit.io/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://github.com/ultralytics/ultralytics)
 
-Hệ thống giám sát an ninh bãi đỗ xe thông minh ứng dụng Học Sâu (Deep Learning) để phòng chống các hành vi gian lận hoặc tráo đổi biển số xe tinh vi. Hệ thống thực hiện đối chiếu chéo đồng thời 3 nhân tố sinh trắc học trực quan của phương tiện: **Biển số xe (OCR)**, **Hãng xe (Brand)** và **Màu sắc xe (Color)**.
+Hệ thống giám sát an ninh bãi đỗ xe thông minh ứng dụng Học Sâu để phòng chống tráo đổi biển số. Pipeline 2 tầng **YOLOv8n (xe → biển số) → PaddleOCR**, kèm phân loại **màu xe (MobileNetV3)** làm lớp xác thực phụ, và một **cơ chế gate "xe đã đỗ"** chỉ chạy suy luận nặng một lần mỗi xe.
+
+> **Quyết định theo biển số (plate-primary):** biển số là khoá chính — biển khớp ⇒ AUTHORIZED; màu lệch chỉ là **cảnh báo mềm** (không từ chối cứng); biển không có trong CSDL ⇒ UNREGISTERED. Xem quá trình & lý do thay đổi so với thiết kế ban đầu trong các slide (`presentations/`), số liệu benchmark trong `docs/benchmarks/`, và đối chiếu công nghệ thế giới trong [`docs/related_work.md`](docs/related_work.md).
 
 ---
 
@@ -96,6 +98,50 @@ docker compose up --build
 ```bash
 docker compose down
 ```
+
+---
+
+## 💻 Chạy trực tiếp trên máy — Native (macOS / Windows, không cần Docker)
+
+Yêu cầu: **Python 3.12**. Mô hình đã kèm trong repo (`main/data/models/`: `plate_yolov8n.onnx`, `color_MobileNetV3Small.pt`, `yolov8n.onnx`).
+
+### 🍎 macOS / Linux
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -r main/requirements.txt
+
+# Chạy Dashboard (script tự dò interpreter + đặt biến môi trường)
+bash main/run_ui.sh
+# …hoặc chạy thủ công:
+KMP_DUPLICATE_LIB_OK=TRUE PYTHONPATH=main streamlit run main/src/ui/dashboard.py
+```
+
+### 🪟 Windows (PowerShell)
+```powershell
+py -3.12 -m venv .venv ; .\.venv\Scripts\Activate.ps1
+pip install -r main\requirements.txt
+
+$env:KMP_DUPLICATE_LIB_OK = "TRUE" ; $env:PYTHONPATH = "main"
+streamlit run main\src\ui\dashboard.py
+# …hoặc: main\run_ui.bat
+```
+
+Dashboard mở tại `http://localhost:8501`. Chọn **Upload Video → “Play Default Parking Video”**, hoặc **Webcam**, để chạy pipeline end-to-end.
+
+### 🧪 Chạy test
+```bash
+cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 28 passed, 5 skipped
+```
+
+### 🛠️ Khắc phục sự cố (Troubleshooting)
+| Triệu chứng | Nguyên nhân & cách xử lý |
+|---|---|
+| Tiến trình **treo 0% CPU** hoặc crash `mutex lock failed` | Xung đột OpenMP. **Bắt buộc** đặt `KMP_DUPLICATE_LIB_OK=TRUE`. Runtime không dùng TensorFlow (đã chuyển sang PyTorch) để tránh xung đột với PaddleOCR. |
+| Detector trả về rỗng (không phát hiện gì) | Thiếu `onnxruntime` → chạy lại `pip install -r main/requirements.txt`. |
+| Lần đầu chạy OCR hơi lâu / cần mạng | PaddleOCR tự tải model (~vài chục MB) lần đầu. Engine cấu hình ở `main/configs/config.yaml` (`ocr.engine: ppocr`, fallback `easyocr`). |
+| Cài `paddlepaddle` lỗi | Đảm bảo Python 3.12; trên Apple Silicon dùng bản CPU mặc định. Nếu không cài được, đặt `ocr.engine: easyocr` để dùng fallback. |
+| Webcam không hoạt động (macOS) | Cấp quyền **System Settings → Privacy & Security → Camera** cho terminal/trình duyệt. |
+| Sai góc camera (không bắt được xe đỗ) | Hiệu chỉnh ROI/ngưỡng không cần sửa code: `python main/scripts/calibrate_roi.py --source <clip> ` rồi chỉnh `pipeline.trigger` trong `config.yaml`. |
 
 ---
 
