@@ -794,8 +794,34 @@
         </div>
     </div>
 
-    <!-- SLIDE 14: Q&A -->
-    <div class="slide-container slide-bg-dark" id="slide-14" style="justify-content: center; align-items: center; text-align: center;">
+    <!-- SLIDE 14: Cập nhật so với thiết kế ban đầu (Mô hình) -->
+    <div class="slide-container" id="slide-14">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Quá trình phát triển</div>
+                <h2 class="slide-title">Cập nhật về Mô hình — vì sao khác ban đầu</h2></div>
+            <div class="slide-number">14</div>
+        </div>
+        <div class="slide-body">
+            <p style="font-size:1rem; line-height:1.6; margin-bottom:14px;">
+                Đo trên dữ liệu thật, các lựa chọn mô hình ban đầu được thay bằng phương án mạnh hơn / hợp phần cứng hơn:</p>
+            <table style="font-size:0.84rem;">
+                <thead><tr><th>Thành phần</th><th>Ban đầu</th><th>Cuối cùng</th><th>Bằng chứng / Lý do</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>OCR</strong></td><td>EasyOCR</td><td><strong>PaddleOCR</strong></td><td>0% → <strong>81%</strong> đọc đúng, CER 0.28 → 0.03.</td></tr>
+                    <tr><td><strong>Phát hiện biển</strong></td><td>YOLOv8n COCO</td><td>YOLOv8n train riêng</td><td>mAP50 <strong>0.99</strong> (fine-tune &gt; scratch).</td></tr>
+                    <tr><td><strong>CNN màu</strong></td><td>MobileNet (TF, ảnh sạch)</td><td>MobileNetV3 (PyTorch) + aug CCTV</td><td>So 3 backbone; sửa lỗi "đoán Blue mọi xe".</td></tr>
+                    <tr><td><strong>Hãng xe</strong></td><td>EfficientNet brand</td><td>Bỏ khỏi quyết định</td><td>Yếu, gây MISMATCH giả.</td></tr>
+                    <tr><td><strong>Nền tảng</strong></td><td>TensorFlow</td><td>PyTorch + ONNX</td><td>TF deadlock & crash với PaddleOCR.</td></tr>
+                    <tr><td><strong>Quyết định</strong></td><td>Đối chiếu cứng biển+hãng+màu</td><td><strong>Plate-primary</strong></td><td>Màu = cảnh báo phụ, tránh từ chối nhầm.</td></tr>
+                </tbody>
+            </table>
+            <p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; margin-top:12px;">
+                Số liệu chi tiết 3 benchmark: <strong>docs/benchmarks/</strong> · Đối chiếu công nghệ thế giới: <strong>docs/related_work.md</strong>.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 15: Q&A -->
+    <div class="slide-container slide-bg-dark" id="slide-15" style="justify-content: center; align-items: center; text-align: center;">
         <div>
             <span class="badge danger" style="margin-bottom: 20px;">Report 3: Model & Results</span>
             <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
@@ -813,13 +839,13 @@
     <!-- Navigation Bar -->
     <div class="nav-bar">
         <button class="nav-btn" onclick="prevSlide()">← Slide trước</button>
-        <div class="nav-counter" id="slideCounter">1 / 14</div>
+        <div class="nav-counter" id="slideCounter">1 / 15</div>
         <button class="nav-btn" onclick="nextSlide()">Slide sau →</button>
     </div>
 
     <script>
         let currentSlide = 1;
-        const totalSlides = 14;
+        const totalSlides = 15;
 
         function showSlide(n) {
             document.querySelectorAll('.slide-container').forEach(s => s.classList.remove('active'));

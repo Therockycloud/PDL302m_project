@@ -808,8 +808,125 @@ def sort_vietnamese_plate(ocr_results):
         </div>
     </div>
 
-    <!-- SLIDE 13: Q&A -->
-    <div class="slide-container slide-bg-dark" id="slide-13" style="justify-content: center; align-items: center; text-align: center;">
+    <!-- SLIDE 13: Quá trình — Ban đầu vs Thực tế -->
+    <div class="slide-container" id="slide-13">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Quá trình phát triển</div>
+                <h2 class="slide-title">Thiết kế ban đầu va chạm dữ liệu thật</h2></div>
+            <div class="slide-number">13</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2" style="align-items: stretch;">
+                <div class="card">
+                    <h3 style="margin-bottom:12px;">Thiết kế ban đầu (đề xuất)</h3>
+                    <p style="font-size:0.9rem; line-height:1.7; color:var(--text-muted);">
+                        Xử lý <strong>mỗi khung hình</strong> · YOLOv8n COCO làm "detector biển" · EasyOCR ·
+                        EfficientNet (hãng) + MobileNet màu trên <strong>TensorFlow</strong> ·
+                        đối chiếu <strong>cứng</strong> biển + hãng + màu · test bằng ảnh mock tự vẽ.
+                    </p>
+                </div>
+                <div class="card" style="box-shadow:4px 4px 0px var(--accent-red);">
+                    <h3 style="margin-bottom:12px;">Vấn đề lộ ra trên ảnh CCTV thật</h3>
+                    <ul style="font-size:0.86rem; line-height:1.5; padding-left:18px;">
+                        <li>YOLOv8n COCO bắt "ô tô", không phải biển → OCR ra rác.</li>
+                        <li>EasyOCR đọc đúng <strong style="color:var(--accent-red)">0%</strong> biển CCTV.</li>
+                        <li>Màu (train ảnh sạch) đoán "Blue" cho cả xe đen lẫn trắng.</li>
+                        <li>TensorFlow deadlock khi train & <strong>crash</strong> khi chạy chung PaddleOCR.</li>
+                        <li>Đối chiếu màu cứng ⇒ báo động giả liên tục.</li>
+                    </ul>
+                </div>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; margin-top:16px;">
+                "Chạy được lúc demo" ≠ "chạy được trên dữ liệu thật". Mỗi vấn đề dẫn tới một thay đổi thiết kế có chủ đích.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 14: Đã thay đổi gì & tại sao -->
+    <div class="slide-container" id="slide-14">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Quyết định kỹ thuật</div>
+                <h2 class="slide-title">Đã thay đổi gì — và tại sao</h2></div>
+            <div class="slide-number">14</div>
+        </div>
+        <div class="slide-body">
+            <table style="font-size:0.82rem;">
+                <thead><tr><th>Thành phần</th><th>Ban đầu</th><th>Cuối cùng</th><th>Lý do</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Phát hiện biển</strong></td><td>YOLOv8n COCO</td><td>YOLOv8n <strong>train riêng</strong> (biển VN)</td><td>COCO không biết biển; mAP50 <strong>0.99</strong>.</td></tr>
+                    <tr><td><strong>OCR</strong></td><td>EasyOCR</td><td><strong>PaddleOCR</strong></td><td>0% → <strong>81%</strong> đọc đúng (Benchmark C).</td></tr>
+                    <tr><td><strong>Nền tảng</strong></td><td>TensorFlow</td><td><strong>PyTorch + ONNX</strong></td><td>TF deadlock & crash với PaddleOCR.</td></tr>
+                    <tr><td><strong>Màu</strong></td><td>MobileNet (TF, ảnh sạch)</td><td>MobileNetV3 (PyTorch) <strong>+ aug CCTV</strong></td><td>Sửa "đoán Blue mọi xe": đen→Đen, trắng→Trắng.</td></tr>
+                    <tr><td><strong>Hãng xe</strong></td><td>EfficientNet brand</td><td><strong>Bỏ</strong> khỏi quyết định</td><td>Yếu, gây MISMATCH giả, không cần.</td></tr>
+                    <tr><td><strong>Quyết định</strong></td><td>Đối chiếu cứng 3 thuộc tính</td><td><strong>Plate-primary</strong> (màu = cảnh báo)</td><td>Tránh từ chối nhầm do màu yếu.</td></tr>
+                    <tr><td><strong>Xử lý video</strong></td><td>Mỗi frame 1 quyết định</td><td><strong>Lấy mẫu + gate "đã đỗ"</strong> + vote</td><td>Nhẹ CPU (1 lần/xe), ổn định.</td></tr>
+                    <tr><td><strong>Dữ liệu test</strong></td><td>Ảnh mock giả</td><td><strong>Ảnh CCTV xe VN thật</strong></td><td>Đo đúng năng lực, không tự lừa.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SLIDE 15: Benchmark evidence -->
+    <div class="slide-container" id="slide-15">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Bằng chứng số liệu</div>
+                <h2 class="slide-title">Benchmark trên dữ liệu thật</h2></div>
+            <div class="slide-number">15</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card"><span class="badge success">A · Biển số</span>
+                    <table style="font-size:0.78rem; margin-top:10px;">
+                        <tr><th>Model</th><th>mAP50</th></tr>
+                        <tr><td>Fine-tune</td><td><strong>0.990</strong></td></tr>
+                        <tr><td>Scratch</td><td>0.979</td></tr></table>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Transfer learning thắng; 6.2MB.</p></div>
+                <div class="card"><span class="badge success">B · OCR</span>
+                    <table style="font-size:0.78rem; margin-top:10px;">
+                        <tr><th>Engine</th><th>Đúng</th></tr>
+                        <tr><td>PaddleOCR</td><td><strong>81%</strong></td></tr>
+                        <tr><td>EasyOCR+deskew</td><td>6%</td></tr>
+                        <tr><td>EasyOCR</td><td style="color:var(--accent-red)">0%</td></tr></table>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Deskew vô dụng; PP-OCR áp đảo.</p></div>
+                <div class="card"><span class="badge success">C · CNN màu</span>
+                    <table style="font-size:0.78rem; margin-top:10px;">
+                        <tr><th>Backbone</th><th>Acc</th><th>MB</th></tr>
+                        <tr><td>EffNetB0</td><td>0.62</td><td>16</td></tr>
+                        <tr><td>MobileNetV3</td><td>0.60</td><td><strong>6</strong></td></tr>
+                        <tr><td>ResNet50</td><td>0.58</td><td>94</td></tr></table>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Chọn MobileNetV3 + adapt CCTV.</p></div>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; margin-top:16px;">
+                Chi tiết: <strong>docs/benchmarks/</strong> — đây là phần "so sánh đa model để chứng minh hiệu năng".</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 16: Related work -->
+    <div class="slide-container" id="slide-16">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Đối chiếu thế giới</div>
+                <h2 class="slide-title">Công nghệ các nước dùng &amp; vì sao hợp VN</h2></div>
+            <div class="slide-number">16</div>
+        </div>
+        <div class="slide-body">
+            <table style="font-size:0.84rem;">
+                <thead><tr><th>Tầng</th><th>Công nghiệp / các nước phát triển</th><th>Dự án này</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Phát hiện</strong></td><td>Cascaded xe→biển→ký tự, họ YOLO</td><td>YOLOv8n 2 tầng (mAP 0.99)</td></tr>
+                    <tr><td><strong>OCR</strong></td><td>CRNN+CTC: LPRNet, PP-OCR, Tesseract</td><td>PaddleOCR</td></tr>
+                    <tr><td><strong>Thuộc tính</strong></td><td>NVIDIA DeepStream: VehicleMakeNet (ResNet18) + color</td><td>MobileNetV3 màu (phụ trợ)</td></tr>
+                    <tr><td><strong>Video</strong></td><td>1 frame đại diện/xe (Visual Rhythm)</td><td>Gate "xe đã đỗ" + lấy mẫu</td></tr>
+                    <tr><td><strong>Phần cứng</strong></td><td>Jetson Nano/Orin, Raspberry Pi</td><td>ONNX/nano cùng lớp edge</td></tr>
+                </tbody>
+            </table>
+            <p style="font-size:0.86rem; line-height:1.6; margin-top:14px;">
+                Tham chiếu thương mại: <strong>Carmen Nano, Plate Recognizer, NVIDIA DeepStream</strong> — đều dùng đúng kiến trúc cascaded.
+                Ta dùng kiến trúc đó nhưng <strong>mã nguồn mở, gần 0 chi phí license</strong>, phủ biển 2 dòng (xe máy) và xử lý đèn hầm bằng augmentation — phù hợp điều kiện Việt Nam.
+                <span style="color:var(--text-muted); font-style:italic;">(Nguồn: docs/related_work.md)</span></p>
+        </div>
+    </div>
+
+    <!-- SLIDE 17: Q&A -->
+    <div class="slide-container slide-bg-dark" id="slide-17" style="justify-content: center; align-items: center; text-align: center;">
         <div>
             <span class="badge danger" style="margin-bottom: 20px;">Report 4: Final Defense</span>
             <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
@@ -827,13 +944,13 @@ def sort_vietnamese_plate(ocr_results):
     <!-- Navigation Bar -->
     <div class="nav-bar">
         <button class="nav-btn" onclick="prevSlide()">← Slide trước</button>
-        <div class="nav-counter" id="slideCounter">1 / 13</div>
+        <div class="nav-counter" id="slideCounter">1 / 17</div>
         <button class="nav-btn" onclick="nextSlide()">Slide sau →</button>
     </div>
 
     <script>
         let currentSlide = 1;
-        const totalSlides = 13;
+        const totalSlides = 17;
 
         function showSlide(n) {
             // Hide all slides
