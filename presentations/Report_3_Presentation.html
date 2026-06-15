@@ -332,7 +332,7 @@
             <div class="hero-meta">
                 <div class="meta-col">
                     <p>Giảng viên hướng dẫn</p>
-                    <strong>Thầy Trần Đức Anh</strong>
+                    <strong>Thầy Lương Trung Kiên</strong>
                 </div>
                 <div class="meta-col">
                     <p>Cốt lõi mô hình</p>
@@ -458,7 +458,7 @@
                 <div>
                     <h3 style="margin-bottom: 12px; color: var(--accent-red);">Phân tích khả năng định vị</h3>
                     <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
-                        Mô hình YOLOv8-nano đạt độ tin cậy vượt mong đợi khi định vị biển số xe. Việc định vị chuẩn xác vùng chứa biển số giúp cắt bỏ 90% các chi tiết hậu cảnh rác xung quanh, giảm thiểu tải điện toán và lỗi đọc sai ký tự của EasyOCR xuống mức thấp nhất.
+                        Mô hình YOLOv8-nano đạt độ tin cậy vượt mong đợi khi định vị biển số xe. Việc định vị chuẩn xác vùng chứa biển số giúp cắt bỏ 90% các chi tiết hậu cảnh rác xung quanh, giảm thiểu tải điện toán và lỗi đọc sai ký tự của OCR xuống mức thấp nhất.
                     </p>
                 </div>
             </div>
@@ -470,7 +470,7 @@
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">03 / Nhận diện ký tự biển số</div>
-                <h2 class="slide-title">EasyOCR & Hậu xử lý hình học</h2>
+                <h2 class="slide-title">PaddleOCR & Hậu xử lý hình học</h2>
             </div>
             <div class="slide-number">05</div>
         </div>
@@ -482,7 +482,7 @@
                         Ký tự biển số xe Việt Nam thường gồm cả chữ cái vùng miền và các số series dài phân tách bởi dấu gạch ngang/dấu chấm.
                     </p>
                     <ul>
-                        <li><strong>Kiến trúc EasyOCR:</strong> Sử dụng mạng ResNet làm bộ trích xuất đặc trưng kết hợp mạng LSTM nhận diện chuỗi ký tự theo thời gian.</li>
+                        <li><strong>Kiến trúc PaddleOCR (PP-OCRv4):</strong> CRNN + CTC. Benchmark C: PaddleOCR đọc đúng 81% (exact-match) vs EasyOCR 0%, nên PaddleOCR là engine chính, EasyOCR fallback.</li>
                         <li><strong>Khắc phục lệch dòng:</strong> Thuật toán **Spatial Sorting** gom nhóm tọa độ Y trung tâm của các hộp ký tự để tách thành dòng trên và dòng dưới chuẩn xác.</li>
                         <li><strong>Chuẩn hóa Regex:</strong> `[A-Z0-9]` loại bỏ dấu chấm và khoảng trắng nhiễu. Ví dụ: `30K.123-45` được chuẩn hóa thành `30K12345`.</li>
                     </ul>
@@ -779,7 +779,7 @@
                         Mặc dù hệ thống có độ chính xác cao, nhóm vẫn chẩn đoán thấy một số lỗi biên đặc thù:
                     </p>
                     <ul>
-                        <li><strong>Biển số bẩn / Che khuất:</strong> Ký tự bị bùn đất che mất nét khiến EasyOCR bị nhầm lẫn số `8` và chữ `B`.</li>
+                        <li><strong>Biển số bẩn / Che khuất:</strong> Ký tự bị bùn đất che mất nét khiến OCR bị nhầm lẫn số `8` và chữ `B`.</li>
                         <li><strong>Hãng xe độ vỏ (Car Modding):</strong> Xe hơi được chủ nhân thay đổi logo lưới tản nhiệt làm EfficientNet dự đoán sai thương hiệu.</li>
                         <li><strong>Decal dán màu (Wrapping):</strong> Xe được dán decal đổi màu diện tích lớn khiến Classifier màu dự báo sai gam màu đăng ký gốc trên CSV bãi giữ xe.</li>
                     </ul>
