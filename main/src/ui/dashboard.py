@@ -28,7 +28,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 import yaml
 
 from src.utils.visual import (
-    create_glassmorphic_css,
+    build_theme_css,
     draw_detection_overlay,
     get_alarm_html,
     get_status_css,
@@ -318,8 +318,7 @@ def _render_result_card(result: dict[str, Any]) -> str:
         Styled HTML card string.
     """
     status = result.get("status", "UNKNOWN").upper()
-    card_cls = "authorized" if status == "AUTHORIZED" else "alert"
-    badge_cls = "badge-authorized" if status == "AUTHORIZED" else "badge-alert"
+    action = result.get("action", "")
 
     plate = result.get("plate_text", "—") or "—"
     brand = result.get("brand", "—")
@@ -328,18 +327,28 @@ def _render_result_card(result: dict[str, Any]) -> str:
     color_conf = result.get("color_confidence", 0)
     message = result.get("message", "")
 
+    # Design A verdict: bold colour TEXT, no box, no emoji.
+    if status == "AUTHORIZED":
+        verdict = f'<span class="verdict-ok">{status}</span>'
+    else:
+        verdict = f'<span class="verdict-bad">{status}</span>'
+
+    # Colour-mismatch soft warning (plate matched but colour differs).
+    soft = ""
+    if action == "ALLOW_WARN":
+        warn_msg = message or "Plate matched but vehicle colour differs."
+        soft = f'<div class="soft-warn" style="margin-top:8px;">{warn_msg}</div>'
+
     return (
-        f'<div class="det-card {card_cls} animate-in">'
-        f'  <div class="plate">{plate}</div>'
-        f'  <div class="detail">'
-        f"    Brand: <strong>{brand}</strong> ({brand_conf:.1f}%) &nbsp;|&nbsp; "
-        f"    Color: <strong>{color}</strong> ({color_conf:.1f}%)"
-        f"  </div>"
-        f'  <div style="margin-top:8px;">'
-        f'    <span class="{badge_cls}">{status}</span>'
-        f"  </div>"
-        f'  <div class="detail" style="margin-top:6px; font-style:italic;">'
-        f"    {message}"
+        f'<div class="card animate-in" style="margin-bottom:12px;">'
+        f'  <div class="card-inner">'
+        f'    <div class="plate">{plate}</div>'
+        f'    <div style="color:var(--muted); font-size:0.85rem; margin-top:4px;">'
+        f"      Brand: <strong>{brand}</strong> ({brand_conf:.1f}%) &nbsp;|&nbsp; "
+        f"      Color: <strong>{color}</strong> ({color_conf:.1f}%)"
+        f"    </div>"
+        f'    <div style="margin-top:8px;">{verdict}</div>'
+        f"    {soft}"
         f"  </div>"
         f"</div>"
     )
@@ -356,7 +365,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(create_glassmorphic_css(), unsafe_allow_html=True)
+st.markdown(build_theme_css(), unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
@@ -430,10 +439,12 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 
 st.markdown(
-    '<div class="glass-card" style="text-align:center; padding:28px 24px 18px;">'
-    '<div class="neon-title">Vehicle Anti-Theft System</div>'
-    '<div class="neon-subtitle">Real-time plate detection · OCR · '
-    "brand & colour classification · database verification</div>"
+    '<div class="card">'
+    '<div class="card-inner" style="text-align:center;">'
+    '<div class="app-title">Vehicle Anti-Theft System</div>'
+    '<div class="app-subtitle">Real-time plate detection · OCR · '
+    "brand &amp; colour classification · database verification</div>"
+    "</div>"
     "</div>",
     unsafe_allow_html=True,
 )
@@ -450,7 +461,7 @@ _current_latency: float = 0.0
 # ---- LEFT COLUMN: Camera / Image feed ------------------------------------
 with col_feed:
     st.markdown(
-        '<div class="glass-card">',
+        '<div class="feed-wrap" style="padding:8px;">',
         unsafe_allow_html=True,
     )
 
@@ -602,12 +613,13 @@ with col_feed:
 # ---- RIGHT COLUMN: Detection results log ---------------------------------
 with col_results:
     st.markdown(
-        '<div class="glass-card" style="min-height:420px;">',
+        '<div class="card" style="min-height:420px;">'
+        '<div class="card-inner" style="min-height:408px;">',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div style="font-weight:700; font-size:1.05rem; margin-bottom:12px; '
-        'color:#e8e8e8;">📋 Detection Results</div>',
+        'color:var(--ink);">Detection Results</div>',
         unsafe_allow_html=True,
     )
 
@@ -627,7 +639,7 @@ with col_results:
 
     if not st.session_state["results_log"]:
         st.markdown(
-            '<div style="text-align:center; color:#555; padding:60px 0;">'
+            '<div style="text-align:center; color:var(--muted); padding:60px 0;">'
             "No detections yet — upload an image to begin.</div>",
             unsafe_allow_html=True,
         )
@@ -636,14 +648,14 @@ with col_results:
         for res in st.session_state["results_log"][:20]:
             st.markdown(_render_result_card(res), unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
 # Bottom metrics row
 # ---------------------------------------------------------------------------
 
-st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+st.markdown('<div class="card"><div class="card-inner">', unsafe_allow_html=True)
 
 m1, m2, m3, m4 = st.columns(4, gap="small")
 
@@ -673,4 +685,4 @@ with m4:
         unsafe_allow_html=True,
     )
 
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div></div>", unsafe_allow_html=True)
