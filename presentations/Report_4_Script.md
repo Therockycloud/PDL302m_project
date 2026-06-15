@@ -5,7 +5,7 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 ---
 
 ## Slide 1: Slide tiêu đề (Title Slide)
-*   **Visual:** Tiêu đề dự án "Hệ thống giám sát an ninh bãi xe thông minh", thông tin giảng viên hướng dẫn (Thầy Trần Đức Anh) và thành viên thực hiện.
+*   **Visual:** Tiêu đề dự án "Hệ thống giám sát an ninh bãi xe thông minh", thông tin giảng viên hướng dẫn (Thầy Lương Trung Kiên) và thành viên thực hiện.
 
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Kính chào thầy và các bạn. Hôm nay, nhóm chúng em xin đại diện trình bày báo cáo bảo vệ đồ án cuối kỳ môn Deep Learning (DPL302m). Đề tài của chúng em là: **'Hệ thống giám sát an ninh bãi xe thông minh qua đối chiếu chéo thông tin xe máy và ô tô'**.
@@ -220,7 +220,7 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 *   **Visual:** Thông tin liên hệ và lời cảm ơn cuối trang.
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Đến đây, nhóm em xin phép kết thúc phần thuyết trình bảo vệ đồ án. Chúng em xin gửi lời cảm ơn chân thành đến thầy Trần Đức Anh đã đồng hành hướng dẫn nhóm trong suốt thời gian qua.
+> "Đến đây, nhóm em xin phép kết thúc phần thuyết trình bảo vệ đồ án. Chúng em xin gửi lời cảm ơn chân thành đến thầy Lương Trung Kiên đã đồng hành hướng dẫn nhóm trong suốt thời gian qua.
 >
 > Sau đây, nhóm em rất mong nhận được các câu hỏi phản biện và đóng góp ý kiến từ thầy và các bạn để cải thiện hệ thống hoàn thiện hơn nữa. Nhóm em xin chân thành cảm ơn!"
 
