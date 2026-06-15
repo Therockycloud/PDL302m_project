@@ -3,6 +3,8 @@
 ## 1. Đặt vấn đề và Mục tiêu nghiên cứu (Problem & Objective)
 Trong các hệ thống giám sát an ninh bãi giữ xe truyền thống, nhận dạng biển số xe (LPR) bằng OCR là cơ chế duy nhất để xác thực phương tiện ra vào. Tuy nhiên, phương thức này dễ bị qua mặt bằng các thủ thuật như tráo đổi biển số hoặc làm giả biển số. Nhằm khắc phục lỗ hổng an ninh này, dự án DPL302m đề xuất hệ thống đối chiếu chéo đa nhân tố dựa trên ba đặc trưng sinh trắc học trực quan của phương tiện: **Biển số xe (License Plate)**, **Hãng sản xuất (Brand)**, và **Màu sắc xe (Color)**.
 
+> **Ghi chú:** Bộ ba đặc trưng dưới đây là theo *đề xuất ban đầu*. Bản giao cuối dùng biển số làm khoá chính (plate-primary), màu là cảnh báo phụ, bỏ hãng — xem Report 3/4.
+
 Mục tiêu của giai đoạn này là thiết lập một đường ống (pipeline) thu thập, làm sạch, phân tích thống kê (EDA) và tiền xử lý dữ liệu từ các nguồn thực tế để huấn luyện các bộ phân loại sâu (Deep Learning Classifiers), đảm bảo mô hình hoạt động ổn định và chính xác trên môi trường thực tế tại Việt Nam.
 
 ---

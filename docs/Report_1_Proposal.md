@@ -4,6 +4,8 @@
 **Môn học:** DPL302m – Deep Learning (Học sâu)  
 **Trường:** FPT University  
 
+> **🔄 Ghi chú phiên bản (đọc trước):** Đây là **đề xuất ban đầu** (Giai đoạn 1) mô tả hướng *xác thực đa nhân tố (biển số + hãng + màu)* với ResNet50/MobileNetV2/EasyOCR. Trong quá trình thực nghiệm (Report 3) các bộ phân loại hãng (~29%) và màu (~14% lúc đầu) cho thấy quá yếu để chặn cứng, nên **bản giao cuối đã pivot sang quyết định *plate-primary*** (OCR là khoá chính bằng **PaddleOCR**, màu chỉ là **cảnh báo mềm**, bỏ phân loại hãng), và đổi backbone sang **EfficientNet-B0/MobileNetV3-Small**. Xem hành trình & lý do trong Report 3 và Report 4.
+
 ---
 
 ## 1. Đặt vấn đề (Problem Statement)
