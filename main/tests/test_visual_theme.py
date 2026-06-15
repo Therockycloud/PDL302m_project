@@ -20,3 +20,21 @@ def test_draw_overlay_returns_same_shape_without_mutating():
     assert out.shape == img.shape
     assert out is not img
     assert int(img.sum()) == 0
+
+
+def test_build_theme_css_exists_and_is_string():
+    css = visual.build_theme_css()
+    assert isinstance(css, str) and len(css) > 500
+
+
+def test_theme_uses_accent_token_not_neon():
+    css = visual.build_theme_css()
+    assert "--accent: #15803d" in css
+    assert "--neon-green" not in css
+
+
+def test_theme_has_no_violet_gradient_or_glass_blur():
+    css = visual.build_theme_css()
+    assert "#5b31df" not in css
+    assert "backdrop-filter" not in css
+    assert "glass-card" not in css

@@ -200,213 +200,100 @@ def get_alarm_html(status: str) -> str:
 # Glassmorphic CSS
 # ---------------------------------------------------------------------------
 
-def create_glassmorphic_css() -> str:
-    """Return a full CSS stylesheet string for a clean light theme.
+def build_theme_css() -> str:
+    """Return the locked "Clean Light Systems" (design A) stylesheet.
 
-    Features:
-        * Light background (#ffffff)
-        * Borderless white/light-gray cards
-        * Dark forest green (#00875a) accents for AUTHORIZED states
-        * Alert red (#de350b) accents for warning states
-        * High-contrast dark gray text (#0f172a)
-        * Inter font loaded from Google Fonts
-        * Borderless metric boxes and clean UI elements
+    Design tokens:
+        * Warm-paper background (``--bg``) with soft green/teal/lime radial
+          glows, white surfaces, near-black ink, forest-green accent.
+        * Plus Jakarta Sans for UI text, JetBrains Mono for metric numerals.
+        * Borderless, layered cards with low-spread tinted drop shadows.
+        * Forest-green AUTHORIZED verdicts, deep-red alerts, amber soft warns.
+        * Dark camera-feed surface with corner framing brackets.
+
+    No glassmorphism: no blur effects, no neon/violet gradients.
 
     Returns:
-        CSS text ready to be injected via ``st.markdown``.
+        CSS text wrapped in ``<style> ... </style>`` for ``st.markdown``.
     """
     return """
     <style>
-    /* ---- Google Font ---- */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
-    /* ---- Root variables ---- */
     :root {
-        --bg-primary: #ffffff;
-        --bg-card: #f8fafc;
-        --border-card: transparent;
-        --neon-green: #00875a;
-        --neon-green-dim: rgba(0, 135, 90, 0.1);
-        --alert-red: #de350b;
-        --alert-red-dim: rgba(222, 53, 11, 0.1);
-        --text-primary: #0f172a;
-        --text-secondary: #475569;
-        --radius: 16px;
+        --bg: #fafaf9;
+        --surface: #ffffff;
+        --ink: #18181b;
+        --muted: #71717a;
+        --hairline: #e4e4e7;
+        --accent: #15803d;
+        --accent-dim: #f0fdf4;
+        --alert: #b91c1c;
+        --warn-fg: #b45309;
+        --warn-bg: #fffbeb;
+        --feed-dark: #0b0f14;
+        --radius: 12px;
     }
 
-    /* ---- Global resets ---- */
+    /* ---- App shell ---- */
     .stApp {
-        background: var(--bg-primary) !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        color: var(--text-primary) !important;
+        background-color: var(--bg);
+        background-image:
+            radial-gradient(circle at 90% 6%, rgba(21,128,61,0.10), transparent 40%),
+            radial-gradient(circle at 6% 94%, rgba(13,148,136,0.08), transparent 42%),
+            radial-gradient(circle at 50% 50%, rgba(132,204,22,0.05), transparent 55%);
+        font-family: 'Plus Jakarta Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+        color: var(--ink);
     }
-
     header[data-testid="stHeader"] {
         background: transparent !important;
     }
 
-    /* ---- Sidebar ---- */
-    section[data-testid="stSidebar"] {
-        background: #f1f5f9 !important;
-        border-right: none !important;
-    }
-    section[data-testid="stSidebar"] .stMarkdown p,
-    section[data-testid="stSidebar"] .stMarkdown span,
-    section[data-testid="stSidebar"] label {
-        color: var(--text-secondary) !important;
-    }
+    /* ---- Titles ---- */
+    .app-title { font-size: 1.6rem; font-weight: 800; color: var(--ink); letter-spacing: -0.3px; }
+    .app-subtitle { font-size: 0.95rem; color: var(--muted); font-weight: 500; }
 
-    /* ---- Glassmorphic card ---- */
-    .glass-card {
-        background: var(--bg-card);
-        border: none;
-        border-radius: var(--radius);
-        padding: 24px;
-        margin-bottom: 16px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .glass-card:hover {
-        border-color: transparent;
-        box-shadow: none !important;
-    }
-
-    /* ---- Status badges ---- */
-    .badge-authorized {
-        background: var(--neon-green-dim);
-        border: none;
-        color: var(--neon-green);
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-        display: inline-block;
-    }
-    .badge-alert {
-        background: var(--alert-red-dim);
-        border: none;
-        color: var(--alert-red);
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-        display: inline-block;
-        animation: pulse-red 1.2s ease-in-out infinite;
-    }
+    /* ---- Cards (borderless, layered) ---- */
+    .card { background: rgba(0,0,0,0.04); padding: 6px; border-radius: 14px; }
+    .card > .card-inner { background: var(--surface); border-radius: 10px; padding: 16px; box-shadow: 0 18px 40px -22px rgba(21,128,61,0.3); }
 
     /* ---- Metric boxes ---- */
-    .metric-box {
-        background: var(--bg-card);
-        border: none;
-        border-radius: 12px;
-        padding: 18px 20px;
-        text-align: center;
-        transition: transform 0.2s ease, border-color 0.3s ease;
-    }
-    .metric-box:hover {
-        transform: translateY(-2px);
-        border-color: transparent;
-    }
-    .metric-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: var(--neon-green);
-        line-height: 1.2;
-    }
-    .metric-label {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin-top: 6px;
-    }
-    .metric-value.alert {
-        color: var(--alert-red);
-    }
+    .metric-box { background: var(--surface); border-radius: 8px; padding: 10px 12px; box-shadow: 0 8px 20px -16px rgba(21,128,61,0.3); }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+    .metric-value.alert { color: var(--alert); }
+    .metric-label { font-size: 0.5rem; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; }
 
-    /* ---- Neon gradient title ---- */
-    .neon-title {
-        font-size: 2.2rem;
-        font-weight: 900;
-        background: linear-gradient(135deg, var(--neon-green) 0%, #0066cc 60%, #5b31df 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: -0.5px;
-        margin-bottom: 4px;
-    }
-    .neon-subtitle {
-        font-size: 0.95rem;
-        color: var(--text-secondary);
-        font-weight: 400;
-    }
+    /* ---- Camera feed ---- */
+    .feed-wrap { position: relative; background: var(--feed-dark); border-radius: var(--radius); overflow: hidden; }
+    .feed-wrap .bracket { position: absolute; width: 24px; height: 24px; border: 2px solid var(--accent); }
+    .feed-wrap .bracket.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+    .feed-wrap .bracket.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+    .feed-wrap .bracket.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+    .feed-wrap .bracket.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
 
-    /* ---- Detection result card ---- */
-    .det-card {
-        background: var(--bg-card);
-        border: none;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 12px;
-        transition: border-color 0.3s ease;
-    }
-    .det-card.authorized {
-        border-left: 3px solid var(--neon-green);
-    }
-    .det-card.alert {
-        border-left: 3px solid var(--alert-red);
-        animation: flash-border 1.5s ease-in-out 3;
-    }
-    .det-card .plate {
-        font-size: 1.3rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    }
-    .det-card .detail {
-        font-size: 0.82rem;
-        color: var(--text-secondary);
-        margin-top: 6px;
-    }
+    /* ---- Verdicts ---- */
+    .verdict-ok { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
+    .verdict-bad { font-size: 1.2rem; font-weight: 800; color: var(--alert); }
+    .plate { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; color: var(--ink); }
+
+    /* ---- Soft warning ---- */
+    .soft-warn { color: var(--warn-fg); background: var(--warn-bg); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; }
 
     /* ---- Animations ---- */
-    @keyframes pulse-red {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.55; }
-    }
-    @keyframes flash-border {
-        0%, 100% { border-left-color: var(--alert-red); }
-        50% { border-left-color: transparent; }
-    }
     @keyframes fade-in {
         from { opacity: 0; transform: translateY(10px); }
         to   { opacity: 1; transform: translateY(0); }
     }
-    .animate-in {
-        animation: fade-in 0.4s ease-out;
-    }
+    .animate-in { animation: fade-in 0.4s ease-out; }
 
     /* ---- Streamlit overrides ---- */
-    .stButton > button {
-        background: linear-gradient(135deg, var(--neon-green), #0066cc) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 10px !important;
-        font-weight: 700 !important;
-        padding: 0.55rem 1.6rem !important;
-        transition: opacity 0.2s ease !important;
-    }
-    .stButton > button:hover {
-        opacity: 0.85 !important;
-    }
-    div[data-testid="stFileUploader"] {
-        border: none !important;
-        border-radius: 12px !important;
-        background: var(--bg-card) !important;
-    }
-    .stSlider > div > div > div {
-        background: var(--neon-green) !important;
-    }
+    .stButton > button { background: var(--accent) !important; color: #fff !important; border: none !important; border-radius: 8px !important; font-weight: 700 !important; transition: transform 0.2s cubic-bezier(0.32,0.72,0,1) !important; }
+    .stButton > button:active { transform: scale(0.98) !important; }
+    section[data-testid="stSidebar"] { background: #f4f4f5 !important; border-right: none !important; }
+    section[data-testid="stSidebar"] .stMarkdown p,
+    section[data-testid="stSidebar"] .stMarkdown span,
+    section[data-testid="stSidebar"] label { color: var(--muted) !important; }
+    div[data-testid="stFileUploader"] { border: none !important; border-radius: 12px !important; background: var(--surface) !important; }
+    .stSlider > div > div > div { background: var(--accent) !important; }
     </style>
     """
