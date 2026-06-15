@@ -147,7 +147,7 @@ cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 28 passed, 5 skip
 
 ## 🏃 Kiểm thử hệ thống (Running Tests inside Container)
 
-Để thực thi bộ unit test tự động (gồm 15 bài test kiểm tra OCR, so khớp CSDL, logic tiền xử lý) bên trong môi trường Docker đang chạy:
+Để thực thi bộ unit test tự động (bộ test tự động — hiện **28 passed, 5 skipped** — kiểm tra OCR, so khớp CSDL, logic tiền xử lý) bên trong môi trường Docker đang chạy:
 
 ```bash
 docker compose exec backend pytest main/tests/
