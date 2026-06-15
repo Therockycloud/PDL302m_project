@@ -39,29 +39,29 @@ Hệ thống được thiết kế theo mô hình Microservices phân tách đ�
                   │    FastAPI Server    │
                   └────┬────────────┬────┘
        ┌────────────────┘            └────────────────┐
-       ▼ (Luồng xử lý song song)                      ▼ (Luồng xử lý song song)
+       ▼ (Khoá chính — biển số)            ▼ (Tín hiệu phụ — màu xe)
  ┌───────────┐                                  ┌───────────┐
- │  YOLOv8   │ (Cắt vùng biển số)               │EfficientNet│ (Phân loại hãng)
- └─────┬─────┘                                  └─────┬─────┘
-       ▼                                              │ (Phân loại màu)
- ┌───────────┐                                        ▼
- │  EasyOCR  │ (Đọc ký tự biển số)              ┌───────────┐
- │           │                                  │MobileNetV3│
+ │  YOLOv8   │ (Cắt vùng biển số)               │MobileNetV3│ (Phân loại màu)
  └─────┬─────┘                                  └─────┬─────┘
        ▼                                              │
  ┌───────────┐                                        │
- │  Spatial  │ (Sắp xếp không gian 2 dòng)            │
+ │ PaddleOCR │ (Đọc ký tự biển số)                    │
+ └─────┬─────┘                                        │
+       ▼                                              │
+ ┌───────────┐                                        │
+ │  Spatial  │ (Sắp xếp 2 dòng)                       │
  │  Sorting  │                                        │
  └─────┬─────┘                                        │
        ▼                                              ▼
  ┌──────────────────────────────────────────────────────────┐
- │              Bộ đối chiếu chéo (Cross-Verifier)          │
- │   (Kiểm tra chéo thông tin đầu ra với CSDL lịch sử CSV)  │
+ │       Đối chiếu plate-primary với CSDL CSV lịch sử        │
+ │  biển khớp ⇒ AUTHORIZED · màu lệch ⇒ cảnh báo MỀM         │
+ │  biển không có ⇒ UNREGISTERED  (hãng: thử nghiệm, đã bỏ)  │
  └────────────────────────────┬─────────────────────────────┘
                               │ Trả về trạng thái & Báo động
                               ▼
                   ┌──────────────────────┐
-                  │ Streamlit Dashboard  │ (Còi hú + chớp đỏ nếu lệch thông tin)
+                  │ Streamlit Dashboard  │ (Chớp đỏ nếu biển lệch / không hợp lệ)
                   └──────────────────────┘
 ```
 
