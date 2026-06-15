@@ -72,7 +72,7 @@ class PlateDetector:
 
     def __init__(
         self,
-        model_path: str = "yolov8n.pt",
+        model_path: str = "yolov8n.onnx",
         conf_threshold: float = 0.25,
     ) -> None:
         """Initialise the plate detector.
@@ -94,6 +94,12 @@ class PlateDetector:
         self.model: YOLO | None = None
 
         # Resolve model path -------------------------------------------------
+        if model_path.endswith(".pt"):
+            onnx_path = model_path[:-3] + ".onnx"
+            model_dir = cfg.get("paths", {}).get("model_save_dir", "")
+            if Path(onnx_path).exists() or (Path(model_dir) / onnx_path).exists():
+                model_path = onnx_path
+
         resolved_path = model_path
         if not os.path.isabs(model_path) and not Path(model_path).exists():
             model_dir = cfg.get("paths", {}).get("model_save_dir", "")
