@@ -31,7 +31,6 @@ from src.utils.visual import (
     build_theme_css,
     draw_detection_overlay,
     get_alarm_html,
-    get_status_css,
 )
 from src.utils.matching import DatabaseMatcher
 

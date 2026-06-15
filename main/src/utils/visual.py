@@ -51,6 +51,21 @@ def draw_detection_overlay(
     else:
         box_colour = _UNKNOWN_BGR
 
+    # Detection-frame corner brackets (always drawn, status-coloured)
+    h, w = canvas.shape[:2]
+    m = max(8, int(min(h, w) * 0.04))          # inset margin
+    L = max(14, int(min(h, w) * 0.08))         # bracket arm length
+    bt = max(2, int(min(h, w) * 0.006))        # bracket thickness
+    corners = [
+        ((m, m), (1, 1)),                      # top-left:  go right & down
+        ((w - m, m), (-1, 1)),                 # top-right: go left & down
+        ((m, h - m), (1, -1)),                 # bottom-left
+        ((w - m, h - m), (-1, -1)),            # bottom-right
+    ]
+    for (cx, cy), (dx, dy) in corners:
+        cv2.line(canvas, (cx, cy), (cx + dx * L, cy), box_colour, bt)
+        cv2.line(canvas, (cx, cy), (cx, cy + dy * L), box_colour, bt)
+
     for det in detections:
         bbox = det.get("bbox", det.get("box"))
         if bbox is None:

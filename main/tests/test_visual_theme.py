@@ -51,3 +51,16 @@ def test_alarm_html_has_no_emoji_or_border():
     assert "⚠" not in html and "🚨" not in html
     assert "border: none" in html or "border:none" in html
     assert "#b91c1c" in html or "#de350b" in html
+
+
+def test_overlay_draws_status_coloured_corner_brackets():
+    import cv2
+    img = np.zeros((200, 320, 3), dtype=np.uint8)
+    out = visual.draw_detection_overlay(img, [], {"status": "AUTHORIZED"})
+    # top-left corner region should contain the forest-green bracket
+    corner = out[0:40, 0:40]
+    assert corner.sum() > 0, "no bracket drawn in top-left corner"
+    # the drawn colour should be the authorized BGR (green channel dominant)
+    b, g, r = visual._AUTHORIZED_BGR
+    mask = np.all(corner == (b, g, r), axis=-1)
+    assert mask.any(), "corner bracket is not the authorized colour"
