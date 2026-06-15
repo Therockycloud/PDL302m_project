@@ -9,9 +9,9 @@ Mục tiêu chính là tối ưu hóa mã nguồn chạy suy luận đầu cuố
 
 ## 2. Nghiên cứu tài liệu tham khảo (Literature Review)
 Trong quá trình tích hợp và tối ưu hóa hệ thống chạy trên CPU biên, nhóm đã tham khảo các công trình khoa học sau:
-1.  **Multi-Factor Authentication in Automated Vehicle Access Systems (Jang & Lim, 2020)**: Nghiên cứu đề xuất mô hình bảo mật kết hợp biển số xe và trích xuất đặc trưng ngoại hình để ngăn ngừa gian lận. Nghiên cứu này chứng minh rằng việc kết hợp thêm hai yếu tố (hãng xe, màu xe) giúp giảm tỷ lệ xâm nhập trái phép xuống dưới $0.5\%$.
-2.  **Optimizing Deep Learning Inference on CPU Edge Devices (Lin et al., 2022)**: Bài viết phân tích các cơ chế quản lý luồng của OpenMP và MKL, đề xuất phương thức giới hạn số luồng của thư viện học sâu để triệt tiêu hiện tượng tranh chấp CPU (CPU thrashing) và đơ cứng luồng trên hệ thống đơn chip.
-3.  **Offline-First Intelligent Edge Architectures (Smith & Patel, 2023)**: Thảo luận về việc xây dựng các hệ thống AI chạy ngoại tuyến hoàn toàn, nhấn mạnh việc loại bỏ các cuộc gọi API đồng bộ kiểm tra phiên bản (version checking) và cơ chế tải font tự động để giảm thiểu thời gian trễ khởi động đầu tiên (Cold Start Latency).
+1.  **NVIDIA DeepStream — Real-Time License Plate Detection and Recognition (NVIDIA, 2020)** — *https://developer.nvidia.com/blog/creating-a-real-time-license-plate-detection-and-recognition-app/*: Kiến trúc tham chiếu công nghiệp kết hợp bộ phát hiện chính (biển số) với các bộ phân loại thứ cấp về hãng xe (VehicleMakeNet) và màu xe, minh họa cách bổ sung đặc trưng ngoại hình bên cạnh biển số để tăng độ tin cậy khi kiểm soát xe ra vào và ngăn ngừa gian lận tráo biển.
+2.  **A Novel Memory and Time-Efficient ALPR System Based on YOLOv5 (Batra et al., 2022)** — *Sensors, 22(14), 5283*: Bài viết đề xuất một hệ thống ALPR tối ưu về bộ nhớ và thời gian (mô hình 14 MB, thời gian suy luận ~85 ms cho toàn pipeline), cho thấy cách thu gọn mô hình và kiểm soát tài nguyên tính toán để chạy hiệu quả trên phần cứng biên hạn chế thay vì GPU mạnh.
+3.  **Carmen Nano — ANPR/LPR on-prem cho NVIDIA Jetson (Adaptive Recognition, 2024)** — *https://adaptiverecognition.com/products/carmen-nano/*: Giải pháp ANPR thương mại chạy hoàn toàn tại biên (on-prem) trên Jetson, không phụ thuộc kết nối đám mây. Đây là minh chứng thực tiễn cho kiến trúc ưu tiên ngoại tuyến (offline-first) mà dự án hướng tới, giúp loại bỏ độ trễ và rủi ro của các cuộc gọi API trực tuyến khi khởi động và vận hành.
 
 ---
 

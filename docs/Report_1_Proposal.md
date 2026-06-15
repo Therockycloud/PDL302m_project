@@ -36,7 +36,7 @@ Khi xe đi vào bãi đỗ (Check-in), hệ thống tự động ghi nhận bộ
 Để thiết kế một hệ thống tối ưu và khoa học, dự án kế thừa và tham khảo các nghiên cứu tiêu biểu sau:
 
 1. **Nghiên cứu tích hợp ALPR và FGVC (Fine-Grained Vehicle Classification):**
-   - *Tài liệu tham khảo:* Lima, G. R., et al. (2026). *"Toward Unified Fine-Grained Vehicle Classification and Automatic License Plate Recognition."* arXiv preprint arXiv:2604.05271.
+   - *Tài liệu tham khảo:* Lima, G. E., et al. (2026). *"Toward Unified Fine-Grained Vehicle Classification and Automatic License Plate Recognition."* arXiv preprint arXiv:2604.05271.
    - *Tóm tắt & Ứng dụng:* Bài báo này phát triển bộ dữ liệu UFPR-VeSV gồm 24,945 ảnh xe thực tế được gán nhãn 13 màu sắc, 26 hãng xe, 136 model và 14 loại xe. Nghiên cứu đề xuất việc huấn luyện song song và đồng bộ hóa các bộ phân loại đặc trưng của xe với mô hình nhận diện biển số (ALPR) để nâng cao độ chính xác của hệ thống giám sát. Dự án của chúng em kế thừa ý tưởng tích hợp luồng xử lý song song các đặc trưng này để tăng cường tính bảo mật.
 2. **Nghiên cứu phân loại xe không phụ thuộc góc nhìn (View-Independent VMMR):**
    - *Tài liệu tham khảo:* Hu, C., et al. (2017). *"View Independent Vehicle Make, Model and Color Recognition Using Convolutional Neural Network."* arXiv preprint arXiv:1702.01721.
@@ -235,6 +235,6 @@ Khi xe đi vào bãi đỗ (Check-in), hệ thống tự động ghi nhận bộ
 
 ## 10. Tài liệu tham khảo (References)
 
-1. Lima, G. R., Laroca, R., Santos, R. O., & Menotti, D. (2026). *Toward Unified Fine-Grained Vehicle Classification and Automatic License Plate Recognition*. arXiv preprint arXiv:2604.05271.
+1. Lima, G. E., Nascimento, V., Santos, E., Nascimento Jr., E., Laroca, R., & Menotti, D. (2026). *Toward Unified Fine-Grained Vehicle Classification and Automatic License Plate Recognition*. arXiv preprint arXiv:2604.05271.
 2. Hu, C., Bai, X., Qi, L., Wang, P., Shen, G., & Wang, J. (2017). *View Independent Vehicle Make, Model and Color Recognition Using Convolutional Neural Network*. arXiv preprint arXiv:1702.01721.
 3. Adaptive Recognition. (2024). *Make and Model Recognition (MMR) in Parking Access Control and Security Systems*. Retrieved from https://adaptiverecognition.com/

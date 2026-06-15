@@ -12,8 +12,8 @@ Mục tiêu của giai đoạn này là thiết lập một đường ống (pip
 ## 2. Nghiên cứu tài liệu tham khảo (Literature Review)
 Trong quá trình xây dựng bộ dữ liệu và pipeline tiền xử lý, nhóm đã tham khảo các nghiên cứu khoa học và bài báo chuyên ngành sau:
 1.  **Stanford Cars Dataset (Krause et al., 2013)**: Nghiên cứu giới thiệu bộ dữ liệu 16,185 hình ảnh của 196 loại ô tô, thiết lập tiêu chuẩn cho việc phân loại hãng xe và dòng xe dựa trên học sâu. Nhóm đã kế thừa phương pháp phân nhóm thương hiệu từ nghiên cứu này.
-2.  **Vehicle Color Recognition in Urban Surveillance (Chen et al., 2019)**: Bài báo phân tích ảnh hưởng của điều kiện ánh sáng hầm và ngoài trời tới độ chính xác nhận diện màu sắc xe. Nghiên cứu nhấn mạnh tầm quan trọng của việc chuẩn hóa dải điểm ảnh trước khi đưa vào các mạng CNN siêu nhẹ như MobileNetV3.
-3.  **Data Augmentation for Object Detection and Classification in Automated Parking Systems (Wang & Choi, 2021)**: Đề xuất các phương pháp tăng cường dữ liệu như dịch chuyển độ sáng, lật ảnh và xoay góc để cải thiện khả năng tổng quát hóa của mô hình dưới các góc camera giám sát bãi đỗ khác nhau.
+2.  **Vehicle Color Recognition on Urban Road by Feature Context (Chen, Bai & Liu, 2014)** — *IEEE Transactions on Intelligent Transportation Systems, 15(5), 2340–2346*: Bài báo phân tích ảnh hưởng của điều kiện ánh sáng và nền đô thị tới độ chính xác nhận diện màu sắc xe, giới thiệu bộ dữ liệu 15,601 ảnh xe chụp từ camera giám sát với 8 nhóm màu. Nghiên cứu nhấn mạnh tầm quan trọng của việc chuẩn hóa dải điểm ảnh trước khi đưa vào các mạng CNN siêu nhẹ như MobileNetV3.
+3.  **A Survey of Data Augmentation Techniques for Traffic Visual Elements (Yang et al., 2025)** — *Sensors, 25(21), 6672*: Tổng hợp và so sánh các phương pháp tăng cường dữ liệu (dịch chuyển độ sáng, lật ảnh, xoay góc, và các mô hình sinh ảnh) cho các đối tượng giao thông như người và phương tiện, giúp cải thiện khả năng tổng quát hóa của mô hình dưới các góc camera giám sát khác nhau.
 
 ---
 
