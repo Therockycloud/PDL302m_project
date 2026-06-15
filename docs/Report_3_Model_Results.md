@@ -1,7 +1,7 @@
 # Báo cáo kỹ thuật Giai đoạn 3: Huấn luyện Mô hình Học sâu và Kết quả Thực nghiệm (Model & Results)
 
 ## 1. Đặt vấn đề và Mục tiêu huấn luyện (Objective)
-Giai đoạn 3 tập trung vào thiết kế kiến trúc, cấu hình siêu tham số, thực thi huấn luyện và đánh giá chi tiết các mô hình học máy thành phần trong pipeline xác thực phương tiện. Mục tiêu là xây dựng và tối ưu hóa các mô hình nhận diện biển số (YOLOv8-nano), trích xuất văn bản biển số (EasyOCR) và các mô hình học sâu phân loại đặc trưng phương tiện (Hãng xe và Màu sắc xe) sử dụng phương pháp Học chuyển vị (Transfer Learning) nhằm tối ưu hóa độ trễ và tài nguyên phần cứng.
+Giai đoạn 3 tập trung vào thiết kế kiến trúc, cấu hình siêu tham số, thực thi huấn luyện và đánh giá chi tiết các mô hình học máy thành phần trong pipeline xác thực phương tiện. Mục tiêu là xây dựng và tối ưu hóa các mô hình nhận diện biển số (YOLOv8-nano), trích xuất văn bản biển số (ban đầu EasyOCR, sau chuyển sang **PaddleOCR** — xem §3.2) và các mô hình học sâu phân loại đặc trưng phương tiện (Hãng xe và Màu sắc xe) sử dụng phương pháp Học chuyển vị (Transfer Learning) nhằm tối ưu hóa độ trễ và tài nguyên phần cứng.
 
 ---
 
@@ -20,9 +20,9 @@ Trong quá trình phát triển mô hình, nhóm đã dựa trên các cơ sở 
 *   **Đặc điểm**: Đây là phiên bản nhỏ nhất trong dòng YOLOv8 với số lượng tham số cực kỳ tối ưu, giúp suy luận cực nhanh trên CPU mà không cần card đồ họa chuyên dụng.
 *   **Đầu ra**: Tọa độ bounding box $[x_{min}, y_{min}, x_{max}, y_{max}]$ bao quanh biển số xe.
 
-### 3.2. Bộ nhận diện ký tự biển số (EasyOCR Engine)
-*   **Kiến trúc**: Sử dụng mạng ResNet kết hợp với mạng hồi quy tuần hoàn LSTM và tầng giải mã CTC (Connectionist Temporal Classification).
-*   **Cấu hình**: Chạy hoàn toàn ngoại tuyến (`download_enabled=False`) để loại bỏ hoàn toàn độ trễ kiểm tra phiên bản qua mạng của EasyOCR.
+### 3.2. Bộ nhận diện ký tự biển số (OCR Engine: PaddleOCR)
+*   **Lựa chọn engine (Benchmark C)**: Ban đầu nhóm dùng **EasyOCR** (ResNet + LSTM + CTC). Tuy nhiên benchmark trên 16 biển CCTV thật cho thấy EasyOCR đọc đúng **0%** chuỗi (exact-match), trong khi **PaddleOCR (PP-OCRv4, CRNN+CTC)** đạt **81%** (CER 0.28 → 0.03). Vì vậy **PaddleOCR là engine chính**, EasyOCR giữ làm fallback. Chi tiết: `docs/benchmarks/ocr_benchmark.md`.
+*   **Cấu hình**: Chạy ngoại tuyến hoàn toàn; engine cấu hình ở `main/configs/config.yaml` (`ocr.engine: ppocr`, fallback `easyocr`).
 
 ### 3.3. Bộ phân loại hãng xe (Brand Classifier)
 *   **Backbone**: **EfficientNet-B0** (đã đóng băng các lớp trích xuất đặc trưng tiền huấn luyện trên ImageNet).
@@ -30,6 +30,7 @@ Trong quá trình phát triển mô hình, nhóm đã dựa trên các cơ sở 
     *   `GlobalAveragePooling2D()`: Làm phẳng bản đồ đặc trưng 2D từ backbone.
     *   `Dropout(0.5)`: Giảm tỷ lệ khớp quá mức xuống 50% bằng cách ngắt ngẫu nhiên một nửa số nơ-ron kết nối trong mỗi batch huấn luyện.
     *   `Dense(8, activation="softmax")`: Đầu ra phân lớp cho 8 thương hiệu mục tiêu.
+    *   *Lưu ý pivot:* khác với ResNet50 trong đề xuất ban đầu (Report 1), nhóm chọn **EfficientNet-B0** vì cùng độ chính xác nhưng nhẹ và nhanh hơn nhiều trên CPU (xem Benchmark A màu, cùng kết luận về kích thước/độ trễ).
 
 ### 3.4. Bộ phân loại màu sắc xe (Color Classifier)
 *   **Backbone**: **MobileNetV3-Small** (đã đóng băng các lớp trích xuất đặc trưng tiền huấn luyện trên ImageNet).
@@ -67,6 +68,13 @@ Sau khi hoàn thành 10 epochs huấn luyện trên bộ dữ liệu thực tế
 *   **Độ chính xác Validation (val_accuracy)**: Đạt khoảng **14.16%**.
 *   **Phân tích nguyên nhân**: Phân loại màu sắc xe thực tế chịu ảnh hưởng rất mạnh bởi sự cân bằng trắng của camera, cường độ ánh sáng của môi trường bãi giữ xe (điều kiện ánh sáng hầm so với ngoài trời nắng). Sự chồng lấn đặc trưng giữa các nhóm màu Bạc (Silver), Xám (Grey) và Trắng (White) cũng là nguyên nhân chính khiến mô hình phân loại sai lệch.
 *   **Biểu đồ huấn luyện**: [color_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/presentations/evidence/color_classifier_training_curves.png)
+
+### 5.3. Hệ quả thực nghiệm → Quyết định pivot
+Hai kết quả ban đầu (hãng ~29%, màu ~14.16%) cho thấy bộ phân loại đặc trưng **quá yếu để chặn cứng** một xe. Nhóm đã:
+1.  **Bỏ phân loại hãng** khỏi quyết định (giữ lại như thử nghiệm).
+2.  **Chuyển màu sang mô hình PyTorch MobileNetV3-Small thích ứng miền CCTV** — đạt **accuracy 59.73% / macro-F1 0.625** trên 226 ảnh val (Benchmark A, `docs/benchmarks/color_benchmark.md`), cao hơn hẳn 14.16% ban đầu; con số 14.16% phản ánh lần huấn luyện Keras đầu chưa thích ứng miền.
+3.  **Hạ màu xuống "cảnh báo mềm"**: biển số (PaddleOCR) là khoá chính (plate-primary); màu lệch chỉ cảnh báo, không từ chối cứng.
+Đây là cơ chế quyết định **delivered** của hệ thống (xem Report 4).
 
 ---
 
