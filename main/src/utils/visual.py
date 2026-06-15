@@ -17,9 +17,9 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # Colour palette
 # ---------------------------------------------------------------------------
-_AUTHORIZED_BGR = (136, 255, 0)   # #00ff88 in BGR
-_ALERT_BGR = (102, 51, 255)       # #ff3366 in BGR
-_UNKNOWN_BGR = (0, 200, 255)      # amber-ish
+_AUTHORIZED_BGR = (61, 128, 21)   # #15803d (forest green) in BGR
+_ALERT_BGR = (28, 28, 185)        # #b91c1c (alert red) in BGR
+_UNKNOWN_BGR = (9, 89, 180)       # #b45309 (amber warn) in BGR
 
 
 def draw_detection_overlay(
