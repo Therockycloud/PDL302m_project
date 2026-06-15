@@ -6,15 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report 1: Project Proposal - Smart Anti-Theft Vehicle System</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
         :root {
+            --bg-color: #fbfbf9;
+            --text-color: #1a1a17;
+            --text-muted: #5e5e57;
+            --border-color: #2e2e2a;
+            --accent-red: #991b1b;
+            --accent-orange: #c2410c;
+            --card-bg: #ffffff;
+            --accent-green: #15803d;
+            --font-editorial: 'Lora', serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --accent: #15803d;
+            --text: #1a1a17;
             --primary: #ffffff;
             --secondary: #f5f7fa;
-            --accent: #e8ecf1;
             --highlight: #c0392b;
-            --text: #1a1a2e;
-            --text-muted: #5a6270;
             --green: #27ae60;
             --orange: #e67e22;
             --red: #c0392b;
@@ -27,9 +37,9 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #ffffff;
-            color: var(--text);
+            font-family: var(--font-sans);
+            background: var(--bg-color);
+            color: var(--text-color);
             overflow: hidden;
             height: 100vh;
         }
@@ -316,7 +326,7 @@
             padding: 8px 20px;
             border-radius: 0px;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-sans);
             font-weight: 600;
             font-size: 0.85em;
             transition: all 0.3s;
