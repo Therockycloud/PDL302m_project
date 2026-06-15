@@ -18,7 +18,7 @@ Toàn bộ báo cáo kỹ thuật và hướng dẫn kiểm nghiệm chính th�
 
 *   **[Report 1: Đề xuất dự án & Kiến trúc (Proposal)](docs/Report_1_Proposal.md)** - Mô tả vấn đề an ninh, thiết kế kiến trúc hệ thống và phân công công việc.
 *   **[Report 2: Quy trình xử lý dữ liệu (Data Tasks)](docs/Report_2_Data_Tasks.md)** - Chi tiết thu thập dữ liệu Stanford Cars, Wikimedia VinFast crawler, EDA và tiền xử lý.
-*   **[Report 3: Kết quả thực nghiệm mô hình (Model & Results)](docs/Report_3_Model_Results.md)** - Đặc tả thiết kế mạng EfficientNet-B0, MobileNetV3-Small, EasyOCR và đồ thị huấn luyện.
+*   **[Report 3: Kết quả thực nghiệm mô hình (Model & Results)](docs/Report_3_Model_Results.md)** - Đặc tả thiết kế mạng EfficientNet-B0, MobileNetV3-Small, lựa chọn OCR (PaddleOCR thắng EasyOCR ở Benchmark C) và đồ thị huấn luyện.
 *   **[Report 4: Tích hợp hệ thống & Đánh giá (Final Defense)](docs/Report_4_Final_Report.md)** - Kết quả đo lường độ trễ đầu cuối trên CPU, các kịch bản kiểm thử an ninh bãi xe.
 *   **[Đặc tả Mô hình & Cấu hình (Model Specs)](docs/model_specifications.md)** - File cấu hình chi tiết, dải pixel đầu vào và sơ đồ thư mục CSDL.
 *   **[Hướng dẫn báo cáo (Report Guidelines)](docs/report_guidelines.md)** - Các yêu cầu, khuôn mẫu slide presentations theo tiêu chuẩn của môn học.
@@ -88,7 +88,7 @@ Chạy lệnh sau từ thư mục gốc của dự án:
 ```bash
 docker compose up --build
 ```
-*Lệnh này sẽ tự động tải các dependencies, tải trước các mô hình YOLOv8 và EasyOCR để chạy ngoại tuyến, khởi động Backend FastAPI (cổng 8000) và Dashboard Streamlit (cổng 8501) song song.*
+*Lệnh này sẽ tự động tải các dependencies, tải trước các mô hình YOLOv8 và PaddleOCR (EasyOCR fallback) để chạy ngoại tuyến, khởi động Backend FastAPI (cổng 8000) và Dashboard Streamlit (cổng 8501) song song.*
 
 *   **API Documentation (Swagger UI)**: Truy cập tại `http://localhost:8000/docs`
 *   **Vận hành Dashboard UI**: Truy cập tại `http://localhost:8501`
