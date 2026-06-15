@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" font-family="'Plus Jakarta Sans', sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#71717a"/>
+    </marker>
+  </defs>
+  <style>
+    .t{fill:#18181b;font-size:16px;font-weight:800;}
+    .s{fill:#3f3f46;font-size:12px;}
+    .lbl{fill:#a1a1aa;font-size:11px;font-weight:700;letter-spacing:1.5px;}
+    .mono{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
+  </style>
+
+  <text x="20" y="30" class="t" font-size="17">Hành trình thiết kế — vì sao bản giao khác đề xuất</text>
+
+  <!-- stage 1: proposal -->
+  <rect x="20" y="60" width="280" height="180" rx="12" fill="#ffffff" stroke="#e4e4e7" stroke-width="1.5"/>
+  <text x="40" y="88" class="lbl">ĐỀ XUẤT</text>
+  <text x="40" y="116" class="t" font-size="15">Đối chiếu chéo 3 nhân tố</text>
+  <text x="40" y="142" class="s">Biển + Hãng + Màu, chặn cứng</text>
+  <text x="40" y="162" class="s">EasyOCR · ResNet50 · MobileNetV2</text>
+  <text x="40" y="182" class="s">Mục tiêu ≥95% phát hiện tráo biển</text>
+
+  <!-- stage 2: experiments (problem) -->
+  <rect x="340" y="60" width="280" height="180" rx="12" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.5"/>
+  <text x="360" y="88" class="lbl" fill="#b91c1c">THỰC NGHIỆM TRÊN CCTV THẬT</text>
+  <text x="360" y="116" class="t" font-size="15" fill="#991b1b">Hai nhân tố quá yếu</text>
+  <text x="360" y="142" class="mono" fill="#b91c1c">EasyOCR đọc đúng 0%</text>
+  <text x="360" y="164" class="mono" fill="#b91c1c">Hãng 29% · Màu 14%</text>
+  <text x="360" y="186" class="s">≈ ngẫu nhiên → không thể chặn cứng</text>
+  <text x="360" y="210" class="s">TF deadlock &amp; crash với PaddleOCR</text>
+
+  <!-- stage 3: delivered -->
+  <rect x="660" y="60" width="280" height="180" rx="12" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+  <text x="680" y="88" class="lbl" fill="#15803d">BẢN GIAO</text>
+  <text x="680" y="116" class="t" font-size="15" fill="#15803d">Plate-primary</text>
+  <text x="680" y="142" class="mono" fill="#15803d">PaddleOCR 81% (Benchmark C)</text>
+  <text x="680" y="164" class="s">Biển = khoá chính</text>
+  <text x="680" y="184" class="s">Màu = cảnh báo mềm · bỏ hãng</text>
+  <text x="680" y="204" class="s">EfficientNet/MobileNetV3 · PyTorch+ONNX</text>
+
+  <!-- arrows -->
+  <line x1="300" y1="150" x2="336" y2="150" class="flow" stroke="#71717a" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="620" y1="150" x2="656" y2="150" class="flow" stroke="#71717a" stroke-width="1.8" marker-end="url(#arr)"/>
+</svg>
