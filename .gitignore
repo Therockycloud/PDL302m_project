@@ -67,3 +67,6 @@ main/data/models/color_*.keras
 # ...except the MobileNetV3 colour model used at runtime
 !main/data/models/color_MobileNetV3Small.pt
 
+
+# Brainstorming visual companion
+.superpowers/
