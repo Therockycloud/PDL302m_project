@@ -102,17 +102,17 @@ def get_status_css(status: str) -> str:
     status_upper = status.upper()
     if status_upper == "AUTHORIZED":
         return (
-            "background: rgba(0, 135, 90, 0.1); "
+            "background: rgba(21, 128, 61, 0.1); "
             "border: none; "
-            "color: #00875a; "
+            "color: #15803d; "
             "padding: 6px 18px; border-radius: 8px; "
             "font-weight: 700; display: inline-block;"
         )
     if status_upper in ("MISMATCH", "UNREGISTERED"):
         return (
-            "background: rgba(222, 53, 11, 0.1); "
+            "background: rgba(185, 28, 28, 0.1); "
             "border: none; "
-            "color: #de350b; "
+            "color: #b91c1c; "
             "padding: 6px 18px; border-radius: 8px; "
             "font-weight: 700; display: inline-block; "
             "animation: pulse-red 1s ease-in-out infinite;"
@@ -188,10 +188,10 @@ def get_alarm_html(status: str) -> str:
         '<div style="'
         "text-align:center; padding:10px; margin:8px 0; "
         "border-radius:8px; font-weight:700; font-size:1.1rem; "
-        "background:rgba(222,53,11,0.1); color:#de350b; "
+        "background:rgba(185,28,28,0.1); color:#b91c1c; "
         "border:none; "
         'animation: pulse-red 0.8s ease-in-out infinite;">'
-        f"⚠️ ALERT — Vehicle status: {status.upper()}"
+        f"ALERT — Vehicle status: {status.upper()}"
         "</div>"
     )
 

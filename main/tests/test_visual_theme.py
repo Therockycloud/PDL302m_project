@@ -38,3 +38,16 @@ def test_theme_has_no_violet_gradient_or_glass_blur():
     assert "#5b31df" not in css
     assert "backdrop-filter" not in css
     assert "glass-card" not in css
+
+
+def test_status_css_authorized_is_borderless_green():
+    css = visual.get_status_css("AUTHORIZED")
+    assert "#15803d" in css
+    assert "border: none" in css or "border:none" in css
+
+
+def test_alarm_html_has_no_emoji_or_border():
+    html = visual.get_alarm_html("MISMATCH")
+    assert "⚠" not in html and "🚨" not in html
+    assert "border: none" in html or "border:none" in html
+    assert "#b91c1c" in html or "#de350b" in html
