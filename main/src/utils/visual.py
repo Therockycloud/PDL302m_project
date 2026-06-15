@@ -102,25 +102,25 @@ def get_status_css(status: str) -> str:
     status_upper = status.upper()
     if status_upper == "AUTHORIZED":
         return (
-            "background: rgba(0, 255, 136, 0.15); "
-            "border: 1px solid #00ff88; "
-            "color: #00ff88; "
+            "background: rgba(0, 135, 90, 0.1); "
+            "border: none; "
+            "color: #00875a; "
             "padding: 6px 18px; border-radius: 8px; "
             "font-weight: 700; display: inline-block;"
         )
     if status_upper in ("MISMATCH", "UNREGISTERED"):
         return (
-            "background: rgba(255, 51, 102, 0.15); "
-            "border: 1px solid #ff3366; "
-            "color: #ff3366; "
+            "background: rgba(222, 53, 11, 0.1); "
+            "border: none; "
+            "color: #de350b; "
             "padding: 6px 18px; border-radius: 8px; "
             "font-weight: 700; display: inline-block; "
             "animation: pulse-red 1s ease-in-out infinite;"
         )
     return (
-        "background: rgba(255, 255, 255, 0.08); "
-        "border: 1px solid rgba(255,255,255,0.2); "
-        "color: #aaa; "
+        "background: rgba(0, 0, 0, 0.05); "
+        "border: none; "
+        "color: #475569; "
         "padding: 6px 18px; border-radius: 8px; "
         "font-weight: 600; display: inline-block;"
     )
@@ -188,8 +188,8 @@ def get_alarm_html(status: str) -> str:
         '<div style="'
         "text-align:center; padding:10px; margin:8px 0; "
         "border-radius:8px; font-weight:700; font-size:1.1rem; "
-        "background:rgba(255,51,102,0.2); color:#ff3366; "
-        "border:1px solid #ff3366; "
+        "background:rgba(222,53,11,0.1); color:#de350b; "
+        "border:none; "
         'animation: pulse-red 0.8s ease-in-out infinite;">'
         f"⚠️ ALERT — Vehicle status: {status.upper()}"
         "</div>"
@@ -201,15 +201,16 @@ def get_alarm_html(status: str) -> str:
 # ---------------------------------------------------------------------------
 
 def create_glassmorphic_css() -> str:
-    """Return a full CSS stylesheet string for a dark glassmorphic theme.
+    """Return a full CSS stylesheet string for a clean light theme.
 
     Features:
-        * Dark background (``#0a0a1a``)
-        * Frosted-glass cards (``backdrop-filter: blur(20px)``)
-        * Neon green (``#00ff88``) accents for AUTHORIZED states
-        * Warning red (``#ff3366``) accents for alert states
+        * Light background (#ffffff)
+        * Borderless white/light-gray cards
+        * Dark forest green (#00875a) accents for AUTHORIZED states
+        * Alert red (#de350b) accents for warning states
+        * High-contrast dark gray text (#0f172a)
         * Inter font loaded from Google Fonts
-        * Styled metric boxes, smooth transitions, subtle animations
+        * Borderless metric boxes and clean UI elements
 
     Returns:
         CSS text ready to be injected via ``st.markdown``.
@@ -221,15 +222,15 @@ def create_glassmorphic_css() -> str:
 
     /* ---- Root variables ---- */
     :root {
-        --bg-primary: #0a0a1a;
-        --bg-card: rgba(255, 255, 255, 0.04);
-        --border-card: rgba(255, 255, 255, 0.08);
-        --neon-green: #00ff88;
-        --neon-green-dim: rgba(0, 255, 136, 0.12);
-        --alert-red: #ff3366;
-        --alert-red-dim: rgba(255, 51, 102, 0.12);
-        --text-primary: #e8e8e8;
-        --text-secondary: #8a8a9a;
+        --bg-primary: #ffffff;
+        --bg-card: #f8fafc;
+        --border-card: transparent;
+        --neon-green: #00875a;
+        --neon-green-dim: rgba(0, 135, 90, 0.1);
+        --alert-red: #de350b;
+        --alert-red-dim: rgba(222, 53, 11, 0.1);
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
         --radius: 16px;
     }
 
@@ -246,8 +247,8 @@ def create_glassmorphic_css() -> str:
 
     /* ---- Sidebar ---- */
     section[data-testid="stSidebar"] {
-        background: rgba(12, 12, 30, 0.92) !important;
-        border-right: 1px solid var(--border-card) !important;
+        background: #f1f5f9 !important;
+        border-right: none !important;
     }
     section[data-testid="stSidebar"] .stMarkdown p,
     section[data-testid="stSidebar"] .stMarkdown span,
@@ -258,23 +259,21 @@ def create_glassmorphic_css() -> str:
     /* ---- Glassmorphic card ---- */
     .glass-card {
         background: var(--bg-card);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--border-card);
+        border: none;
         border-radius: var(--radius);
         padding: 24px;
         margin-bottom: 16px;
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
     .glass-card:hover {
-        border-color: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        border-color: transparent;
+        box-shadow: none !important;
     }
 
     /* ---- Status badges ---- */
     .badge-authorized {
         background: var(--neon-green-dim);
-        border: 1px solid var(--neon-green);
+        border: none;
         color: var(--neon-green);
         padding: 4px 14px;
         border-radius: 20px;
@@ -285,7 +284,7 @@ def create_glassmorphic_css() -> str:
     }
     .badge-alert {
         background: var(--alert-red-dim);
-        border: 1px solid var(--alert-red);
+        border: none;
         color: var(--alert-red);
         padding: 4px 14px;
         border-radius: 20px;
@@ -299,8 +298,7 @@ def create_glassmorphic_css() -> str:
     /* ---- Metric boxes ---- */
     .metric-box {
         background: var(--bg-card);
-        backdrop-filter: blur(16px);
-        border: 1px solid var(--border-card);
+        border: none;
         border-radius: 12px;
         padding: 18px 20px;
         text-align: center;
@@ -308,7 +306,7 @@ def create_glassmorphic_css() -> str:
     }
     .metric-box:hover {
         transform: translateY(-2px);
-        border-color: rgba(0, 255, 136, 0.3);
+        border-color: transparent;
     }
     .metric-value {
         font-size: 1.8rem;
@@ -331,7 +329,7 @@ def create_glassmorphic_css() -> str:
     .neon-title {
         font-size: 2.2rem;
         font-weight: 900;
-        background: linear-gradient(135deg, var(--neon-green) 0%, #00ccff 60%, #7b61ff 100%);
+        background: linear-gradient(135deg, var(--neon-green) 0%, #0066cc 60%, #5b31df 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -347,8 +345,7 @@ def create_glassmorphic_css() -> str:
     /* ---- Detection result card ---- */
     .det-card {
         background: var(--bg-card);
-        backdrop-filter: blur(16px);
-        border: 1px solid var(--border-card);
+        border: none;
         border-radius: 12px;
         padding: 16px 20px;
         margin-bottom: 12px;
@@ -392,8 +389,8 @@ def create_glassmorphic_css() -> str:
 
     /* ---- Streamlit overrides ---- */
     .stButton > button {
-        background: linear-gradient(135deg, var(--neon-green), #00ccff) !important;
-        color: #0a0a1a !important;
+        background: linear-gradient(135deg, var(--neon-green), #0066cc) !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: 10px !important;
         font-weight: 700 !important;
@@ -404,7 +401,7 @@ def create_glassmorphic_css() -> str:
         opacity: 0.85 !important;
     }
     div[data-testid="stFileUploader"] {
-        border: 1px dashed rgba(255,255,255,0.12) !important;
+        border: none !important;
         border-radius: 12px !important;
         background: var(--bg-card) !important;
     }
