@@ -413,7 +413,7 @@
                     <div class="badge">Factor 1</div>
                     <h3>License Plate OCR</h3>
                     <p class="card-body">
-                        Phát hiện tọa độ biển số xe máy/ô tô bằng YOLOv8-nano, sau đó nhận diện ký tự bằng EasyOCR kết hợp bộ tiền xử lý hình học và thuật toán sắp xếp dòng văn bản tiếng Việt.
+                        Phát hiện tọa độ biển số xe máy/ô tô bằng YOLOv8-nano, sau đó nhận diện ký tự bằng PaddleOCR kết hợp bộ tiền xử lý hình học và thuật toán sắp xếp dòng văn bản tiếng Việt.
                     </p>
                 </div>
                 <div class="card">
@@ -466,9 +466,9 @@
                         <td>Dùng YOLOv8-nano làm bộ định vị vùng chứa biển số (tối ưu hóa tốc độ).</td>
                     </tr>
                     <tr>
-                        <td><strong>EasyOCR Engine (JaidedAI)</strong></td>
-                        <td>BiLSTM + CTC Loss</td>
-                        <td>Hỗ trợ hơn 80 ngôn ngữ bao gồm tiếng Việt. Tuy nhiên, dễ bị lệch dòng đối với biển số 2 dòng tại VN.</td>
+                        <td><strong>PaddleOCR (PP-OCRv4)</strong></td>
+                        <td>CRNN + CTC</td>
+                        <td>Đọc đúng 81% biển CCTV thật (Benchmark C) vs EasyOCR 0%. Vẫn cần xử lý lệch dòng cho biển 2 dòng VN.</td>
                         <td>Tích hợp lõi nhận diện ký tự, viết thêm giải thuật sắp xếp tọa độ dòng.</td>
                     </tr>
                     <tr>
@@ -506,7 +506,7 @@
                     <h3 style="margin-bottom: 15px;">Luồng xử lý từ Camera đến Cảnh báo</h3>
                     <ul>
                         <li><strong>Bước 1 (Đầu vào):</strong> Nhận hình ảnh luồng video hoặc ảnh chụp xe qua cổng API REST.</li>
-                        <li><strong>Bước 2 (Chạy mô hình song song):</strong> YOLOv8 cắt ảnh biển số gửi cho EasyOCR. Đồng thời, toàn bộ khung hình xe được resize sang 224x224 để nạp vào EfficientNet-B0 và MobileNetV3-Small.</li>
+                        <li><strong>Bước 2 (Chạy mô hình song song):</strong> YOLOv8 cắt ảnh biển số gửi cho PaddleOCR. Đồng thời, toàn bộ khung hình xe được resize sang 224x224 để nạp vào EfficientNet-B0 và MobileNetV3-Small.</li>
                         <li><strong>Bước 3 (Đối chiếu CSDL):</strong> Truy vấn trạng thái vé xe từ file CSV (đại diện cho CSDL bãi giữ xe lịch sử). Đối sánh biển số, hãng xe, màu xe.</li>
                         <li><strong>Bước 4 (Đưa ra quyết định):</strong> Nếu khớp 100%, barrier mở. Nếu sai lệch, trả về cảnh báo an ninh, kích hoạt nhấp nháy còi trên giao diện Streamlit.</li>
                     </ul>
@@ -527,13 +527,13 @@
         <div class="slide-body">
             <div class="grid-2">
                 <div>
-                    <h3>YOLOv8 & EasyOCR với Spatial Sorting</h3>
+                    <h3>YOLOv8 & PaddleOCR với Spatial Sorting</h3>
                     <p style="margin-bottom: 15px; color: var(--text-muted);">
                         Biển số xe Việt Nam thường được chia làm 2 dòng (dòng trên: mã tỉnh + số series; dòng dưới: số thứ tự). Đọc OCR thông thường sẽ bị đảo lộn thứ tự do nhầm tọa độ ngang.
                     </p>
                     <ul>
                         <li><strong>YOLOv8-nano Detector:</strong> Được tinh chỉnh để phát hiện bounding box của biển số xe, mở rộng margin thêm 5% để tránh mất viền ký tự ngoài cùng.</li>
-                        <li><strong>Giải thuật sắp xếp dòng:</strong> Phân chia các cụm văn bản trả về từ EasyOCR thành 2 nhóm dựa trên tọa độ Y trung tâm. Sắp xếp các cụm trong từng nhóm từ trái sang phải theo tọa độ X, sau đó nối lại bằng ký tự gạch ngang.</li>
+                        <li><strong>Giải thuật sắp xếp dòng:</strong> Phân chia các cụm văn bản trả về từ PaddleOCR thành 2 nhóm dựa trên tọa độ Y trung tâm. Sắp xếp các cụm trong từng nhóm từ trái sang phải theo tọa độ X, sau đó nối lại bằng ký tự gạch ngang.</li>
                         <li><strong>Hậu xử lý (Regex):</strong> Loại bỏ toàn bộ khoảng trắng, dấu chấm, dấu gạch ngang dư thừa để chuẩn hóa dạng biển số.</li>
                     </ul>
                 </div>
@@ -685,7 +685,7 @@ def sort_vietnamese_plate(ocr_results):
                                 <td>~75 ms</td>
                             </tr>
                             <tr>
-                                <td>Nhận diện ký tự (EasyOCR)</td>
+                                <td>Nhận diện ký tự (PaddleOCR)</td>
                                 <td>220 ms</td>
                                 <td>~1,250 ms</td>
                             </tr>
@@ -742,7 +742,7 @@ def sort_vietnamese_plate(ocr_results):
                 <div class="card">
                     <h3>Biển số bị lệch 2 dòng</h3>
                     <p class="card-body">
-                        <strong>Vấn đề:</strong> EasyOCR trả về chuỗi ký tự bị đảo lộn do xe máy đỗ nghiêng hoặc biển số dạng vuông.<br>
+                        <strong>Vấn đề:</strong> OCR trả về chuỗi ký tự bị đảo lộn do xe máy đỗ nghiêng hoặc biển số dạng vuông.<br>
                         <strong>Giải pháp:</strong> Viết thuật toán gom nhóm dòng ký tự dựa trên tỷ lệ Y-tâm của Bounding Box và sắp xếp X-trái-phải trước khi nối chuỗi văn bản.
                     </p>
                 </div>
