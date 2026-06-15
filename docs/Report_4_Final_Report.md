@@ -1,7 +1,7 @@
 # Báo cáo kỹ thuật Giai đoạn 4: Tích hợp Hệ thống và Đánh giá hiệu năng Đầu cuối (Final Report)
 
 ## 1. Đặt vấn đề và Mục tiêu tích hợp (Objective)
-Giai đoạn cuối cùng của dự án DPL302m tập trung vào tích hợp các mô hình học sâu thành phần (YOLOv8, EasyOCR, EfficientNet-B0, MobileNetV3-Small) thành một hệ thống an ninh bãi xe khép kín, tự động và bảo mật cao. Hệ thống thực hiện quy trình suy luận tuần tự kết hợp đối sánh 3 nhân tố với cơ sở dữ liệu mẫu để đưa ra lệnh điều khiển barrier bãi xe (Cho phép mở hoặc Cảnh báo xâm nhập).
+Giai đoạn cuối cùng của dự án DPL302m tập trung vào tích hợp các mô hình học sâu thành phần (YOLOv8, **PaddleOCR**, MobileNetV3-Small) thành một hệ thống an ninh bãi xe khép kín, tự động. Sau thực nghiệm (Report 3), hệ thống dùng quyết định **plate-primary**: biển số (PaddleOCR) là khoá chính, **màu xe là cảnh báo mềm**, và **bỏ phân loại hãng**; đối chiếu với cơ sở dữ liệu mẫu để đưa ra lệnh điều khiển barrier bãi xe (Cho phép mở hoặc Cảnh báo xâm nhập).
 
 Mục tiêu chính là tối ưu hóa mã nguồn chạy suy luận đầu cuối đầu tiên trên nền tảng CPU cục bộ, giải quyết các lỗi xung đột luồng thư viện và bảo đảm hệ thống hoạt động ổn định ở chế độ ngoại tuyến 100%.
 
@@ -25,7 +25,7 @@ Quy trình tích hợp được hiện thực hóa trong mã nguồn [run_evalua
                                                                 |
                                                                 v
                                                    +-------------------------+
-                                                   | EasyOCR Engine (Plate)  |
+                                                   | PaddleOCR Engine (Plate)|
                                                    +-------------------------+
                                                                 |
                                                                 v
@@ -60,7 +60,7 @@ Nhóm đã chạy thực nghiệm toàn bộ pipeline trên tập dữ liệu ki
 *   **Xe Hợp lệ (AUTHORIZED)**: 2 xe (barrier mở tự động)
 *   **Xe Lệch thông tin hãng/màu (MISMATCH)**: 1 xe (khóa barrier, báo động đỏ)
 *   **Xe Không đăng ký (UNREGISTERED)**: 2 xe (khóa barrier, báo động đỏ)
-*   **Thời gian phản hồi trung bình (Average Latency)**: **2,190.89 ms / xe**
+*   **Thời gian phản hồi trung bình (Average Latency)**: **2,190.89 ms / xe** trên 5 ảnh test — con số này gồm *cold-start* (~4.49 s ở ảnh đầu do nạp model lần đầu). Từ ảnh thứ hai trở đi, độ trễ ổn định ở mức **~1.6 s / xe** (xem §5.1). Mục tiêu <1.0 s ở đề xuất chưa đạt do chạy thuần CPU + tải PaddleOCR.
 
 ---
 
@@ -88,4 +88,4 @@ Trong quá trình tích hợp, hệ thống đã gặp hai thách thức lớn �
 ---
 
 ## 6. Kết luận
-Hệ thống giám sát đối chiếu chéo đa nhân tố LPR-Brand-Color đã hoàn thành mục tiêu thiết kế ban đầu. Hệ thống hoạt động trơn tru ngoại tuyến 100% trên phần cứng CPU thông thường, bảo đảm khả năng chống trộm xe vượt trội nhờ cơ chế đối chiếu chéo đáng tin cậy. Giao diện Streamlit UI hiển thị phản hồi trực quan, cảnh báo nhấp nháy đỏ khi phát hiện biển số giả hoặc lệch thông tin đăng ký, sẵn sàng bàn giao thử nghiệm thực tế.
+Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (MobileNetV3-Small thích ứng CCTV, ~60%) được dùng làm **cảnh báo mềm**; phân loại **hãng** (~29%) bị loại khỏi quyết định do còn yếu trước khoảng cách miền dữ liệu. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU (~1.6 s/xe sau cold-start), giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain + fine-tuning sâu để nâng màu/hãng (xem Report 3 §6).
