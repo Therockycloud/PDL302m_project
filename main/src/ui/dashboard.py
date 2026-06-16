@@ -320,8 +320,6 @@ def _render_result_card(result: dict[str, Any]) -> str:
     action = result.get("action", "")
 
     plate = result.get("plate_text", "—") or "—"
-    brand = result.get("brand", "—")
-    brand_conf = result.get("brand_confidence", 0)
     color = result.get("color", "—")
     color_conf = result.get("color_confidence", 0)
     message = result.get("message", "")
@@ -343,8 +341,7 @@ def _render_result_card(result: dict[str, Any]) -> str:
         f'  <div class="card-inner">'
         f'    <div class="plate">{plate}</div>'
         f'    <div style="color:var(--muted); font-size:0.85rem; margin-top:4px;">'
-        f"      Brand: <strong>{brand}</strong> ({brand_conf:.1f}%) &nbsp;|&nbsp; "
-        f"      Color: <strong>{color}</strong> ({color_conf:.1f}%)"
+        f"      Colour: <strong>{color}</strong> ({color_conf:.1f}%)"
         f"    </div>"
         f'    <div style="margin-top:8px;">{verdict}</div>'
         f"    {soft}"
@@ -358,7 +355,7 @@ def _render_result_card(result: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title="Vehicle Anti-Theft System",
+    page_title="Smart Parking Security",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -386,10 +383,10 @@ for _key, _default in (
 
 with st.sidebar:
     st.markdown(
-        '<div style="text-align:center; margin-bottom:24px;">'
-        '<span style="font-size:2.4rem;">🛡️</span><br>'
-        '<span style="font-weight:700; font-size:1.1rem; '
-        'color:#e8e8e8;">Anti-Theft Control</span>'
+        '<div style="margin-bottom:24px;">'
+        '<span style="font-weight:800; font-size:1.15rem; letter-spacing:-0.3px; '
+        'color:var(--ink);">Smart Parking</span><br>'
+        '<span style="font-size:0.8rem; color:var(--muted);">Security Control</span>'
         "</div>",
         unsafe_allow_html=True,
     )
@@ -415,20 +412,27 @@ with st.sidebar:
     models = _load_models(cfg)
     db_ok = models.get("matcher") is not None
 
-    _db_dot = "🟢" if db_ok else "🔴"
+    _db_dot = (
+        f'<span style="color:{"var(--accent)" if db_ok else "var(--alert)"};">●</span>'
+    )
     st.markdown(
-        f"**Database** &nbsp; {_db_dot} {'Connected' if db_ok else 'Disconnected'}"
+        f"**Database** &nbsp; {_db_dot} {'Connected' if db_ok else 'Disconnected'}",
+        unsafe_allow_html=True,
     )
 
-    _loaded = [k for k in ("detector", "ocr", "brand_clf", "color_clf") if k in models]
-    st.markdown(f"**Models loaded** &nbsp; `{len(_loaded)}/4`")
-    for m in _loaded:
-        st.markdown(f"&nbsp;&nbsp;✅ {m}")
-    for m in {"detector", "ocr", "brand_clf", "color_clf"} - set(_loaded):
-        st.markdown(f"&nbsp;&nbsp;⬜ {m}")
+    _runtime_models = ("detector", "ocr", "color_clf")
+    _loaded = [k for k in _runtime_models if k in models]
+    st.markdown(f"**Models loaded** &nbsp; `{len(_loaded)}/{len(_runtime_models)}`")
+    for m in _runtime_models:
+        _on = m in _loaded
+        st.markdown(
+            f'&nbsp;&nbsp;<span style="color:{"var(--accent)" if _on else "var(--muted)"};">'
+            f'{"●" if _on else "○"}</span> {m}',
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
-    if st.button("🔄 Reload Models"):
+    if st.button("Reload Models"):
         st.session_state.pop("models", None)
         st.rerun()
 
@@ -440,9 +444,9 @@ with st.sidebar:
 st.markdown(
     '<div class="card">'
     '<div class="card-inner" style="text-align:center;">'
-    '<div class="app-title">Vehicle Anti-Theft System</div>'
-    '<div class="app-subtitle">Real-time plate detection · OCR · '
-    "brand &amp; colour classification · database verification</div>"
+    '<div class="app-title">Smart Parking Security</div>'
+    '<div class="app-subtitle">Plate-primary verification · YOLOv8 → PaddleOCR · '
+    "colour as soft warning</div>"
     "</div>"
     "</div>",
     unsafe_allow_html=True,
@@ -459,11 +463,6 @@ _current_latency: float = 0.0
 
 # ---- LEFT COLUMN: Camera / Image feed ------------------------------------
 with col_feed:
-    st.markdown(
-        '<div class="feed-wrap" style="padding:8px;">',
-        unsafe_allow_html=True,
-    )
-
     if mode == "Upload Image":
         uploaded = st.file_uploader(
             "Drop an image",
@@ -530,7 +529,7 @@ with col_feed:
         )
         play_default = False
         if uploaded_vid is None:
-            play_default = st.checkbox("📹 Play Default Parking Video")
+            play_default = st.checkbox("Play Default Parking Video")
 
         if uploaded_vid is not None or play_default:
             video_path = None
