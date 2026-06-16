@@ -254,9 +254,9 @@ def build_theme_css() -> str:
     .stApp {
         background-color: var(--bg);
         background-image:
-            radial-gradient(circle at 90% 6%, rgba(21,128,61,0.10), transparent 40%),
-            radial-gradient(circle at 6% 94%, rgba(13,148,136,0.08), transparent 42%),
-            radial-gradient(circle at 50% 50%, rgba(132,204,22,0.05), transparent 55%);
+            radial-gradient(circle at 90% 6%, rgba(21,128,61,0.20), transparent 40%),
+            radial-gradient(circle at 6% 94%, rgba(13,148,136,0.15), transparent 42%),
+            radial-gradient(circle at 50% 50%, rgba(132,204,22,0.10), transparent 55%);
         font-family: 'Plus Jakarta Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
         color: var(--ink);
     }
