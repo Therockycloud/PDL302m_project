@@ -24,8 +24,8 @@
             --text: #1a1a17;
             --primary: #ffffff;
             --secondary: #f5f7fa;
-            --highlight: #c0392b;
-            --green: #27ae60;
+            --highlight: #15803d;
+            --green: #15803d;
             --orange: #e67e22;
             --red: #c0392b;
         }
@@ -38,7 +38,7 @@
 
         body {
             font-family: var(--font-sans);
-            background: var(--bg-color);
+            background: #fafaf9;
             color: var(--text-color);
             overflow: hidden;
             height: 100vh;
@@ -58,6 +58,11 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.5s ease;
+            background-color: #fafaf9;
+            background-image:
+                radial-gradient(circle at 90% 6%, rgba(21,128,61,0.10), transparent 40%),
+                radial-gradient(circle at 6% 94%, rgba(13,148,136,0.08), transparent 42%),
+                radial-gradient(circle at 50% 50%, rgba(132,204,22,0.05), transparent 55%);
         }
 
         .slide-container.active {
@@ -65,21 +70,21 @@
             pointer-events: all;
         }
 
-        /* Slide Backgrounds */
+        /* Slide Backgrounds — kept transparent so the Forest Aurora shows through */
         .slide-bg-gradient {
-            background: radial-gradient(circle at 80% 20%, #f8fafc 0%, #ffffff 100%);
+            background: transparent;
         }
 
         .slide-bg-dark {
-            background: #ffffff;
+            background: transparent;
         }
 
         .slide-bg-accent {
-            background: #f8fafc;
+            background: transparent;
         }
 
         .slide-bg-highlight {
-            background: #fffbfb;
+            background: transparent;
         }
 
         /* Modern Typography & Cards */
@@ -142,11 +147,12 @@
 
         /* Title Slide */
         .title-main {
+            font-family: var(--font-sans);
             font-size: 2.5em;
-            font-weight: 900;
+            font-weight: 800;
             text-align: center;
             margin-bottom: 12px;
-            color: #1a1a2e;
+            color: var(--text-color);
             line-height: 1.25;
         }
 
@@ -180,13 +186,14 @@
         }
 
         .slide-header {
+            font-family: var(--font-sans);
             font-size: 1.8em;
             font-weight: 800;
             margin-bottom: 25px;
             text-align: left;
             width: 100%;
             color: var(--highlight);
-            border-bottom: 2px solid #f1f5f9;
+            border-bottom: 2px solid rgba(21, 128, 61, 0.25);
             padding-bottom: 12px;
         }
 
