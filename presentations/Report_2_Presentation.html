@@ -52,7 +52,11 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease-in-out;
-            background: var(--bg-color);
+            background-color: #fafaf9;
+            background-image:
+                radial-gradient(circle at 90% 6%, rgba(21,128,61,0.10), transparent 40%),
+                radial-gradient(circle at 6% 94%, rgba(13,148,136,0.08), transparent 42%),
+                radial-gradient(circle at 50% 50%, rgba(132,204,22,0.05), transparent 55%);
         }
 
         .slide-container.active {
@@ -63,8 +67,8 @@
 
         /* Editorial Headers */
         h1, h2, h3, .slide-title {
-            font-family: var(--font-editorial);
-            font-weight: 700;
+            font-family: var(--font-sans);
+            font-weight: 800;
             color: var(--text-color);
             letter-spacing: -0.02em;
         }
@@ -256,7 +260,7 @@
             line-height: 1.1;
             margin-bottom: 20px;
             color: var(--text-color);
-            border-bottom: 4px solid var(--accent-red);
+            border-bottom: 4px solid var(--accent-green);
             padding-bottom: 20px;
             width: 100%;
         }
@@ -325,7 +329,7 @@
     <!-- SLIDE 1: Title -->
     <div class="slide-container active" id="slide-1">
         <div class="slide-hero">
-            <span class="badge danger" style="font-size: 0.9rem; padding: 4px 12px;">DPL302m COURSE PROJECT - REPORT 2</span>
+            <span class="badge success" style="font-size: 0.9rem; padding: 4px 12px;">DPL302m COURSE PROJECT - REPORT 2</span>
             <h1 class="hero-title">Thu thập & Xử lý dữ liệu đa phương thức bãi xe</h1>
             <p style="font-family: var(--font-editorial); font-size: 1.4rem; font-style: italic; color: var(--text-muted); margin-bottom: 20px;">
                 Data Engineering, EDA & Processing Pipelines
@@ -359,7 +363,7 @@
         <div class="slide-body">
             <div class="grid-2">
                 <div>
-                    <h3 style="margin-bottom: 12px; color: var(--accent-red);">Cơ cấu dữ liệu đa thành phần</h3>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-green);">Cơ cấu dữ liệu đa thành phần</h3>
                     <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.95rem;">
                         Để huấn luyện các mô hình trong pipeline, nhóm đã thu thập dữ liệu từ các nguồn mở uy tín kết hợp công cụ cào dữ liệu ảnh thực tế tại các bãi đỗ xe Việt Nam.
                     </p>
@@ -445,7 +449,7 @@
         <div class="slide-body">
             <div class="grid-2">
                 <div class="card">
-                    <span class="badge danger">Brand Distribution</span>
+                    <span class="badge success">Brand Distribution</span>
                     <h3 style="margin-top: 5px;">Hãng xe (Tổng cộng: 1,209 ảnh)</h3>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
                         Số lượng ảnh thực tế được làm sạch và chuẩn bị cho huấn luyện phân lớp:
@@ -587,7 +591,7 @@ def preprocess_image(image_path):<br>
                     </ul>
                 </div>
                 <div class="card" style="text-align: center;">
-                    <div class="badge danger">Huấn luyện bền bỉ</div>
+                    <div class="badge success">Huấn luyện bền bỉ</div>
                     <p style="font-family: var(--font-editorial); font-size: 1.2rem; font-style: italic; margin-top: 15px;">
                         "Tăng cường dữ liệu giúp tăng thêm 4.5% độ chính xác cho bộ phân loại hãng xe khi kiểm nghiệm trên tập dữ liệu thực tế ngoài bãi đỗ."
                     </p>
@@ -608,7 +612,7 @@ def preprocess_image(image_path):<br>
         <div class="slide-body">
             <div class="grid-3">
                 <div class="card" style="text-align: center;">
-                    <span class="badge danger">1. Plate Box</span>
+                    <span class="badge success">1. Plate Box</span>
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 15px;">
                         Vùng ảnh biển số được crop phóng to và tiền xử lý nhị phân hóa tăng độ nét.
                     </p>
@@ -733,12 +737,12 @@ def preprocess_image(image_path):<br>
     <!-- SLIDE 11: Q&A -->
     <div class="slide-container slide-bg-dark" id="slide-11" style="justify-content: center; align-items: center; text-align: center;">
         <div>
-            <span class="badge danger" style="margin-bottom: 20px;">Report 2: Data Tasks</span>
+            <span class="badge success" style="margin-bottom: 20px;">Report 2: Data Tasks</span>
             <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
             <p style="font-family: var(--font-editorial); font-size: 1.5rem; font-style: italic; color: var(--text-muted); margin-bottom: 40px;">
                 Cảm ơn thầy và các bạn đã lắng nghe phần báo cáo dữ liệu!
             </p>
-            <div style="width: 80px; height: 3px; background: var(--accent-red); margin: 0 auto 30px auto;"></div>
+            <div style="width: 80px; height: 3px; background: var(--accent-green); margin: 0 auto 30px auto;"></div>
             <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
                 Smart Parking Security via Cross-Verification<br>
                 Môn học: DPL302m - Deep Learning (Học Sâu) | FPT University

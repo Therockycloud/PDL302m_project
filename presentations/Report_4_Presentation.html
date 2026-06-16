@@ -52,7 +52,11 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease-in-out;
-            background: var(--bg-color);
+            background-color: #fafaf9;
+            background-image:
+                radial-gradient(circle at 90% 6%, rgba(21,128,61,0.10), transparent 40%),
+                radial-gradient(circle at 6% 94%, rgba(13,148,136,0.08), transparent 42%),
+                radial-gradient(circle at 50% 50%, rgba(132,204,22,0.05), transparent 55%);
         }
 
         .slide-container.active {
@@ -63,8 +67,8 @@
 
         /* Editorial Headers */
         h1, h2, h3, .slide-title {
-            font-family: var(--font-editorial);
-            font-weight: 700;
+            font-family: var(--font-sans);
+            font-weight: 800;
             color: var(--text-color);
             letter-spacing: -0.02em;
         }
@@ -256,7 +260,7 @@
             line-height: 1.1;
             margin-bottom: 20px;
             color: var(--text-color);
-            border-bottom: 4px solid var(--accent-red);
+            border-bottom: 4px solid var(--accent-green);
             padding-bottom: 20px;
             width: 100%;
         }
@@ -345,7 +349,7 @@
     <!-- SLIDE 1: Title -->
     <div class="slide-container slide-bg-gradient active" id="slide-1">
         <div class="slide-hero">
-            <span class="badge danger" style="font-size: 0.9rem; padding: 4px 12px;">DPL302m COURSE PROJECT - FINAL DEFENSE</span>
+            <span class="badge success" style="font-size: 0.9rem; padding: 4px 12px;">DPL302m COURSE PROJECT - FINAL DEFENSE</span>
             <h1 class="hero-title">Hệ thống giám sát an ninh bãi xe thông minh qua đối chiếu chéo thông tin</h1>
             <p style="font-family: var(--font-editorial); font-size: 1.4rem; font-style: italic; color: var(--text-muted); margin-bottom: 20px;">
                 Smart Parking Security via Plate, Brand, and Color Cross-Verification
@@ -573,7 +577,7 @@ def sort_vietnamese_plate(ocr_results):
         <div class="slide-body">
             <div class="grid-2">
                 <div class="card">
-                    <span class="badge danger">Vehicle Brand</span>
+                    <span class="badge success">Vehicle Brand</span>
                     <h3>EfficientNet-B0 Backbone</h3>
                     <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
                         Kế thừa trọng số từ **ImageNet**, đóng băng các layer trích xuất đặc trưng và huấn luyện các lớp kết nối đầy đủ (Dense Layers) phía dưới.
@@ -935,12 +939,12 @@ def sort_vietnamese_plate(ocr_results):
     <!-- SLIDE 17: Q&A -->
     <div class="slide-container slide-bg-dark" id="slide-17" style="justify-content: center; align-items: center; text-align: center;">
         <div>
-            <span class="badge danger" style="margin-bottom: 20px;">Report 4: Final Defense</span>
+            <span class="badge success" style="margin-bottom: 20px;">Report 4: Final Defense</span>
             <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
             <p style="font-family: var(--font-editorial); font-size: 1.5rem; font-style: italic; color: var(--text-muted); margin-bottom: 40px;">
                 Cảm ơn thầy và các bạn đã theo dõi lắng nghe!
             </p>
-            <div style="width: 80px; height: 3px; background: var(--accent-red); margin: 0 auto 30px auto;"></div>
+            <div style="width: 80px; height: 3px; background: var(--accent-green); margin: 0 auto 30px auto;"></div>
             <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
                 <strong>Đề tài:</strong> Hệ thống đối chiếu chéo thông tin xe chống trộm bãi đỗ<br>
                 Môn học: DPL302m - Deep Learning (Học Sâu) | FPT University
