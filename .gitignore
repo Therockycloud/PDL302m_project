@@ -70,3 +70,4 @@ main/data/models/color_*.keras
 
 # Brainstorming visual companion
 .superpowers/
+.worktrees/
