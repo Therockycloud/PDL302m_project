@@ -1,48 +1,44 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Report 2 · Quy trình thu thập & xử lý dữ liệu · DPL302m</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@200;300;400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans:wght@200;300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* ============ 主题色(默认: 🔵 克莱因蓝 IKB) ============
-       切换主题: 从 references/themes-swiss.md 复制对应的 :root 块
-       整体替换标有"主题色"注释的所有变量,其他散落的 var() 引用无需逐处改 */
-    --paper:#fafaf8;          /* 主底色: 高级灰白 */
+    /* ============ Theme colors (default: Klein Blue IKB) ============ */
+    --paper:#fafaf8;
     --paper-rgb:250,250,248;
-    --ink:#0a0a0a;            /* 文字主色: 近黑 */
+    --ink:#0a0a0a;
     --ink-rgb:10,10,10;
-    --grey-1:#f0f0ee;         /* 浅灰底 */
-    --grey-2:#d4d4d2;         /* 中灰(分割线) */
-    --grey-3:#737373;         /* 暗灰(辅助文字) */
-    --accent:#002FA7;         /* 高亮色: 克莱因蓝 IKB */
+    --grey-1:#f0f0ee;
+    --grey-2:#d4d4d2;
+    --grey-3:#737373;
+    --accent:#002FA7;
     --accent-rgb:0,47,167;
-    --accent-on:#ffffff;      /* accent 上的反色文字 */
-    --accent-bright:#5B7BFF;  /* 暗底高亮: IKB 提亮版 */
+    --accent-on:#ffffff;
+    --accent-bright:#5B7BFF;
 
-    /* ============ Carbon 文本角色 token (role-based,代替 opacity) ============
-       亮底:  primary 主文 / secondary 次文 / helper 辅助 / placeholder 占位
-       暗底:  inverse 自动反向 */
-    --text-primary:#0a0a0a;        /* = ink, 100% */
-    --text-secondary:#525252;      /* gray 70 */
-    --text-helper:#737373;         /* gray 60 */
-    --text-placeholder:#a3a3a3;    /* gray 40 */
-    --text-on-color:#ffffff;       /* accent/dark 反色 */
-    --border-subtle:#e0e0e0;       /* gray 20, 极细分隔 */
-    --border-strong:#a3a3a3;       /* gray 40, 强分隔 */
+    /* ============ Carbon text role tokens ============ */
+    --text-primary:#0a0a0a;
+    --text-secondary:#525252;
+    --text-helper:#737373;
+    --text-placeholder:#a3a3a3;
+    --text-on-color:#ffffff;
+    --border-subtle:#e0e0e0;
+    --border-strong:#a3a3a3;
 
-    /* ============ 字体(跨主题固定) ============ */
+    /* ============ Typography ============ */
     --sans:"Inter","Helvetica Neue","Helvetica","Arial","Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif;
-    --sans-zh:"PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans SC","Microsoft YaHei UI","Microsoft YaHei","微软雅黑",sans-serif;
+    --sans-zh:"Noto Sans","PingFang SC","Segoe UI",sans-serif;
     --mono:"JetBrains Mono","IBM Plex Mono","SF Mono","Cascadia Code","Consolas","Courier New",ui-monospace,monospace;
 
-    /* ============ Carbon 2x Grid 间距模数 (基础 8px) ============
-       参考: https://carbondesignsystem.com/elements/2x-grid/overview/
-       任何 padding/gap/margin 优先用这套 token,确保 8px 基线对齐 */
+    /* ============ Carbon 2x Grid Spacing Tokens (base 8px) ============
+       Reference: https://carbondesignsystem.com/elements/2x-grid/overview/
+       Use these tokens for all padding/gap/margin — maintains 8px baseline alignment */
     --sp-3:8px;     /* 02 token */
     --sp-4:12px;    /* 03 */
     --sp-5:16px;    /* 04 */
@@ -1219,7 +1215,7 @@
 <div id="deck">
 
 <!-- ============================================================
-     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
+     SLIDES SECTION — Insert all <section class="slide ..."> 页面
      页面骨架参考 references/layouts-swiss.md
      主题色配置参考 references/themes-swiss.md
      ============================================================ -->
@@ -1608,7 +1604,7 @@
       <div class="half b-accent" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden">
         <canvas class="ascii-bg" aria-hidden="true"></canvas>
         <div class="chrome-min" style="margin-bottom:0;position:relative;z-index:1">
-          <div class="l">11 / 11</div>
+          <div class="l">11 / 12</div>
           <div class="r">KẾT LUẬN</div>
         </div>
 
@@ -1660,16 +1656,57 @@
   </div>
 </section>
 
+
+<!-- ========== SLIDE 12 · CẢM ƠN · Thank You & Q&A ========== -->
+<section class="slide dark" data-layout="THANK-YOU" data-animate="manifesto">
+  <div class="canvas-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5vh;padding:6vh 6vw">
+    <div class="chrome-min" style="width:100%;margin-bottom:0">
+      <div class="l" style="opacity:.6">DPL302m · 2026</div>
+      <div class="r" style="opacity:.6">12 / 12</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3.5vh;flex:1;justify-content:center" data-anim="manifesto">
+      <div style="width:56px;height:2px;background:var(--accent-bright);opacity:.8"></div>
+
+      <h1 style="font-family:var(--sans);font-weight:200;font-size:min(9.5vw,16vh);line-height:.92;letter-spacing:-.04em;color:var(--paper)">
+        Cảm ơn<br/><span style="font-size:.55em;font-style:italic;font-weight:300;color:var(--accent-bright)">thầy và các bạn</span>
+      </h1>
+
+      <p style="font-family:var(--sans);font-size:max(15px,1.05vw);font-weight:300;line-height:1.7;color:rgba(255,255,255,.75);max-width:52ch">
+        Chúng em trân trọng mọi phản hồi, câu hỏi và đóng góp từ thầy cô và hội đồng.<br/>
+        Những ý kiến này là động lực để nhóm tiếp tục hoàn thiện hệ thống thu thập dữ liệu.
+      </p>
+
+      <div style="margin-top:1.5vh;display:flex;align-items:center;gap:1.6vw">
+        <div style="width:3px;height:3px;border-radius:50%;background:var(--accent-bright);opacity:.7"></div>
+        <span style="font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55)">Hỏi &amp; Đáp mở</span>
+        <div style="width:3px;height:3px;border-radius:50%;background:var(--accent-bright);opacity:.7"></div>
+      </div>
+    </div>
+
+    <div data-anim="up" style="width:100%;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.15);padding-top:2.2vh">
+      <div style="display:flex;flex-direction:column;gap:.4vh;text-align:left">
+        <span style="font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45)">Nhóm thực hiện</span>
+        <span style="font-family:var(--sans);font-weight:400;font-size:max(14px,.9vw);color:rgba(255,255,255,.8)">Konalyn &amp; Cộng sự · DPL302m</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4vh;text-align:right">
+        <span style="font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45)">Giảng viên hướng dẫn</span>
+        <span style="font-family:var(--sans);font-weight:400;font-size:max(14px,.9vw);color:rgba(255,255,255,.8)">Thầy Lương Trung Kiên</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 </div>
 
 <div id="nav"></div>
 
 <script>
-/* =============== WebGL 网格背景 (瑞士风专用) ===============
-   极简移动网格 + 微弱点阵叠加,营造"工业感、精准感"
-   - 主网格: 缓慢漂移的细线网格
-   - 次级: 鼠标附近的极细点阵微扰
-   - 颜色: 跟随主题(浅底深线 / 深底亮线),配合 mix-blend-mode
+/* =============== WebGL Grid Background (Swiss Style) ===============
+   Minimal drifting grid + subtle dot overlay — precision and clarity
+   - Primary: slowly drifting fine-line grid
+   - Secondary: subtle dot perturbation near cursor
+   - Color: follows theme (light-bg dark-lines / dark-bg bright-lines)
 */
 const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
 
@@ -1694,16 +1731,16 @@ void main(){
   vec2 p = uv;
   p.x *= aspect;
 
-  // 缓慢平移
+  // Slow drift
   vec2 drift = vec2(u_time * 0.008, u_time * 0.005);
   vec2 gp = p + drift;
 
-  // 主细网格 (大间距)
+  // Primary grid (large spacing)
   float mainGrid = gridLine(gp, 0.12, 0.012);
-  // 次级网格 (更细更密)
+  // Secondary grid (finer, denser)
   float subGrid = gridLine(gp, 0.024, 0.04) * 0.4;
 
-  // 鼠标附近的强化
+  // Intensity boost near cursor
   vec2 m = u_mouse;
   m.x *= aspect;
   float md = length(p - m);
@@ -1711,18 +1748,18 @@ void main(){
 
   float gridStrength = (mainGrid + subGrid * 0.5) * (0.45 + mInfluence);
 
-  // 点阵 (作为基底)
+  // Dot grid (as base)
   vec2 dotGrid = fract(gp * 50.0) - 0.5;
   float dotMask = 1.0 - smoothstep(0.05, 0.14, length(dotGrid));
-  // 用低频噪声调制点阵密度
+  // Modulate dot density with low-freq noise
   float wave = sin(gp.x * 1.4 + u_time * 0.15) * cos(gp.y * 1.6 - u_time * 0.12);
   dotMask *= smoothstep(-0.3, 0.6, wave) * 0.6;
 
-  // 颜色: 浅底用深线条,深底用浅线条;高亮处带 accent 痕迹
+  // 颜色: 浅底用深线条,深底用浅线条;accent hint near cursor
   vec3 lineColor = mix(vec3(0.08), vec3(0.92), u_dark);
   vec3 bgColor = mix(vec3(0.97, 0.97, 0.96), vec3(0.06, 0.06, 0.07), u_dark);
 
-  // accent 暗示 (鼠标附近偷渡一点 accent 色)
+  // Accent hint (subtle accent color near cursor)
   vec3 col = bgColor;
   col = mix(col, lineColor, gridStrength * 0.55);
   col = mix(col, lineColor, dotMask * 0.35);
@@ -1760,7 +1797,7 @@ function bootGL(canvasId, fsSrc){
   };
   addEventListener('resize',resize);resize();
 
-  // 读取 CSS 变量,把 accent 颜色塞进 shader
+  // Read CSS variable, pass accent color into shader
   function readAccent(){
     const cs = getComputedStyle(document.documentElement);
     const hex = cs.getPropertyValue('--accent').trim() || '#002FA7';
@@ -1812,7 +1849,7 @@ if(document.body.classList.contains('canvas-mode')){
 }
 addEventListener('swiss-low-power-change', e=>{e.detail.on ? stopGrid() : startGrid();});
 
-// =============== 导航 ===============
+// =============== Navigation ===============
 const deck=document.getElementById('deck');
 const slides=deck.querySelectorAll('.slide');
 const nav=document.getElementById('nav');
@@ -1841,7 +1878,7 @@ function go(n){
   lock=true;setTimeout(()=>lock=false,700);
 }
 
-/* =============== ESC 索引视图 =============== */
+/* =============== ESC Slide Overview =============== */
 let overviewOn=false;
 const ov=document.createElement('div');
 ov.id='overview';
@@ -1864,7 +1901,7 @@ function buildOverview(){
     clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
     wrap.appendChild(clone);
     const label=document.createElement('div');
-    /* ESC 索引卡 label */
+    /* ESC overview card label */
   label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:.7';
     label.textContent=(i+1)+' / '+total;
     card.appendChild(wrap);
@@ -1930,7 +1967,7 @@ go(Number.isFinite(initialSlide) ? initialSlide : 0);
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>lucide.createIcons();</script>
 
-<!-- Motion One 动效引擎 (与原模板一致) -->
+<!-- Motion One Animation Engine -->
 <script type="module">
 let motion;
 try {
@@ -1950,8 +1987,8 @@ if(motion){
   document.body.classList.add('motion-ready');
 
   /* ============================================================
-     IBM Carbon Motion · 每个 recipe 服务一种表达
-     不是一刀切的 stagger,而是把动效绑在内容语义上
+     IBM Carbon Motion · Each recipe serves one expressive intent
+     Animations bind to content semantics, not generic stagger
      ============================================================ */
   const EASE_PROD       = [.2, 0, .38, .9];
   const EASE_ENTRY_EXP  = [0, 0, .3, 1];
@@ -1964,12 +2001,12 @@ if(motion){
       el.style.opacity='';
       el.style.transform='';
     });
-    /* 同时复位需要被 recipe 接管的元素 */
+    /* Also reset elements owned by recipe animations */
     slide.querySelectorAll('.row-fill,.tl-node,.stack-block,.bar-tower,.sub-card,.col,.vrule,.kpi-cell')
       .forEach(el=>{el.style.cssText = el.dataset._origCss || el.style.cssText;});
   }
 
-  /* ---------- 通用工具 ---------- */
+  /* ---------- Common Utilities ---------- */
   const fade = (el, opts={})=>animate(el,
     {opacity:[0,1], y:[opts.y ?? 12, 0]},
     {duration:opts.duration ?? .6, delay:opts.delay ?? 0,
@@ -1980,15 +2017,15 @@ if(motion){
   function rHero(slide, all){
     const numRows = [...slide.querySelectorAll('.cover-row')];
     const rest = all.filter(el=>!numRows.length || el !== numRows[0]);
-    /* 先入: chrome 240ms */
+    /* First: chrome bar 240ms */
     const chrome = slide.querySelector('.chrome-min');
     if(chrome) animate(chrome, {opacity:[0,1]}, {duration:.24, easing:EASE_PROD});
-    /* 大编号 01/02/03 像点名一样依次亮 */
+    /* Large numbers 01/02/03 light up like roll call */
     numRows.forEach((row, i)=>{
       animate(row, {opacity:[0,1], x:[-12,0]},
         {duration:.5, delay:.15 + i*.18, easing:EASE_ENTRY_EXP});
     });
-    /* 索引底栏最后慢慢落定 */
+    /* Index footer settles last */
     const idx = slide.querySelector('[data-anim="line"]');
     if(idx) fade(idx, {delay:.15 + numRows.length*.18 + .1, duration:.5, y:6});
   }
@@ -2001,8 +2038,8 @@ if(motion){
 
     const nodes = [...slide.querySelectorAll('.tl-node')];
     nodes.forEach((node, i)=>{
-      const base = .35 + i*.32;          /* 节点之间间隔大,营造时间感 */
-      /* 整个节点先轻微浮入 */
+      const base = .35 + i*.32;          /* Large gap between nodes — sense of time */
+      /* Whole node floats in first */
       animate(node, {opacity:[0,1], y:[14, 0]},
         {duration:.55, delay:base, easing:EASE_ENTRY_EXP});
       /* 再让 multi(数字)从 .85 scale 弹到 1,延迟 100ms */
@@ -2011,7 +2048,7 @@ if(motion){
         {duration:.5, delay:base + .12, easing:EASE_ENTRY_EXP});
     });
 
-    /* 底部 KPI 4 列最后落定,内部 60ms stagger */
+    /* Bottom 4 KPI columns settle last, 60ms stagger */
     const kpis = [...slide.querySelectorAll('.kpi-cell')];
     kpis.forEach((cell, i)=>{
       animate(cell, {opacity:[0,1], y:[8, 0]},
@@ -2059,7 +2096,7 @@ if(motion){
     if(head) fade(head, {duration:.6, y:10});
 
     const blocks = [...slide.querySelectorAll('.stack-block')];
-    /* 先入: 中间薄层(LAYER 02) */
+    /* First: middle thin layer (LAYER 02) */
     if(blocks[1]) animate(blocks[1], {opacity:[0,1], scaleY:[.85, 1]},
       {duration:.55, delay:.3, easing:EASE_ENTRY_EXP});
     /* 上推下: LAYER 01 fat skills 从顶部 push down */
@@ -2114,7 +2151,7 @@ if(motion){
       }
     }
 
-    /* bar 行依次 width 增长 */
+    /* Bar rows grow width in sequence */
     const fills = [...slide.querySelectorAll('.row-fill')];
     const labels = [...slide.querySelectorAll('.row-lbl')];
     const values = [...slide.querySelectorAll('.row-val')];
@@ -2219,7 +2256,7 @@ if(motion){
       if(title) animate(title, {opacity:[0,1], y:[26, 0]},
         {duration:.85, delay:.3, easing:EASE_ENTRY_EXP});
     }
-    /* 底部 ink 条从下推入 */
+    /* Bottom ink bar pushes up from below */
     const foot = [...slide.querySelectorAll('[data-anim="up"]')];
     foot.forEach((el, i)=>{
       animate(el, {opacity:[0,1], y:[40, 0]},
@@ -2260,7 +2297,7 @@ if(motion){
     const grid = slide.querySelector('[data-anim="up"]');
     if(grid) animate(grid, {opacity:[0,1]}, {duration:.3, delay:.35, easing:EASE_PROD});
 
-    /* 左侧 4 步台阶,每步从左滑入 */
+    /* Left 4 steps slide in from left */
     const steps = grid ? [...grid.querySelectorAll(':scope > div:first-child > div')] : [];
     steps.forEach((step, i)=>{
       animate(step, {opacity:[0,1], x:[-18, 0]},
@@ -2313,7 +2350,7 @@ if(motion){
         {duration:.42, delay:.5 + wave, easing:EASE_ENTRY_EXP});
     });
 
-    /* 底部 20,000 区块 */
+    /* Bottom large number block */
     const foot = [...slide.querySelectorAll('[data-anim="up"]')][1];
     if(foot){
       animate(foot, {opacity:[0,1], y:[18, 0]},
@@ -2334,7 +2371,7 @@ if(motion){
     if(!grid) return;
     animate(grid, {opacity:[0,1]}, {duration:.3, delay:.35, easing:EASE_PROD});
 
-    /* 散点顺序: 用一个稍微打乱的索引数组,营造"乱中有序"感 */
+    /* Scattered order: shuffled index for "ordered chaos" effect */
     const order = [0, 3, 1, 4, 2, 5];
     const cards = [...grid.children];
     order.forEach((idx, i)=>{
@@ -2346,7 +2383,7 @@ if(motion){
   }
 
   /* ---------- recipe: system-diagram · P17 三圆系统图 ----------
-     标题入 → SVG 三组图依次入 + 中间同心圆从外向内 scale 入 → 下方注释列依次入 */
+     标题入 → SVG 三组图依次入 + 中间同心圆从外向内 scale 入 → Bottom annotation columns依次入 */
   function rSystemDiagram(slide, all){
     const head = slide.querySelector('[data-anim="line"]');
     if(head) fade(head, {duration:.55, y:10});
@@ -2359,7 +2396,7 @@ if(motion){
     svgs.forEach((svg, i)=>{
       const base = .55 + i*.22;
       const circles = [...svg.querySelectorAll('circle')];
-      /* 中间是同心圆: 从外圈到内圈依次 scale 入 */
+      /* Concentric circles scale in from outer to inner */
       if(circles.length > 1){
         circles.forEach((c, j)=>{
           c.style.transformOrigin = `${c.getAttribute('cx')}px ${c.getAttribute('cy')}px`;
@@ -2378,7 +2415,7 @@ if(motion){
       });
     });
 
-    /* 下方注释列 */
+    /* Bottom annotation columns */
     const cols = [...stage.querySelectorAll(':scope > div:last-child > div')];
     cols.forEach((col, i)=>{
       animate(col, {opacity:[0,1], y:[12, 0]},
@@ -2387,7 +2424,7 @@ if(motion){
   }
 
   /* ---------- recipe: why-now · P18 三列 + 巨大底数 ----------
-     标题入 → 三列文本入 → 三个底部巨数 01/02/03 错峰 scale 落定 */
+     标题入 → 三列文本入 → three large numbers 01/02/03 scale in staggered */
   function rWhyNow(slide, all){
     const head = slide.querySelector('[data-anim="line"]');
     if(head) fade(head, {duration:.55, y:10});
