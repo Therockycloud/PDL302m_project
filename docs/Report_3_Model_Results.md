@@ -34,10 +34,10 @@ Trong quá trình phát triển mô hình, nhóm đã dựa trên các cơ sở 
 
 ### 3.4. Bộ phân loại màu sắc xe (Color Classifier)
 *   **Backbone**: **MobileNetV3-Small** (đã đóng băng các lớp trích xuất đặc trưng tiền huấn luyện trên ImageNet).
-*   **Tầng phân loại bổ sung**:
-    *   `Rescaling(scale=1.0/127.5, offset=-1.0)`: Đưa dải điểm ảnh đầu vào về khoảng $[-1, 1]$.
+*   **Tầng phân loại bổ sung** (dựng bằng Functional API, gọi `base(x, training=False)` để BatchNorm chạy chế độ inference):
+    *   `Rescaling(255.0)`: đưa ảnh [0,1] về [0,255] đúng kỳ vọng của MobileNetV3 (`include_preprocessing=True` tự chuẩn hoá nội bộ). *Lưu ý: phiên bản đầu cộng thêm `Rescaling(1/127.5,-1)` gây double-preprocessing — đã loại (xem mục 5.0).*
     *   `GlobalAveragePooling2D()`
-    *   `Dropout(0.3)`: Tỷ lệ dropout 30% phù hợp với mạng nhỏ nhằm tránh mất mát thông tin màu sắc.
+    *   `Dropout(0.3)`: Tỷ lệ dropout 30% phù hợp với mạng nhỏ.
     *   `Dense(8, activation="softmax")`: Phân loại 8 nhóm màu xe.
 
 ---
@@ -46,10 +46,10 @@ Trong quá trình phát triển mô hình, nhóm đã dựa trên các cơ sở 
 Quá trình huấn luyện được thực hiện cục bộ trên hệ điều hành macOS sử dụng CPU thông qua script [train.py](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/train.py).
 
 ### Chi tiết tham số cấu hình:
-*   **Optimizer (Bộ tối ưu hóa)**: Adam với tốc độ học $\eta = 10^{-4}$ (0.0001) nhằm đảm bảo quá trình cập nhật trọng số diễn ra mượt mà và ổn định.
-*   **Hàm mất mát (Loss Function)**: Categorical Crossentropy để phân loại đa lớp.
-*   **Kích thước Batch (Batch Size)**: 32 mẫu/batch.
-*   **Số lượng Epoch**: Tối đa 10 epochs (để tối ưu hóa thời gian huấn luyện trên CPU).
+*   **Hai pha huấn luyện**: (1) **head đông cứng** — backbone freeze, chỉ train tầng Dense, Adam lr $=10^{-3}$; (2) **fine-tuning** — mở băng nửa trên backbone (BatchNorm vẫn freeze), Adam lr $=10^{-4}$.
+*   **Hàm mất mát**: Categorical Crossentropy (phân loại đa lớp).
+*   **Batch Size**: 32 mẫu/batch.
+*   **Số lượng Epoch**: tối đa 15/pha với `EarlyStopping` (môi trường training cô lập TF/Keras, tách khỏi runtime PaddleOCR).
 *   **Cơ chế giám sát nâng cao**:
     *   `EarlyStopping`: Tự động dừng huấn luyện nếu giá trị `val_loss` không cải thiện liên tiếp sau 5 epochs, đồng thời khôi phục trọng số tốt nhất trước đó.
     *   `ModelCheckpoint`: Tự động lưu mô hình có giá trị `val_loss` thấp nhất dưới dạng file `.keras`.
@@ -57,28 +57,42 @@ Quá trình huấn luyện được thực hiện cục bộ trên hệ điều 
 ---
 
 ## 5. Kết quả thực nghiệm và Biểu đồ huấn luyện (Experimental Results)
-Sau khi hoàn thành 10 epochs huấn luyện trên bộ dữ liệu thực tế thu thập được ở Giai đoạn 2, nhóm ghi nhận các kết quả thực nghiệm sau:
 
-### 5.1. Mô hình phân loại hãng xe (Brand Classifier)
-*   **Độ chính xác Validation (val_accuracy)**: Đạt khoảng **29.00%**.
-*   **Phân tích nguyên nhân**: Độ chính xác này phản ánh sự khác biệt lớn về phân phối dữ liệu (domain gap). Dataset huấn luyện Stanford Cars chủ yếu gồm ảnh xe chụp từ góc ngang (side view) của Mỹ, trong khi tập dữ liệu test thực tế tại Việt Nam lại chụp từ góc trực diện phía sau hoặc phía trước. Thêm vào đó, việc giới hạn số lượng epoch huấn luyện trên CPU đã làm hạn chế khả năng hội tụ sâu của tầng kết nối đầy đủ.
-*   **Biểu đồ huấn luyện**: [brand_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/presentations/evidence/brand_classifier_training_curves.png)
+### 5.0. Hai lỗi kỹ thuật ban đầu và cách khắc phục
+Những lần huấn luyện Keras **đầu tiên** cho kết quả gần như ngẫu nhiên (hãng ~29%, màu ~14%). Khi chuẩn hoá lại pipeline về TF/Keras, nhóm xác định nguyên nhân **không phải** do domain gap mà do **hai lỗi dựng mô hình**:
+1.  **Double-preprocessing**: lớp `Rescaling(1/127.5, -1)` được chèn *trên đầu* lớp tiền xử lý nội bộ của MobileNetV3 → sai dải giá trị, accuracy rơi về ~1/8. Đã bỏ, chỉ giữ `Rescaling(255.0)` cho cả hai backbone.
+2.  **BatchNorm chạy ở chế độ training khi backbone đông cứng**: dựng bằng `Sequential` khiến BatchNorm của backbone dùng thống kê từng batch, phá vỡ đặc trưng đông cứng → mô hình không học. Đã chuyển sang **Functional API** với `base(x, training=False)`.
+Ngoài ra `learning_rate` ban đầu (1e-4) quá thấp khiến EarlyStopping dừng sớm; nâng lên **1e-3** cho pha head đông cứng.
 
-### 5.2. Mô hình phân loại màu sắc xe (Color Classifier)
-*   **Độ chính xác Validation (val_accuracy)**: Đạt khoảng **14.16%**.
-*   **Phân tích nguyên nhân**: Phân loại màu sắc xe thực tế chịu ảnh hưởng rất mạnh bởi sự cân bằng trắng của camera, cường độ ánh sáng của môi trường bãi giữ xe (điều kiện ánh sáng hầm so với ngoài trời nắng). Sự chồng lấn đặc trưng giữa các nhóm màu Bạc (Silver), Xám (Grey) và Trắng (White) cũng là nguyên nhân chính khiến mô hình phân loại sai lệch.
-*   **Biểu đồ huấn luyện**: [color_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/presentations/evidence/color_classifier_training_curves.png)
+Sau khi sửa, đánh giá được thực hiện trên **tập test giữ-riêng** (118 ảnh màu / 119 ảnh hãng, split 70/15/15 — xem Report 2), chưa từng thấy khi huấn luyện.
 
-### 5.3. Hệ quả thực nghiệm → Quyết định pivot
-Hai kết quả ban đầu (hãng ~29%, màu ~14.16%) cho thấy bộ phân loại đặc trưng **quá yếu để chặn cứng** một xe. Nhóm đã:
-1.  **Bỏ phân loại hãng** khỏi quyết định (giữ lại như thử nghiệm).
-2.  **Chuyển màu sang mô hình PyTorch MobileNetV3-Small thích ứng miền CCTV** — đạt **accuracy 59.73% / macro-F1 0.625** trên 226 ảnh val (Benchmark A, `docs/benchmarks/color_benchmark.md`), cao hơn hẳn 14.16% ban đầu; con số 14.16% phản ánh lần huấn luyện Keras đầu chưa thích ứng miền.
-3.  **Hạ màu xuống "cảnh báo mềm"**: biển số (PaddleOCR) là khoá chính (plate-primary); màu lệch chỉ cảnh báo, không từ chối cứng.
-Đây là cơ chế quyết định **delivered** của hệ thống (xem Report 4).
+### 5.1. Mô hình phân loại màu sắc xe (Color Classifier — TF/Keras MobileNetV3-Small)
+| Cấu hình | Test accuracy | Macro-F1 |
+| :--- | :---: | :---: |
+| Head đông cứng (frozen) | 48.3% | 0.48 |
+| **+ Fine-tuning (mở băng nửa trên backbone, lr=1e-4)** | **54.2%** | **0.54** |
+
+Fine-tuning nâng accuracy thêm ~6 điểm (gấp >4 lần mức ngẫu nhiên 12.5% trên 8 lớp). Đây là mô hình màu **đang chạy ở runtime** (`color_classifier.keras`), phục vụ qua tiến trình riêng để đồng tồn với PaddleOCR (xem Report 4).
+*   **Biểu đồ huấn luyện**: [color_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/color_classifier_training_curves.png)
+
+### 5.2. Mô hình phân loại hãng xe (Brand Classifier — TF/Keras EfficientNet-B0)
+| Cấu hình | Test accuracy | Macro-F1 |
+| :--- | :---: | :---: |
+| Head đông cứng | 32.8% | 0.32 |
+| + Fine-tuning | 35.3% | 0.34 |
+
+Dù đã sửa lỗi + fine-tune, phân loại hãng vẫn yếu (~35%) — bài toán 8 hãng nhìn từ phía sau với ~70 ảnh/lớp là khó. Kết quả này **củng cố quyết định bỏ phân loại hãng** khỏi cơ chế quyết định.
+*   **Biểu đồ huấn luyện**: [brand_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/brand_classifier_training_curves.png)
+
+### 5.3. Cơ chế quyết định delivered (plate-primary)
+1.  **Biển số (PaddleOCR) là khoá chính** — Benchmark C: exact-match 81% so với EasyOCR 0% trên biển CCTV thật.
+2.  **Màu là "cảnh báo mềm"**: màu lệch so với CSDL chỉ phát cảnh báo (`ALLOW_WARN`) chống tráo biển, không từ chối cứng.
+3.  **Bỏ phân loại hãng** khỏi quyết định (giữ lại như thử nghiệm).
+Đây là cơ chế **delivered** của hệ thống (xem Report 4).
 
 ---
 
 ## 6. Đề xuất cải tiến độ chính xác (Future Enhancements)
-Để nâng cao độ chính xác của các bộ phân loại khi triển khai thực tế thương mại, nhóm đề xuất các giải pháp kỹ thuật sau:
-1.  **Thu thập dữ liệu miền thực tế (In-domain Data)**: Tiến hành quay phim và cắt ảnh xe trực tiếp tại các bãi giữ xe ở Việt Nam với các góc máy cố định để đồng bộ hóa phân phối dữ liệu huấn luyện và kiểm thử.
-2.  **Fine-tuning sâu hơn**: Sử dụng card đồ họa GPU chuyên dụng để chạy từ 50 đến 100 epochs huấn luyện, kết hợp mở băng thông (unfreeze) một số tầng tích chập cuối của EfficientNet-B0 để mạng tự điều chỉnh bộ lọc đặc trưng phù hợp với xe thực tế.
+1.  **Thu thập dữ liệu in-domain**: quay và cắt ảnh xe trực tiếp tại bãi giữ xe Việt Nam với góc máy cố định để khớp phân phối train/test.
+2.  **Fine-tune sâu hơn**: pha fine-tuning hiện mở nửa trên backbone ở lr=1e-4 (đã nâng màu 48.3%→54.2%); với GPU có thể mở nhiều tầng hơn, chạy 50–100 epochs và class-balanced sampling để đẩy cao hơn nữa.
+3.  **Cân bằng & mở rộng dữ liệu**: nâng các lớp hiếm (Brown/Yellow) vượt ~100 ảnh và bổ sung biến thể ánh sáng bãi xe.

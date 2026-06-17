@@ -732,8 +732,8 @@ def sort_vietnamese_plate(ocr_results):
                     <ul>
                         <li><strong>Định vị biển số (YOLOv8):</strong> mAP@0.5 đạt **98.2%**.</li>
                         <li><strong>OCR biển số:</strong> Độ chính xác ký tự đạt **94.5%** nhờ giải thuật sắp xếp dòng.</li>
-                        <li><strong>Hãng xe (EfficientNet-B0):</strong> Độ chính xác validation thực tế đạt **29.00%** (do domain gap của Stanford Cars).</li>
-                        <li><strong>Màu xe (MobileNetV3-Small):</strong> Độ chính xác validation thực tế đạt **14.16%** (do thử thách ánh sáng & màu tương đồng).</li>
+                        <li><strong>Hãng xe (EfficientNet-B0, TF/Keras):</strong> test ~**35.3%** sau fine-tune — vẫn yếu → bỏ khỏi quyết định.</li>
+                        <li><strong>Màu xe (MobileNetV3-Small, TF/Keras):</strong> test **54.2%** sau fine-tune (macro-F1 0.54) — dùng làm cảnh báo mềm.</li>
                         <li><strong>Chặn xe gian / lệch nhãn:</strong> Hệ thống đối chiếu 3 yếu tố đảm bảo ngăn chặn thành công **98.7%** trường hợp tráo đổi biển số.</li>
                     </ul>
                 </div>
@@ -755,7 +755,7 @@ def sort_vietnamese_plate(ocr_results):
                 <div class="card">
                     <h3>Lỗi OpenMP trên macOS</h3>
                     <p class="card-body">
-                        <strong>Vấn đề:</strong> Việc import đồng thời TensorFlow (cho Classifiers) và PyTorch (cho YOLOv8) gây xung đột thư viện song song dẫn tới crash uvicorn.<br>
+                        <strong>Vấn đề:</strong> TensorFlow (classifiers) và PaddleOCR không thể chung một tiến trình (OpenMP/protobuf xung đột → crash).<br>
                         <strong>Giải pháp:</strong> Ghi đè biến môi trường `KMP_DUPLICATE_LIB_OK=TRUE` trực tiếp trong mã nguồn khởi chạy hệ thống.
                     </p>
                 </div>
@@ -877,8 +877,8 @@ def sort_vietnamese_plate(ocr_results):
                 <tbody>
                     <tr><td><strong>Phát hiện biển</strong></td><td>YOLOv8n COCO</td><td>YOLOv8n <strong>train riêng</strong> (biển VN)</td><td>COCO không biết biển; mAP50 <strong>0.99</strong>.</td></tr>
                     <tr><td><strong>OCR</strong></td><td>EasyOCR</td><td><strong>PaddleOCR</strong></td><td>0% → <strong>81%</strong> đọc đúng (Benchmark C).</td></tr>
-                    <tr><td><strong>Nền tảng</strong></td><td>TensorFlow</td><td><strong>PyTorch + ONNX</strong></td><td>TF deadlock & crash với PaddleOCR.</td></tr>
-                    <tr><td><strong>Màu</strong></td><td>MobileNet (TF, ảnh sạch)</td><td>MobileNetV3 (PyTorch) <strong>+ aug CCTV</strong></td><td>Sửa "đoán Blue mọi xe": đen→Đen, trắng→Trắng.</td></tr>
+                    <tr><td><strong>Nền tảng</strong></td><td>TF/Keras (in-process)</td><td><strong>TF/Keras tách tiến trình + ONNX</strong></td><td>TF chạy process riêng để đồng tồn PaddleOCR.</td></tr>
+                    <tr><td><strong>Màu</strong></td><td>MobileNet (TF, lỗi dựng)</td><td>MobileNetV3 (TF/Keras) <strong>sửa bug + fine-tune</strong></td><td>Bỏ double-preprocessing & BatchNorm-train → 54.2% test.</td></tr>
                     <tr><td><strong>Hãng xe</strong></td><td>EfficientNet brand</td><td><strong>Bỏ</strong> khỏi quyết định</td><td>Yếu, gây MISMATCH giả, không cần.</td></tr>
                     <tr><td><strong>Quyết định</strong></td><td>Đối chiếu cứng 3 thuộc tính</td><td><strong>Plate-primary</strong> (màu = cảnh báo)</td><td>Tránh từ chối nhầm do màu yếu.</td></tr>
                     <tr><td><strong>Xử lý video</strong></td><td>Mỗi frame 1 quyết định</td><td><strong>Lấy mẫu + gate "đã đỗ"</strong> + vote</td><td>Nhẹ CPU (1 lần/xe), ổn định.</td></tr>

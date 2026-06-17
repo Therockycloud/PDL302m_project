@@ -1322,8 +1322,8 @@
         <div class="stack-block b-ink">
           <div class="layer-nb">TẦNG 03 · COLOUR · PHỤ</div>
           <div class="layer-ttl">MobileNetV3-S</div>
-          <div class="layer-desc">Phân loại màu xe. 59.73% acc / 0.625 macro-F1. 6.24 MB, ~100 ms. PyTorch.</div>
-          <div class="layer-tag">PyTorch · cảnh báo mềm</div>
+          <div class="layer-desc">Phân loại màu xe. 54.2% acc / 0.54 macro-F1 (test giữ-riêng). TF/Keras, fine-tuned.</div>
+          <div class="layer-tag">TF/Keras · cảnh báo mềm</div>
         </div>
       </div>
     </div>
@@ -1475,10 +1475,10 @@
     </div>
     <div data-anim="kpi" class="image-hero-body">
       <div style="max-width:50ch;font-family:var(--sans),var(--sans-zh);font-size:max(18px,1.3vw);line-height:1.55;font-weight:400;color:var(--text-primary);letter-spacing:-.005em">
-        MobileNetV3-Small (PyTorch, thích ứng CCTV) là mô hình màu đã giao: nhẹ nhất, nhanh nhất, sát EfficientNetB0 về độ chính xác nhưng gọn hơn nhiều lần.
+        MobileNetV3-Small (TF/Keras, fine-tuned) là mô hình màu đã giao: nhẹ, nhanh trên CPU, đạt 54.2% trên test giữ-riêng, phục vụ ngoài tiến trình để đồng tồn PaddleOCR.
       </div>
       <div class="image-hero-stats" style="gap:4vw">
-        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">MobileNetV3-S</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em;color:var(--accent)">59.7<span style="font-size:.34em;font-weight:300;vertical-align:.5em">%</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">acc · 0.625 F1 · 6.24 MB</p></div>
+        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">MobileNetV3-S</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em;color:var(--accent)">54.2<span style="font-size:.34em;font-weight:300;vertical-align:.5em">%</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">test acc · 0.54 F1 · 6.24 MB</p></div>
         <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">EfficientNetB0</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">62.4<span style="font-size:.34em;font-weight:300;vertical-align:.5em">%</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">acc · 16.4 MB — nặng hơn</p></div>
         <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">ResNet50</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">58<span style="font-size:.34em;font-weight:300;vertical-align:.5em">%</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">acc · 94 MB — quá lớn</p></div>
       </div>
@@ -1499,7 +1499,7 @@
           <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">Bước ngoặt thiết kế</div>
           <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:.98;letter-spacing:-.03em;color:#fff">Quá yếu để<br/>chặn cứng,<br/>nên <span style="font-style:italic;font-weight:300">xoay trục</span>.</h2>
         </div>
-        <div class="t-meta" style="color:rgba(255,255,255,.6)">Hãng 29% · Màu Keras 14.16%</div>
+        <div class="t-meta" style="color:rgba(255,255,255,.6)">Keras đầu (lỗi dựng model): hãng 29% · màu 14%</div>
       </div>
       <div class="half b-grey" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between">
         <div class="chrome-min" style="margin-bottom:0">
@@ -1509,11 +1509,11 @@
         <div data-anim="right" style="display:flex;flex-direction:column;gap:0">
           <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--text-primary)">01</div>
-            <div><h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Bỏ phân loại hãng</h3><p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">val_acc ~29% — không đủ tin để ra quyết định.</p></div>
+            <div><h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Bỏ phân loại hãng</h3><p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">test ~35% kể cả sau fine-tune — chưa đủ tin để quyết định.</p></div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--text-primary)">02</div>
-            <div><h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Màu → PyTorch MobileNetV3</h3><p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Thích ứng CCTV, đạt 59.73% — thay bản Keras 14.16%.</p></div>
+            <div><h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Sửa lỗi Keras + fine-tune màu</h3><p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Bỏ double-preprocessing + BatchNorm inference-mode + fine-tune → 54.2% test.</p></div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--accent)">03</div>
@@ -1551,7 +1551,7 @@
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 1.4fr auto;gap:2vw;align-items:baseline;padding:2vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
           <div style="font-family:var(--sans);font-weight:200;font-size:min(8vw,11vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">59.7<span style="font-size:.3em;font-weight:300;vertical-align:.5em">%</span></div>
-          <div class="t-body" style="color:var(--paper)">MobileNetV3-Small phân loại màu (0.625 F1)</div>
+          <div class="t-body" style="color:var(--paper)">MobileNetV3-Small phân loại màu (0.54 F1, test)</div>
           <i data-lucide="palette" style="width:2vw;height:2vw"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 1.4fr auto;gap:2vw;align-items:baseline;padding:2vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
@@ -1638,7 +1638,7 @@
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--text-primary)">02</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Nhẹ & đã giao</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">YOLOv8n 0.99 mAP, MobileNetV3 59.73% — đều gọn, chạy thực địa.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">YOLOv8n 0.99 mAP, MobileNetV3 màu 54.2% (test) — đều gọn, chạy thực địa.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">

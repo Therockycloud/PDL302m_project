@@ -344,7 +344,7 @@
                     <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">OCR exact-match</div>
                 </div>
                 <div>
-                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--text-color);">~60%</span>
+                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--text-color);">54.2%</span>
                     <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Colour acc</div>
                 </div>
             </div>
@@ -630,7 +630,7 @@
                     </p>
                     <ul>
                         <li><strong>Số lượng Epochs:</strong> 10 epochs hoàn thành trên thiết bị CPU cục bộ.</li>
-                        <li><strong>Validation Accuracy (Thực tế):</strong> Đạt **29.00%**.</li>
+                        <li><strong>Test Accuracy (hãng, sau fine-tune):</strong> ~**35.3%** — vẫn yếu → bỏ.</li>
                         <li><strong>Thử thách Domain Gap:</strong> Tập dữ liệu huấn luyện Stanford Cars chủ yếu là xe hơi chụp tại Mỹ từ góc ngang, dẫn tới độ chính xác còn hạn chế khi đối chiếu góc camera trực diện/cận cảnh tại bãi giữ xe Việt Nam.</li>
                     </ul>
                 </div>
@@ -697,7 +697,7 @@
                         Mô hình MobileNetV3-Small siêu nhẹ được huấn luyện 10 epochs với bộ tối ưu Adam, LR = 1e-4.
                     </p>
                     <ul>
-                        <li><strong>Validation Accuracy (Thực tế):</strong> Đạt **14.16%**.</li>
+                        <li><strong>Test Accuracy (màu, sau fine-tune):</strong> **54.2%** (macro-F1 0.54).</li>
                         <li><strong>Thử thách Cân bằng trắng:</strong> Màu sắc ngoại thất xe chịu ảnh hưởng lớn từ điều kiện ánh sáng xung quanh (ánh sáng đèn vàng hầm, ánh nắng ngoài trời). Các màu sắc trung tính (White, Silver, Grey) có sự chồng chéo lớn về phân bố pixel khiến mô hình dễ dự báo sai lệch.</li>
                     </ul>
                 </div>
@@ -831,9 +831,9 @@
                 <tbody>
                     <tr><td><strong>OCR</strong></td><td>EasyOCR</td><td><strong>PaddleOCR</strong></td><td>0% → <strong>81%</strong> đọc đúng, CER 0.28 → 0.03.</td></tr>
                     <tr><td><strong>Phát hiện biển</strong></td><td>YOLOv8n COCO</td><td>YOLOv8n train riêng</td><td>mAP50 <strong>0.99</strong> (fine-tune &gt; scratch).</td></tr>
-                    <tr><td><strong>CNN màu</strong></td><td>MobileNet (TF, ảnh sạch)</td><td>MobileNetV3 (PyTorch) + aug CCTV</td><td>So 3 backbone; sửa lỗi "đoán Blue mọi xe".</td></tr>
+                    <tr><td><strong>CNN màu</strong></td><td>MobileNet (TF, lỗi dựng)</td><td>MobileNetV3 (TF/Keras) sửa bug + fine-tune</td><td>Bỏ double-preprocessing & BatchNorm-train; fine-tune → 54.2%.</td></tr>
                     <tr><td><strong>Hãng xe</strong></td><td>EfficientNet brand</td><td>Bỏ khỏi quyết định</td><td>Yếu, gây MISMATCH giả.</td></tr>
-                    <tr><td><strong>Nền tảng</strong></td><td>TensorFlow</td><td>PyTorch + ONNX</td><td>TF deadlock & crash với PaddleOCR.</td></tr>
+                    <tr><td><strong>Nền tảng</strong></td><td>TF/Keras (in-process)</td><td>TF/Keras tách tiến trình + ONNX</td><td>TF chạy process riêng để đồng tồn PaddleOCR.</td></tr>
                     <tr><td><strong>Quyết định</strong></td><td>Đối chiếu cứng biển+hãng+màu</td><td><strong>Plate-primary</strong></td><td>Màu = cảnh báo phụ, tránh từ chối nhầm.</td></tr>
                 </tbody>
             </table>

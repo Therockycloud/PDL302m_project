@@ -1507,7 +1507,7 @@
     </div>
     <div data-anim="kpi" class="image-hero-body">
       <div style="max-width:54ch;font-family:var(--sans),var(--sans-zh);font-size:max(18px,1.3vw);line-height:1.55;font-weight:400;color:var(--text-primary);letter-spacing:-.005em">
-        Ban đầu đề xuất 3-factor chặn cứng (mục tiêu ≥95%). Thực nghiệm CCTV thật cho thấy hãng chỉ 29%, màu 14%, EasyOCR 0% — nên chuyển sang bản giao plate-primary.
+        Ban đầu đề xuất 3-factor chặn cứng (mục tiêu ≥95%). Thực nghiệm cho thấy hãng chỉ ~35%, màu ~54% (kể cả sau sửa lỗi & fine-tune), EasyOCR 0% — nên chuyển sang bản giao plate-primary.
       </div>
       <div class="image-hero-stats" style="gap:4vw">
         <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Hãng xe</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">29<span style="font-size:.34em;font-weight:300;vertical-align:.5em">%</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">Quá yếu — đã loại bỏ</p></div>
@@ -1536,7 +1536,7 @@
           <div class="col-ttl">95%</div>
           <div class="col-desc">Chặn cứng bằng cả biển + màu + hãng, mục tiêu độ chính xác ≥95% trên mọi yếu tố.</div>
           <ul class="col-list">
-            <li>Hãng xe thực tế chỉ 29%</li>
+            <li>Hãng xe chỉ ~35%</li>
             <li>Màu (Keras cũ) chỉ 14%</li>
             <li>EasyOCR đọc biển 0%</li>
           </ul>
@@ -1548,7 +1548,7 @@
           <div class="col-desc">Biển số làm khoá chính qua PaddleOCR; màu hạ xuống cảnh báo mềm; bỏ hẳn phân loại hãng.</div>
           <ul class="col-list">
             <li>PaddleOCR đọc biển 81%</li>
-            <li>Màu ~60% — chỉ cảnh báo</li>
+            <li>Màu ~54% — chỉ cảnh báo</li>
             <li>Hãng bị loại khỏi quyết định</li>
           </ul>
         </div>
@@ -1571,7 +1571,7 @@
           <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,8.6vh);line-height:1;letter-spacing:-.03em">Lõi mạnh, phần<br/>yếu thì <span style="font-style:italic;font-weight:300">trung thực</span>.</h2>
         </div>
         <div style="flex:1;display:flex;flex-direction:column;gap:1.6vh;padding-top:1.2vh">
-          <p class="t-body" style="color:var(--text-secondary)">YOLOv8n mAP 0.99 + PaddleOCR 81% là lõi mạnh. Màu ~60% chỉ làm cảnh báo phụ; hãng bị loại do quá yếu.</p>
+          <p class="t-body" style="color:var(--text-secondary)">YOLOv8n mAP 0.99 + PaddleOCR 81% là lõi mạnh. Màu ~54% chỉ làm cảnh báo phụ; hãng bị loại do quá yếu.</p>
           <p class="t-body" style="color:var(--text-secondary)">Mục tiêu dưới 1 giây mỗi xe chưa đạt (~1,6 s). Hướng tới: thu dữ liệu in-domain & fine-tune sâu.</p>
         </div>
       </div>

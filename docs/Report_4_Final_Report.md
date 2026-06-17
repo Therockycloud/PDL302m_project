@@ -68,17 +68,10 @@ Nhóm đã chạy thực nghiệm toàn bộ pipeline trên tập dữ liệu ki
 
 Trong quá trình tích hợp, hệ thống đã gặp hai thách thức lớn ảnh hưởng đến khả năng triển khai thực tế. Nhóm đã nghiên cứu và áp dụng thành công các giải pháp kỹ thuật sau:
 
-### 5.1. Khắc phục lỗi xung đột luồng gây treo cứng (Thread Deadlock Resolution)
-*   **Triệu chứng**: Khi tích hợp đồng thời TensorFlow/Keras và PyTorch/EasyOCR chạy chung trên CPU macOS, các thư viện tính toán song song (OpenMP, MKL) tranh chấp luồng nặng nề khiến CPU bị treo cứng (Inference Time kéo dài hơn 13 giây hoặc tiến trình tự sập).
-*   **Giải pháp**: Thiết lập cấu hình chạy đơn luồng cho các thư viện phân tán trực tiếp trong môi trường hệ thống trước khi thực thi lệnh chạy:
-    ```bash
-    export OMP_NUM_THREADS=1
-    export MKL_NUM_THREADS=1
-    export OPENBLAS_NUM_THREADS=1
-    export VECLIB_MAXIMUM_THREADS=1
-    export NUMEXPR_NUM_THREADS=1
-    ```
-    Biện pháp này đã triệt tiêu hiện tượng tranh chấp luồng, đưa độ trễ suy luận ổn định về mức cực thấp chỉ **~1.6 giây / xe** từ ảnh thứ hai trở đi.
+### 5.1. Khắc phục xung đột TensorFlow ↔ PaddleOCR (Process Isolation)
+*   **Triệu chứng**: TensorFlow/Keras và PaddleOCR **không thể sống chung một tiến trình** trên macOS — runtime OpenMP tranh chấp luồng gây treo cứng / tự sập (`mutex lock failed`), và protobuf của hai bên xung khắc phiên bản.
+*   **Giải pháp delivered — tách tiến trình (out-of-process serving)**: Bộ phân loại màu TF/Keras được phục vụ ở **một tiến trình Python riêng** (`keras_color_worker.py`, chạy bằng interpreter `dpl-train` có TensorFlow); dashboard (cùng tiến trình với PaddleOCR) giao tiếp với worker qua pipe và **không hề import TensorFlow vào tiến trình của mình**. Nhờ vậy dự án giữ được **TF/Keras cho classifier** (đúng yêu cầu syllabus / Report 1) mà vẫn dùng PaddleOCR làm OCR chính, không còn treo. Việc huấn luyện TF/Keras cũng chạy trong env cô lập này.
+*   **Bổ trợ**: giữ `KMP_DUPLICATE_LIB_OK=TRUE` (chống abort OpenMP của EasyOCR) và đặt số luồng thấp khi cần; độ trễ suy luận ổn định **~1.6 giây / xe** từ ảnh thứ hai trở đi.
 
 ### 5.2. Tối ưu hóa chế độ chạy ngoại tuyến 100% (Offline-First Deployment)
 *   **Chặn EasyOCR kiểm tra phiên bản trực tuyến**: Cấu hình khởi tạo `easyocr.Reader(..., download_enabled=False)` để ngăn chặn tiến trình gửi yêu cầu HTTP kiểm tra phiên bản mô hình từ JaidedAI gây nghẽn luồng khi thiết bị biên không kết nối Internet.
@@ -88,4 +81,4 @@ Trong quá trình tích hợp, hệ thống đã gặp hai thách thức lớn �
 ---
 
 ## 6. Kết luận
-Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (MobileNetV3-Small thích ứng CCTV, ~60%) được dùng làm **cảnh báo mềm**; phân loại **hãng** (~29%) bị loại khỏi quyết định do còn yếu trước khoảng cách miền dữ liệu. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU (~1.6 s/xe sau cold-start), giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain + fine-tuning sâu để nâng màu/hãng (xem Report 3 §6).
+Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (TF/Keras MobileNetV3-Small, **54.2%** test giữ-riêng sau fine-tuning) được dùng làm **cảnh báo mềm**; phân loại **hãng** (TF/Keras EfficientNet-B0, ~**35%**) bị loại khỏi quyết định do còn yếu. Cả hai classifier dùng **TF/Keras** (đúng syllabus / Report 1), phục vụ runtime ngoài tiến trình để đồng tồn với PaddleOCR. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU (~1.6 s/xe sau cold-start), giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain + fine-tuning sâu hơn để nâng màu/hãng (xem Report 3 §6).
