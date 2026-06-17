@@ -1248,7 +1248,7 @@
       <h1 data-anim="title" style="align-self:center;font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(6.6vw,11.6vh);line-height:1;letter-spacing:-.02em;color:#fff">Quy trình thu thập<br/>& xử lý <span style="font-style:italic;font-weight:300">dữ liệu</span></h1>
 
       <div data-anim="bottom" style="display:grid;grid-template-rows:auto auto;gap:1.6vh;border-top:1px solid rgba(255,255,255,.22);padding-top:2vh">
-        <div data-anim="lead" class="lead" style="max-width:64ch;color:rgba(255,255,255,.88);font-weight:300">Ba luồng dữ liệu cho hệ an ninh bãi xe đa-nhân-tố: hãng xe (1.209 ảnh / 8 lớp), màu xe (1.130 ảnh / 8 lớp) và 5 ảnh CCTV thật làm test set đầu-cuối.</div>
+        <div data-anim="lead" class="lead" style="max-width:64ch;color:rgba(255,255,255,.88);font-weight:300">Ba luồng dữ liệu cho hệ an ninh bãi xe đa-nhân-tố: hãng xe (792 ảnh / 8 lớp), màu xe (783 ảnh / 8 lớp) đã qua bộ lọc AI YOLOv8 và cân bằng ~100 ảnh/lớp, chia train/val/test 70/15/15.</div>
         <div style="display:flex;justify-content:space-between;align-items:end">
           <div class="t-meta" style="color:rgba(255,255,255,.66)">Konalyn · Lead Architect</div>
           <div class="t-meta" style="color:rgba(255,255,255,.66)">→ vuốt / phím mũi tên</div>
@@ -1315,7 +1315,7 @@
         <div class="stack-block b-grey">
           <div class="layer-nb">LUỒNG 01 · HÃNG XE</div>
           <div class="layer-ttl">Stanford Cars + crawler</div>
-          <div class="layer-desc">Tải Stanford Cars dạng Parquet trên HuggingFace để né rate-limit 429; crawler Wikimedia Commons bổ sung VinFast (120 ảnh, User-Agent + nghỉ 1,5 s mỗi request).</div>
+          <div class="layer-desc">Cào ảnh từ Bing với nhiều biến thể từ khóa; VinFast cào riêng theo từng dòng xe (VF8/VF9/VF5/Lux/Fadil/President) để giữ đúng đối tượng, tránh logo/nội thất.</div>
           <div class="layer-tag">PARQUET · WIKIMEDIA</div>
         </div>
         <div class="stack-block b-accent">
@@ -1326,9 +1326,9 @@
         </div>
         <div class="stack-block b-ink">
           <div class="layer-nb">LUỒNG 03 · BIỂN SỐ</div>
-          <div class="layer-ttl">5 ảnh CCTV thật</div>
-          <div class="layer-desc">5 ảnh CCTV Việt Nam thật kèm nhãn YOLO định dạng .txt, dùng làm test set đánh giá đầu-cuối (E2E) cho cả pipeline.</div>
-          <div class="layer-tag">CCTV VN · YOLO .TXT</div>
+          <div class="layer-ttl">Test set giữ-riêng</div>
+          <div class="layer-desc">Mỗi tác vụ phân loại có tập test 70/15/15 (~118 ảnh) chưa từng thấy khi train; kèm ảnh CCTV Việt Nam thật (nhãn YOLO .txt) cho luồng E2E.</div>
+          <div class="layer-tag">SPLIT 70/15/15 · CCTV VN</div>
         </div>
       </div>
     </div>
@@ -1352,12 +1352,12 @@
     </div>
     <div data-anim="kpi" class="image-hero-body">
       <div style="max-width:54ch;font-family:var(--sans),var(--sans-zh);font-size:max(18px,1.3vw);line-height:1.55;font-weight:400;color:var(--text-primary);letter-spacing:-.005em">
-        Hãng (1.209 ảnh): Toyota 168 · Hyundai 200 · Kia 120 · Mazda 120 · Honda 161 · VinFast 120 · Ford 200 · Mitsubishi 120. Màu (1.130 ảnh): White 185 · Black 200 · Grey 200 · Silver 175 · Red 110 · Blue 200 · Brown 35 · Yellow 25.
+        Sau làm sạch & cân bằng — Hãng (792 ảnh): Ford 100 · Mazda 100 · Mitsubishi 100 · VinFast 100 · Honda 99 · Hyundai 99 · Kia 99 · Toyota 95. Màu (783 ảnh): Black/Blue/Grey/Silver/Red/White 100 · Yellow 92 · Brown 91. Lớp Green đã bị loại để khớp mô hình 8 lớp.
       </div>
       <div class="image-hero-stats" style="gap:4vw">
-        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lớp hãng xe</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">8</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">1.209 ảnh tổng cộng</p></div>
-        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lớp màu xe</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">8</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">1.130 ảnh tổng cộng</p></div>
-        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lệch nhiều nhất</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em;color:var(--accent)">8×</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">Blue 200 so với Yellow 25</p></div>
+        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lớp hãng xe</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">8</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">792 ảnh (đã cân bằng)</p></div>
+        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lớp màu xe</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">8</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">783 ảnh (đã cân bằng)</p></div>
+        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lệch nhiều nhất</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em;color:var(--accent)">~1×</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">~100 ảnh/lớp sau cân bằng</p></div>
       </div>
     </div>
   </div>
@@ -1377,12 +1377,12 @@
       </div>
       <div data-anim="ledger" style="display:flex;flex-direction:column;justify-content:center">
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 1.4fr auto;gap:2vw;align-items:baseline;padding:2vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,10vh);line-height:.9;letter-spacing:-.04em;color:var(--accent)">1.209</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,10vh);line-height:.9;letter-spacing:-.04em;color:var(--accent)">792</div>
           <div class="t-body" style="color:var(--paper)">Ảnh hãng xe trên 8 lớp (Stanford Cars + crawler VinFast)</div>
           <i data-lucide="car-front" style="width:2vw;height:2vw"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 1.4fr auto;gap:2vw;align-items:baseline;padding:2vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,10vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">1.130</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,10vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">783</div>
           <div class="t-body" style="color:var(--paper)">Ảnh màu xe trên 8 lớp (Kaggle, đã lọc tay bỏ ảnh nhiễu)</div>
           <i data-lucide="palette" style="width:2vw;height:2vw"></i>
         </div>
@@ -1392,8 +1392,8 @@
           <i data-lucide="layers" style="width:2vw;height:2vw"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 1.4fr auto;gap:2vw;align-items:baseline;padding:2vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,10vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">16</div>
-          <div class="t-body" style="color:var(--paper)">Biển số trong test set — nhãn YOLO .txt từ 5 ảnh CCTV thật</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,10vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">~118</div>
+          <div class="t-body" style="color:var(--paper)">Ảnh test giữ-riêng mỗi tác vụ (split 70/15/15) — thay cho 5 ảnh trước đây</div>
           <i data-lucide="scan-line" style="width:2vw;height:2vw"></i>
         </div>
       </div>
@@ -1550,23 +1550,23 @@
         <div class="why-col" style="display:flex;flex-direction:column;gap:1.6vh;padding:0 2vw 0 0;border-right:1px solid var(--border-subtle)">
           <div class="t-cat">Nguồn ổn định</div>
           <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.6vw);line-height:1.2;color:var(--text-primary)">Tránh rate-limit 429</h3>
-          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.55;color:var(--text-secondary)">Tải Stanford Cars dạng Parquet trên HuggingFace thay vì gọi API liên tục; crawler nghỉ 1,5 s mỗi request kèm User-Agent.</p>
-          <div class="why-num-bottom" style="margin-top:auto;font-family:var(--sans);font-weight:200;font-size:min(6vw,9.6vh);line-height:.9;letter-spacing:-.04em;color:var(--text-primary)">120</div>
-          <div class="t-meta">ảnh VinFast bổ sung</div>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.55;color:var(--text-secondary)">VinFast cào theo từng dòng xe (VF8/VF9/VF5/Lux/Fadil/President) thay vì từ khóa chung — tránh logo/nội thất, giữ đúng đối tượng & chất lượng.</p>
+          <div class="why-num-bottom" style="margin-top:auto;font-family:var(--sans);font-weight:200;font-size:min(6vw,9.6vh);line-height:.9;letter-spacing:-.04em;color:var(--text-primary)">8</div>
+          <div class="t-meta">dòng xe VinFast chuyên biệt</div>
         </div>
         <div class="why-col" style="display:flex;flex-direction:column;gap:1.6vh;padding:0 2vw;border-right:1px solid var(--border-subtle)">
-          <div class="t-cat">Lọc thủ công</div>
+          <div class="t-cat">Lọc tự động</div>
           <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.6vw);line-height:1.2;color:var(--text-primary)">Bỏ ảnh nhiễu</h3>
-          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.55;color:var(--text-secondary)">Loại tay các ảnh chỉ thấy vô-lăng, nội thất hoặc thiếu sáng — giữ lại ảnh đọc được màu thân xe rõ ràng.</p>
-          <div class="why-num-bottom" style="margin-top:auto;font-family:var(--sans);font-weight:200;font-size:min(6vw,9.6vh);line-height:.9;letter-spacing:-.04em;color:var(--text-primary)">8</div>
-          <div class="t-meta">lớp màu sau khi lọc</div>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.55;color:var(--text-secondary)">YOLOv8 loại ảnh không có xe (~38% ảnh màu), pHash khử trùng lặp, chuẩn hóa JPEG RGB — thay cho lọc tay.</p>
+          <div class="why-num-bottom" style="margin-top:auto;font-family:var(--sans);font-weight:200;font-size:min(6vw,9.6vh);line-height:.9;letter-spacing:-.04em;color:var(--text-primary)">~38%</div>
+          <div class="t-meta">ảnh rác bị loại tự động</div>
         </div>
         <div class="why-col" style="display:flex;flex-direction:column;gap:1.6vh;padding:0 0 0 2vw">
           <div class="t-cat accent">Test thật</div>
           <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.6vw);line-height:1.2;color:var(--accent)">CCTV Việt Nam thật</h3>
-          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.55;color:var(--text-secondary)">5 ảnh CCTV thật kèm nhãn YOLO .txt làm test set E2E — không dùng ảnh web để tránh đánh giá quá lạc quan.</p>
-          <div class="why-num-bottom" style="margin-top:auto;font-family:var(--sans);font-weight:200;font-size:min(6vw,9.6vh);line-height:.9;letter-spacing:-.04em;color:var(--accent)">5</div>
-          <div class="t-meta">ảnh CCTV · 16 biển</div>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.55;color:var(--text-secondary)">Mỗi tác vụ có tập test giữ-riêng (split 70/15/15) chưa từng thấy khi train; kèm ảnh CCTV thật cho luồng E2E.</p>
+          <div class="why-num-bottom" style="margin-top:auto;font-family:var(--sans);font-weight:200;font-size:min(6vw,9.6vh);line-height:.9;letter-spacing:-.04em;color:var(--accent)">~118</div>
+          <div class="t-meta">ảnh test mỗi tác vụ</div>
         </div>
       </div>
     </div>
@@ -1588,12 +1588,12 @@
         </div>
         <div style="flex:1;display:flex;flex-direction:column;gap:1.6vh;padding-top:1.2vh">
           <p class="t-body" style="color:var(--text-secondary)">test_dataset.py pass 100%: đường dẫn, số lớp, kích thước ảnh và nhãn đều đúng cấu trúc kỳ vọng.</p>
-          <p class="t-body" style="color:var(--text-secondary)">Còn lại: Brown & Yellow vẫn thiếu ảnh — cần thu thêm dữ liệu in-domain trước khi fine-tune sâu.</p>
+          <p class="t-body" style="color:var(--text-secondary)">Brown & Yellow đã được cào bù và cân bằng lên ~90 ảnh/lớp; dữ liệu sẵn sàng cho fine-tune sâu.</p>
         </div>
       </div>
       <div data-anim="banner" style="background:var(--ink);color:var(--paper);margin:auto -5vw -4.4vh;padding:4vh 5vw;display:grid;grid-template-columns:repeat(4,1fr);gap:2vw;align-items:center">
-        <div style="display:flex;flex-direction:column;gap:.8vh"><i data-lucide="car-front" style="width:1.8vw;height:1.8vw;color:var(--accent)"></i><div style="font-family:var(--sans);font-weight:200;font-size:min(3.4vw,6vh);line-height:.9;letter-spacing:-.03em;color:var(--paper)">1.209</div><div class="t-meta" style="color:rgba(255,255,255,.62)">ảnh hãng xe</div></div>
-        <div style="display:flex;flex-direction:column;gap:.8vh"><i data-lucide="palette" style="width:1.8vw;height:1.8vw;color:var(--accent)"></i><div style="font-family:var(--sans);font-weight:200;font-size:min(3.4vw,6vh);line-height:.9;letter-spacing:-.03em;color:var(--paper)">1.130</div><div class="t-meta" style="color:rgba(255,255,255,.62)">ảnh màu xe</div></div>
+        <div style="display:flex;flex-direction:column;gap:.8vh"><i data-lucide="car-front" style="width:1.8vw;height:1.8vw;color:var(--accent)"></i><div style="font-family:var(--sans);font-weight:200;font-size:min(3.4vw,6vh);line-height:.9;letter-spacing:-.03em;color:var(--paper)">792</div><div class="t-meta" style="color:rgba(255,255,255,.62)">ảnh hãng xe</div></div>
+        <div style="display:flex;flex-direction:column;gap:.8vh"><i data-lucide="palette" style="width:1.8vw;height:1.8vw;color:var(--accent)"></i><div style="font-family:var(--sans);font-weight:200;font-size:min(3.4vw,6vh);line-height:.9;letter-spacing:-.03em;color:var(--paper)">783</div><div class="t-meta" style="color:rgba(255,255,255,.62)">ảnh màu xe</div></div>
         <div style="display:flex;flex-direction:column;gap:.8vh"><i data-lucide="layers" style="width:1.8vw;height:1.8vw;color:var(--accent)"></i><div style="font-family:var(--sans);font-weight:200;font-size:min(3.4vw,6vh);line-height:.9;letter-spacing:-.03em;color:var(--accent)">8+8</div><div class="t-meta" style="color:rgba(255,255,255,.62)">lớp phân loại</div></div>
         <div style="display:flex;flex-direction:column;gap:.8vh"><i data-lucide="circle-check" style="width:1.8vw;height:1.8vw;color:var(--accent)"></i><div style="font-family:var(--sans);font-weight:200;font-size:min(3.4vw,6vh);line-height:.9;letter-spacing:-.03em;color:var(--paper)">100<span style="font-size:.32em;font-weight:300;vertical-align:.5em">%</span></div><div class="t-meta" style="color:rgba(255,255,255,.62)">test_dataset.py pass</div></div>
       </div>
@@ -1635,14 +1635,14 @@
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--text-primary)">01</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Ba luồng dữ liệu</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">1.209 ảnh hãng · 1.130 ảnh màu · 16 biển test từ 5 ảnh CCTV thật.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">792 ảnh hãng · 783 ảnh màu (cân bằng ~100/lớp) · test split 70/15/15.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--text-primary)">02</div>
             <div>
-              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Đã thấy điểm yếu</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">EDA lộ mất cân bằng Brown 35 / Yellow 25 — cần thu thêm & augmentation.</p>
+              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Đã khắc phục điểm yếu</h3>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">EDA lộ mất cân bằng Brown 35 / Yellow 25 → cào bù chuyên biệt, cân bằng lên ~90/lớp.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">

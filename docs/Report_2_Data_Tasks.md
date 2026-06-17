@@ -23,46 +23,65 @@ Hệ thống sử dụng ba luồng dữ liệu độc lập để huấn luyệ
 ### 3.1. Dữ liệu hãng xe (Car Brands)
 Nhóm tập trung thu thập ảnh của 8 hãng ô tô phổ biến nhất tại thị trường Việt Nam: *Toyota, Hyundai, Kia, Mazda, Honda, VinFast, Ford, Mitsubishi*.
 *   **Stanford Cars Dataset (Parquet Format)**: Để tránh giới hạn băng thông (Rate Limit 429) khi tải ảnh trực tiếp, nhóm sử dụng định dạng Parquet sạch của Stanford Cars trên Hugging Face (`tanganke/stanford_cars`). Từ đây, nhóm trích xuất hình ảnh tương ứng với 7 hãng xe quốc tế.
-*   **Wikimedia Commons VinFast Crawler**: Do VinFast là thương hiệu nội địa mới và không có sẵn trong các dataset học thuật quốc tế, nhóm đã xây dựng một script cào ảnh tự động từ Wikimedia Commons. Script sử dụng các kỹ thuật cấu hình `User-Agent` mô phỏng trình duyệt và thiết lập khoảng nghỉ an toàn $1.5$ giây giữa các yêu cầu để tránh bị chặn. Nhóm đã thu thập thành công 120 ảnh chất lượng cao của các dòng xe VinFast Lux A2.0, Lux SA2.0, VF8, VF9.
+*   **VinFast — cào theo từng dòng xe (model-specific)**: Do VinFast là thương hiệu nội địa mới và không có trong các dataset học thuật quốc tế, nhóm cào ảnh tự động (Bing image crawler) theo **từ khóa chuyên biệt cho từng dòng xe** — VF8, VF9, VF5, Lux A2.0, Lux SA2.0, Fadil, VF e34, President — thay vì từ khóa "VinFast" chung (vốn trả về nhiều logo/nội thất). Nhờ vậy ảnh VinFast giữ được chất lượng và đúng đối tượng.
 
 ### 3.2. Dữ liệu màu sắc xe (Car Colors)
-Tập dữ liệu gồm 8 màu xe cơ bản phổ biến tại Việt Nam: *White (Trắng), Black (Đen), Grey (Xám), Silver (Bạc), Red (Đỏ), Blue (Xanh dương), Brown (Nâu), Yellow (Vàng)*.
-*   Ảnh thô được tải từ bộ dữ liệu nhận diện màu sắc của Kaggle và được lọc thủ công để loại bỏ các ảnh nhiễu (ảnh cận cảnh vô lăng, nội thất, hoặc ảnh thiếu sáng nghiêm trọng làm sai lệch màu sắc thực tế).
+Tập dữ liệu gồm **8 màu** xe cơ bản phổ biến tại Việt Nam: *White, Black, Grey, Silver, Red, Blue, Brown, Yellow*. Lớp *green* (xanh lá) ban đầu được cào về nhưng đã bị loại khỏi tập huấn luyện để khớp với mô hình 8 lớp (39 ảnh green được tách sang khu cách ly, không dùng).
+*   Ảnh thô được hợp nhất từ nhiều nguồn cào (Bing) và được đưa qua **pipeline làm sạch tự động** (xem mục 3.3) thay cho việc lọc thủ công.
 
-### 3.3. Dữ liệu biển số xe (License Plates)
-Nhóm thu thập tập mẫu gồm 5 ảnh chụp xe thực tế tại các bãi đỗ xe Việt Nam (chứa cả biển số xe dài 1 dòng và biển số vuông 2 dòng) đi kèm file nhãn định dạng YOLO tương ứng (`.txt`) làm dữ liệu kiểm thử (Test Set) cho luồng tích hợp đầu cuối.
+### 3.3. Pipeline làm sạch & cân bằng dữ liệu (Data Cleaning Pipeline)
+Toàn bộ ảnh phân loại được hợp nhất về **một cây thư mục chuẩn duy nhất** (`car_colors/`, `car_brands/`) rồi đưa qua 4 bước tự động (scripts trong `main/scripts/`):
+1.  **Lọc ảnh hỏng** (`clean_corrupted_images.py`): loại file không đọc được.
+2.  **Lọc theo ngữ nghĩa bằng YOLOv8** (`semantic_clean_images.py`): chỉ giữ ảnh thực sự chứa xe (lớp COCO car/bus/truck). Bước này loại **~38% ảnh màu** không có xe (vô lăng, nội thất, logo…).
+3.  **Khử trùng lặp** (`remove_duplicates.py`): dùng perceptual-hash (pHash) loại ảnh gần-trùng.
+4.  **Chuẩn hóa về JPEG RGB** (`normalize_images.py`): tái mã hóa mọi ảnh (kể cả WEBP đội lốt `.jpg`) sang JPEG RGB để `tf.keras` đọc được.
+
+Các lớp thiếu (Brown, Yellow) được **cào bù** (`crawl_topup.py`) rồi lặp lại bước 1–4, cuối cùng **cap về ~100 ảnh/lớp cân bằng** (`cap_dataset.py`). Kết quả: **8 lớp màu (783 ảnh)** và **8 lớp hãng (792 ảnh)**, cân bằng (xem mục 4).
+
+### 3.4. Phân chia tập Train / Validation / Test
+Bộ dữ liệu phân loại được chia **vật lý** theo tỷ lệ **70 / 15 / 15** (`split_dataset.py`, seed cố định = 42) vào `data/processed/classifiers/<task>/{train,val,test}/`. Khác với pipeline cũ chỉ tách train/val bằng `validation_split` (**không có tập test riêng**), nay mỗi tác vụ có **tập test giữ-riêng ổn định**:
+
+| Tác vụ | Train | Validation | **Test** |
+| :--- | :---: | :---: | :---: |
+| Màu sắc (Colors) | 547 | 118 | **118** |
+| Hãng xe (Brands) | 554 | 119 | **119** |
+
+> So với bản trước (tập kiểm thử chỉ gồm **5 ảnh** dùng cho luồng E2E), tập test phân loại nay lớn hơn ~24 lần và không bao giờ được nhìn thấy trong lúc huấn luyện.
+
+### 3.5. Dữ liệu biển số xe (License Plates)
+Nhóm thu thập tập mẫu ảnh chụp xe thực tế tại các bãi đỗ xe Việt Nam (chứa cả biển số dài 1 dòng và biển số vuông 2 dòng) đi kèm nhãn định dạng YOLO (`.txt`) làm dữ liệu kiểm thử cho luồng tích hợp đầu cuối (E2E). Bộ phát hiện biển số được huấn luyện riêng (HuggingFace license-plate dataset: 6.176 ảnh train / 1.765 ảnh val).
 
 ---
 
 ## 4. Phân tích thống kê dữ liệu (Exploratory Data Analysis)
 
 ### 4.1. Phân bố nhãn Hãng xe (Car Brands Distribution)
-| Hãng xe (Brand) | Số lượng ảnh thô | Trạng thái xử lý | Tỷ lệ (%) |
-| :--- | :---: | :---: | :---: |
-| **Toyota** | 168 | Đã làm sạch | 13.9% |
-| **Hyundai** | 200 | Đã làm sạch | 16.5% |
-| **Kia** | 120 | Đã làm sạch | 9.9% |
-| **Mazda** | 120 | Đã làm sạch | 9.9% |
-| **Honda** | 161 | Đã làm sạch | 13.3% |
-| **VinFast** | 120 | Đã cào & làm sạch | 9.9% |
-| **Ford** | 200 | Đã làm sạch | 16.5% |
-| **Mitsubishi** | 120 | Đã làm sạch | 9.9% |
-| **Tổng cộng** | **1,209** | **Hoàn thành** | **100.0%** |
+| Hãng xe (Brand) | Số lượng ảnh (đã làm sạch & cân bằng) | Tỷ lệ (%) |
+| :--- | :---: | :---: |
+| **Toyota** | 95 | 12.0% |
+| **Hyundai** | 99 | 12.5% |
+| **Kia** | 99 | 12.5% |
+| **Mazda** | 100 | 12.6% |
+| **Honda** | 99 | 12.5% |
+| **VinFast** | 100 | 12.6% |
+| **Ford** | 100 | 12.6% |
+| **Mitsubishi** | 100 | 12.6% |
+| **Tổng cộng** | **792** | **100.0%** |
 
 ### 4.2. Phân bố nhãn Màu sắc xe (Car Colors Distribution)
-| Màu sắc (Color) | Số lượng ảnh thô | Trạng thái xử lý | Tỷ lệ (%) |
-| :--- | :---: | :---: | :---: |
-| **White** | 185 | Đã làm sạch | 16.4% |
-| **Black** | 200 | Đã làm sạch | 17.7% |
-| **Grey** | 200 | Đã làm sạch | 17.7% |
-| **Silver** | 175 | Đã làm sạch | 15.5% |
-| **Red** | 110 | Đã làm sạch | 9.7% |
-| **Blue** | 200 | Đã làm sạch | 17.7% |
-| **Brown** | 35 | Đã làm sạch | 3.1% |
-| **Yellow** | 25 | Đã làm sạch | 2.2% |
-| **Tổng cộng** | **1,130** | **Hoàn thành** | **100.0%** |
+| Màu sắc (Color) | Số lượng ảnh (đã làm sạch & cân bằng) | Tỷ lệ (%) |
+| :--- | :---: | :---: |
+| **White** | 100 | 12.8% |
+| **Black** | 100 | 12.8% |
+| **Grey** | 100 | 12.8% |
+| **Silver** | 100 | 12.8% |
+| **Red** | 100 | 12.8% |
+| **Blue** | 100 | 12.8% |
+| **Brown** | 91 | 11.6% |
+| **Yellow** | 92 | 11.7% |
+| **Tổng cộng** | **783** | **100.0%** |
 
-*Nhận xét*: Có sự mất cân bằng dữ liệu tự nhiên đối với nhóm màu Brown và Yellow do hai màu này ít phổ biến hơn trên thực tế xe lưu thông tại Việt Nam. Pipeline huấn luyện sẽ tích hợp các kỹ thuật tăng cường dữ liệu thích hợp để tránh hiện tượng mô hình bị thiên lệch (bias).
+*Nhận xét*: Hai nhóm màu Brown và Yellow ban đầu rất ít (chỉ 35 và 25 ảnh thô) do ít phổ biến trên thực tế. Thay vì chỉ dựa vào augmentation, nhóm đã **cào bù dữ liệu chuyên biệt** rồi làm sạch để nâng hai lớp này lên ~90 ảnh, đưa toàn bộ tập về trạng thái **gần cân bằng (~100 ảnh/lớp)** — triết lý "ít nhưng chất" thay cho "nhiều nhưng nhiễu".
 
 ---
 
@@ -71,19 +90,29 @@ Nhóm thu thập tập mẫu gồm 5 ảnh chụp xe thực tế tại các bãi
 ### 5.1. Chuẩn hóa kích thước hình ảnh (Resizing)
 Toàn bộ ảnh xe toàn cảnh được tự động thay đổi kích thước về độ phân giải chuẩn $224 \times 224 \times 3$ pixel nhằm tương thích hoàn toàn với đầu vào của mạng `EfficientNet-B0` và `MobileNetV3-Small`.
 
-### 5.2. Sửa lỗi chuẩn hóa tỷ lệ điểm ảnh (Pixel Scaling Correction)
-Trong quá trình thử nghiệm ban đầu, hệ thống gặp lỗi suy luận do sự khác biệt về dải giá trị đầu vào của các mạng:
-*   Mạng trích xuất đặc trưng `EfficientNetB0` yêu cầu dải điểm ảnh gốc $[0, 255]$ do đã có lớp chuẩn hóa nội bộ của Keras.
-*   Mạng `MobileNetV3Small` yêu cầu dải điểm ảnh đã được chuẩn hóa về khoảng $[-1, 1]$.
-*   Giải pháp: Nhóm đã chèn trực tiếp các lớp tiền xử lý tích hợp của TensorFlow (`preprocess_input` cho EfficientNet và `Rescaling(scale=1.0/127.5, offset=-1)` cho MobileNetV3) vào đầu mỗi mô hình để tự động hóa quá trình chuẩn hóa tại bước huấn luyện lẫn suy luận thực tế.
+### 5.2. Chuẩn hóa tỷ lệ điểm ảnh & sửa lỗi tiền xử lý (Pixel Scaling)
+Cả hai backbone của Keras (`EfficientNetB0`, `MobileNetV3Small`) đều có **lớp tiền xử lý tích hợp** (`include_preprocessing=True`) và **yêu cầu đầu vào dải $[0, 255]$**, sau đó tự chuẩn hóa nội bộ. Dataset trả về ảnh đã rescale về $[0, 1]$, nên mỗi mô hình mở đầu bằng một lớp `Rescaling(255.0)` để đưa về $[0, 255]$ đúng kỳ vọng của backbone.
+
+> **Hai lỗi đã phát hiện và sửa khi chuẩn hóa pipeline về TF/Keras:**
+> 1.  **Double-preprocessing**: phiên bản cũ cộng thêm `Rescaling(1/127.5, -1)` cho MobileNetV3 *trên đầu* lớp nội bộ → sai dải giá trị, độ chính xác rơi về mức ngẫu nhiên (~1/8). Đã bỏ, chỉ giữ `Rescaling(255.0)`.
+> 2.  **BatchNorm ở chế độ training khi backbone đông cứng**: dựng mô hình bằng `Sequential` khiến các lớp BatchNorm của backbone chạy theo thống kê từng batch, phá vỡ đặc trưng đông cứng và mô hình **không học được**. Đã chuyển sang **Functional API** với `base(x, training=False)` để BatchNorm chạy ở chế độ inference (moving-average).
 
 ### 5.3. Tăng cường dữ liệu (Data Augmentation)
-Để tăng độ bền vững (robustness) cho bộ phân loại trong điều kiện thời tiết và ánh sáng phức tạp của bãi đỗ xe:
-*   **Xoay ngẫu nhiên (Random Rotation)**: Góc xoay tối đa $10^\circ$ để mô phỏng sai lệch góc lắp đặt camera.
-*   **Lật ngang (Random Flip)**: Mô phỏng hướng di chuyển của xe đi vào từ hai phía khác nhau.
-*   **Điều chỉnh độ tương phản (Random Contrast)**: Thay đổi độ tương phản ngẫu nhiên từ $0.8$ đến $1.2$ để mô phỏng ánh sáng ban ngày chói hoặc ánh đèn pha xe ban đêm.
+Áp dụng **chỉ trên tập train** (val/test giữ nguyên ảnh gốc) để tăng độ bền vững:
+*   **Lật ngang (RandomFlip horizontal)**: mô phỏng hướng xe đi vào từ hai phía.
+*   **Xoay ngẫu nhiên (RandomRotation 0.1)**: mô phỏng sai lệch góc lắp camera.
+*   **Phóng ngẫu nhiên (RandomZoom 0.1)**: mô phỏng khoảng cách xe–camera thay đổi.
 
 ---
 
-## 6. Đánh giá và Kiểm thử dữ liệu (Verification)
-Toàn bộ quy trình tải, phân tách thư mục, ánh xạ nhãn lớp và tiền xử lý dữ liệu đầu vào đã được kiểm thử tự động thông qua bộ kiểm thử unit test viết trong [test_dataset.py](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/tests/test_dataset.py). Kết quả kiểm thử thành công 100%, xác nhận cấu trúc dữ liệu đã sẵn sàng chuyển sang giai đoạn huấn luyện mô hình sâu.
+## 6. Huấn luyện, Đánh giá và Kiểm thử (Train / Test)
+Pipeline được **chuẩn hóa hoàn toàn về TensorFlow/Keras** và chạy trong môi trường training cô lập (tách khỏi runtime PaddleOCR để tránh xung đột OpenMP/protobuf). Cả hai bộ phân loại được huấn luyện trên tập train và **đánh giá trên tập test giữ-riêng**:
+
+| Mô hình | Backbone | Test accuracy | Macro-F1 | n (test) |
+| :--- | :--- | :---: | :---: | :---: |
+| Phân loại màu | MobileNetV3-Small (frozen head) | **48.3%** | 0.479 | 118 |
+| Phân loại hãng | EfficientNet-B0 (frozen head) | **32.8%** | 0.324 | 119 |
+
+*Nhận xét*: Phân loại màu đạt ~48% trên 8 lớp (gấp ~4 lần mức ngẫu nhiên 12.5%) với head đông cứng — phù hợp vai trò "cảnh báo phụ". Phân loại hãng chỉ ~33%, củng cố quyết định **bỏ phân loại hãng** ở bản giao cuối (xem Report 3/4). Cả hai con số là kết quả trên tập test chưa từng thấy khi train; có thể nâng thêm bằng fine-tune (mở băng các tầng cuối của backbone).
+
+Cấu trúc dữ liệu (tải, phân tách thư mục, ánh xạ nhãn) tiếp tục được kiểm thử tự động qua [test_dataset.py](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/tests/test_dataset.py).
