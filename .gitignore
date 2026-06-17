@@ -53,6 +53,26 @@ Thumbs.db
 main/data/raw/car_brands/
 main/data/raw/car_colors/
 main/data/raw/plate_det/
+main/data/raw/brands/
+main/data/raw/colors/
+
+# Data-pipeline holding bins / intermediates (reject + dedup + balance leftovers)
+main/data/raw/garbage/
+main/data/raw/_legacy_premerge/
+main/data/raw/_quarantine_green/
+main/data/raw/_capped_overflow/
+main/data/raw/_topup*/
+
+# Derived train/val/test split (regenerate with scripts/split_dataset.py)
+main/data/processed/
+
+# Large media (footage + downloaded sample clips)
+main/data/**/*.mp4
+main/data/**/*.mov
+main/data/**/*.avi
+
+# Stray base weights downloaded by ultralytics into the repo root
+/yolov8n.pt
 
 # Model training runs (checkpoints/plots) and logs — keep only exported ONNX
 main/data/models/plate_runs/
@@ -71,3 +91,9 @@ main/data/models/color_*.keras
 # Brainstorming visual companion
 .superpowers/
 .worktrees/
+
+# Agent orchestration scratch
+.agents/
+
+# Per-user Claude settings (keep launch.json + run_dashboard.sh)
+.claude/settings.local.json

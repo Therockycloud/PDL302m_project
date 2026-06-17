@@ -3,3 +3,5 @@
 # conflicts with PaddleOCR when both load in the live dashboard process.
 -r requirements.txt
 tensorflow>=2.10.0      # bundles Keras; used by brand/colour classifiers + trainer
+icrawler>=0.6.9         # used for automated image crawling
+ImageHash>=4.3.1        # used for image deduplication
