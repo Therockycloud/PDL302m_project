@@ -2,7 +2,43 @@ import tensorflow as tf
 import os
 
 
-def load_split_dataset(base_dir, batch_size=32, img_height=224, img_width=224, seed=42):
+def _build_aug(task: str) -> "tf.keras.Sequential":
+    """Build a task-specific augmentation pipeline.
+
+    Color classification is sensitive to hue/saturation shifts that would
+    corrupt the class signal, so only geometry + mild brightness/contrast are
+    used.  Brand classification depends on shape/logo features and tolerates
+    stronger augmentation.
+
+    Args:
+        task: One of ``"color"`` or ``"brand"``.  Unknown values fall back to
+            the brand recipe.
+
+    Returns:
+        A ``tf.keras.Sequential`` augmentation model (no Rescaling included).
+    """
+    layers = [
+        tf.keras.layers.RandomFlip("horizontal"),
+        tf.keras.layers.RandomRotation(0.1),
+        tf.keras.layers.RandomZoom(0.1),
+        tf.keras.layers.RandomTranslation(0.1, 0.1),
+    ]
+    if task == "color":
+        # Color: geometry + mild brightness/contrast ONLY.  Hue/saturation
+        # jitter is intentionally EXCLUDED — it corrupts the class signal.
+        layers += [
+            tf.keras.layers.RandomBrightness(0.15, value_range=(0.0, 1.0)),
+            tf.keras.layers.RandomContrast(0.15),
+        ]
+    else:  # brand: shape/logo features tolerate stronger contrast jitter
+        layers += [
+            tf.keras.layers.RandomContrast(0.3),
+        ]
+    return tf.keras.Sequential(layers)
+
+
+def load_split_dataset(base_dir, batch_size=32, img_height=224, img_width=224,
+                       seed=42, task: str = "color"):
     """Load a pre-split dataset laid out as ``base_dir/{train,val,test}/<class>``.
 
     Unlike :func:`load_classification_dataset` (which carves a validation slice
@@ -14,6 +50,17 @@ def load_split_dataset(base_dir, batch_size=32, img_height=224, img_width=224, s
     then maps to whatever range its backbone expects. Augmentation is applied to
     the training split only.
 
+    Args:
+        base_dir: Root directory containing ``train/``, ``val/``, ``test/``
+            sub-directories each with one sub-folder per class.
+        batch_size: Number of images per batch.
+        img_height: Resize height in pixels.
+        img_width: Resize width in pixels.
+        seed: Random seed for reproducibility.
+        task: ``"color"`` (geometry + mild brightness/contrast, NO hue jitter)
+            or ``"brand"`` (stronger contrast augmentation).  Controls the
+            augmentation pipeline applied to the training split.
+
     Returns:
         ``(train_ds, val_ds, test_ds, class_names)``.
     """
@@ -21,11 +68,7 @@ def load_split_dataset(base_dir, batch_size=32, img_height=224, img_width=224, s
         raise FileNotFoundError(f"Split dataset directory not found at: {base_dir}")
 
     normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
-    augmentation_model = tf.keras.Sequential([
-        tf.keras.layers.RandomFlip("horizontal"),
-        tf.keras.layers.RandomRotation(0.1),
-        tf.keras.layers.RandomZoom(0.1),
-    ])
+    augmentation_model = _build_aug(task)
 
     def _make(split):
         ds = tf.keras.utils.image_dataset_from_directory(

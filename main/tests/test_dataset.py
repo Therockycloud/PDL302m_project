@@ -84,5 +84,59 @@ class TestVehicleDataset(unittest.TestCase):
         self.assertLessEqual(max_val, 1.0)
 
 
+@unittest.skipIf(not TF_AVAILABLE, "TensorFlow not installed — skipping dataset tests")
+class TestLoadSplitDatasetTaskParam(unittest.TestCase):
+    """Tests for load_split_dataset with the new ``task`` parameter."""
+
+    def test_load_split_accepts_task(self):
+        """load_split_dataset with task='brand' returns correctly shaped batches."""
+        import tempfile
+        import numpy as np
+        from PIL import Image
+        from src.datasets.vehicle_dataset import load_split_dataset
+
+        with tempfile.TemporaryDirectory() as tmp:
+            # Create minimal train/val/test structure: 2 classes, 1 image each
+            for split in ("train", "val", "test"):
+                for cls in ("a", "b"):
+                    d = os.path.join(tmp, split, cls)
+                    os.makedirs(d, exist_ok=True)
+                    Image.fromarray(
+                        np.zeros((8, 8, 3), dtype=np.uint8)
+                    ).save(os.path.join(d, "x.jpg"))
+
+            tr, _val, _test, names = load_split_dataset(
+                tmp, batch_size=2, img_height=8, img_width=8, task="brand"
+            )
+            x, _y = next(iter(tr))
+            self.assertLessEqual(float(tf.reduce_max(x)), 1.0 + 1e-3,
+                                 "Pixel values should be normalised to [0,1]")
+            self.assertEqual(names, ["a", "b"])
+
+    def test_load_split_color_task_no_hue(self):
+        """load_split_dataset with task='color' completes without error."""
+        import tempfile
+        import numpy as np
+        from PIL import Image
+        from src.datasets.vehicle_dataset import load_split_dataset
+
+        with tempfile.TemporaryDirectory() as tmp:
+            for split in ("train", "val", "test"):
+                for cls in ("red", "blue"):
+                    d = os.path.join(tmp, split, cls)
+                    os.makedirs(d, exist_ok=True)
+                    Image.fromarray(
+                        np.zeros((8, 8, 3), dtype=np.uint8)
+                    ).save(os.path.join(d, "x.jpg"))
+
+            tr, _val, _test, names = load_split_dataset(
+                tmp, batch_size=2, img_height=8, img_width=8, task="color"
+            )
+            x, _y = next(iter(tr))
+            self.assertLessEqual(float(tf.reduce_max(x)), 1.0 + 1e-3,
+                                 "Pixel values should be normalised to [0,1]")
+            self.assertEqual(sorted(names), ["blue", "red"])
+
+
 if __name__ == "__main__":
     unittest.main()

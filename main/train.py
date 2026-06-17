@@ -278,6 +278,7 @@ def _train_brand(args: argparse.Namespace) -> None:
         batch_size=batch_size,
         img_height=brand_cfg.get("input_shape", [224])[0],
         img_width=brand_cfg.get("input_shape", [224, 224])[1],
+        task="brand",
     )
     logger.info("  classes    : %s", class_names)
 
@@ -345,6 +346,7 @@ def _train_color(args: argparse.Namespace) -> None:
         batch_size=batch_size,
         img_height=color_cfg.get("input_shape", [224])[0],
         img_width=color_cfg.get("input_shape", [224, 224])[1],
+        task="color",
     )
     logger.info("  classes    : %s", class_names)
 
