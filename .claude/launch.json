@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [".claude/run_dashboard.sh"],
+      "port": 8502,
+      "autoPort": false
+    }
+  ]
+}
