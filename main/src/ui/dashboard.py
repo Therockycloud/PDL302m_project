@@ -49,8 +49,15 @@ try:
 except ImportError:
     PlateOCR = None  # type: ignore[assignment,misc]
 
-# PyTorch colour classifier — the TF ColorClassifier crashes when PaddleOCR is
-# also loaded (``mutex lock failed``), so TF is kept out of the runtime entirely.
+# Colour classifier. Per the DPL302m syllabus / Report 1 the classifiers are
+# TF/Keras, but TF crashes in-process with PaddleOCR (``mutex lock failed``), so
+# the Keras model is served OUT-OF-PROCESS (KerasColorClassifier -> worker in the
+# dpl-train env). TorchColorClassifier stays as a graceful fallback if the Keras
+# worker can't start (e.g. the dpl-train interpreter is missing).
+try:
+    from src.models.keras_color import KerasColorClassifier
+except Exception:  # noqa: BLE001
+    KerasColorClassifier = None  # type: ignore[assignment,misc]
 try:
     from src.models.torch_color import TorchColorClassifier
 except Exception:  # noqa: BLE001
@@ -116,14 +123,25 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
         except Exception:
             logger.exception("PlateOCR load failed.")
 
-    # Vehicle colour classifier (PyTorch MobileNetV3 from Benchmark A).
-    # Brand classification was dropped from the decision (plate + colour only).
-    if TorchColorClassifier is not None:
+    # Vehicle colour classifier. Brand classification was dropped from the
+    # decision (plate + colour only). Primary = TF/Keras served out-of-process;
+    # fall back to the PyTorch model only if the Keras worker can't start.
+    _models_dir = _PROJECT_ROOT / cfg["paths"]["model_save_dir"]
+    if KerasColorClassifier is not None and (_models_dir / "color_classifier.keras").exists():
         try:
-            color_model_path = str(
-                _PROJECT_ROOT / cfg["paths"]["model_save_dir"] / "color_MobileNetV3Small.pt"
+            worker_py = cfg.get("color_classifier", {}).get("worker_python")
+            models["color_clf"] = KerasColorClassifier(
+                str(_models_dir / "color_classifier.keras"), worker_python=worker_py
             )
-            models["color_clf"] = TorchColorClassifier(color_model_path)
+            logger.info("Colour classifier: TF/Keras (out-of-process worker).")
+        except Exception:
+            logger.exception("KerasColorClassifier load failed; trying PyTorch fallback.")
+    if "color_clf" not in models and TorchColorClassifier is not None:
+        try:
+            models["color_clf"] = TorchColorClassifier(
+                str(_models_dir / "color_MobileNetV3Small.pt")
+            )
+            logger.info("Colour classifier: PyTorch fallback.")
         except Exception:
             logger.exception("TorchColorClassifier load failed.")
 
@@ -483,7 +501,7 @@ with col_feed:
                         frame, _current_results, vr
                     )
                 display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                st.image(display_rgb, use_container_width=True)
+                st.image(display_rgb, use_column_width=True)
             else:
                 st.error("Could not decode the uploaded image.")
 
@@ -576,7 +594,7 @@ with col_feed:
                             )
 
                     display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    frame_slot.image(display_rgb, use_container_width=True)
+                    frame_slot.image(display_rgb, use_column_width=True)
 
                 cap.release()
                 if tfile is not None:
@@ -604,7 +622,7 @@ with col_feed:
                         frame, f"{dec['status']}: {dec['plate']}", (10, 35),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
                     )
-                st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), use_container_width=True)
+                st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), use_column_width=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
