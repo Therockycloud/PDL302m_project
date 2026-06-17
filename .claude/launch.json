@@ -7,6 +7,13 @@
       "runtimeArgs": [".claude/run_dashboard.sh"],
       "port": 8502,
       "autoPort": false
+    },
+    {
+      "name": "slides",
+      "runtimeExecutable": "/opt/homebrew/Caskroom/miniforge/base/bin/python",
+      "runtimeArgs": ["-m", "http.server", "8503", "--directory", "presentations"],
+      "port": 8503,
+      "autoPort": false
     }
   ]
 }

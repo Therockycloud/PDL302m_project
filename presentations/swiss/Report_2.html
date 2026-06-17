@@ -1239,7 +1239,7 @@
     <canvas class="ascii-bg" aria-hidden="true"></canvas>
     <div class="chrome-min">
       <div class="l">DPL302m · Báo cáo 2 · Dữ liệu</div>
-      <div class="r">GV: Lương Trung Kiên · 01 / 11</div>
+      <div class="r">GV: Lương Trung Kiên · 01 / 18</div>
     </div>
 
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr auto;gap:2.6vh">
@@ -1265,7 +1265,7 @@
       <div class="half b-ink" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between">
         <div class="chrome-min" style="margin-bottom:0">
           <div class="l">§1 · Bối cảnh</div>
-          <div class="r">02 / 11</div>
+          <div class="r">02 / 18</div>
         </div>
         <div data-anim="left" style="display:flex;flex-direction:column;gap:2vh">
           <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">Vì sao cần đa-nhân-tố</div>
@@ -1303,7 +1303,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§2 · Ba luồng dữ liệu</div>
-      <div class="r">03 / 11</div>
+      <div class="r">03 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1335,6 +1335,241 @@
   </div>
 </section>
 
+<!-- ========== NEW · §2a · S21 · Nguồn & quy mô ========== -->
+<section class="slide light" data-layout="S21" data-animate="tech-spec">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§2a · Nguồn & quy mô</div>
+      <div class="r">04 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto auto 1fr;gap:3.4vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">Hai luồng phân loại — hãng & màu</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.2vw,9.2vh);line-height:1;letter-spacing:-.03em">Nguồn dữ liệu &amp;<br/>quy mô thu thập</h2>
+      </div>
+      <div data-anim="kpi" class="kpi-row-4" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-cell">
+          <div class="lbl">Lớp hãng xe</div>
+          <div class="nb">8</div>
+          <div class="note">Toyota · Hyundai … VinFast</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Lớp màu xe</div>
+          <div class="nb">8</div>
+          <div class="note">White … Yellow (đã bỏ green)</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Nguồn dữ liệu</div>
+          <div class="nb">2</div>
+          <div class="note">Stanford Cars + Bing crawl</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Mục tiêu / lớp</div>
+          <div class="nb" style="color:var(--accent)">~100</div>
+          <div class="note">"ít nhưng chất"</div>
+        </div>
+      </div>
+      <div data-anim="foot" style="align-self:end;display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--border-subtle);padding-top:1.8vh">
+        <div class="t-helper" style="max-width:54ch">Dùng Stanford Cars dạng Parquet để tránh rate-limit 429, cào Bing đa từ khóa để bù các lớp hiếm.</div>
+        <div class="t-meta">Dữ liệu · DS-01</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NEW · §2b · S05 · Kỹ thuật cào ảnh ========== -->
+<section class="slide dark" data-layout="S05" data-animate="stack-build">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§2b · Kỹ thuật cào ảnh</div>
+      <div class="r">05 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">Vượt giới hạn của công cụ tìm kiếm</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.4vw,9.6vh);line-height:1;letter-spacing:-.03em">Cào ảnh đa từ khóa</h2>
+      </div>
+      <div class="stack-row" data-anim="stack" style="margin-top:0">
+        <div class="stack-block b-grey">
+          <div class="layer-nb">CHIẾN LƯỢC 01</div>
+          <div class="layer-ttl">Đa từ khóa</div>
+          <div class="layer-desc">Mỗi lớp dùng 6+ biến thể (rear view · back view · license plate · tail view…) để vượt trần ~70 ảnh/từ khóa của search engine.</div>
+          <div class="layer-tag">6+ keyword / lớp</div>
+        </div>
+        <div class="stack-block b-accent">
+          <div class="layer-nb">CHIẾN LƯỢC 02</div>
+          <div class="layer-ttl">Góc nhìn phía sau</div>
+          <div class="layer-desc">Ưu tiên ảnh đuôi xe — nơi lộ biển số, màu thân và đặc trưng hãng đúng với khung cảnh bãi đỗ thực tế.</div>
+          <div class="layer-tag">rear-view first</div>
+        </div>
+        <div class="stack-block b-ink">
+          <div class="layer-nb">CHIẾN LƯỢC 03</div>
+          <div class="layer-ttl">icrawler · Bing</div>
+          <div class="layer-desc">Bing engine ổn định (Google parser hỏng); giãn nhịp request + User-Agent trình duyệt để tránh bị chặn.</div>
+          <div class="layer-tag">Bing · anti-block</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NEW · §2c · S08 · VinFast model-specific ========== -->
+<section class="slide light" data-layout="S08" data-animate="duo-mirror">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§2c · VinFast</div>
+      <div class="r">06 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">Thương hiệu nội địa — không có trong dataset quốc tế</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Cào VinFast theo dòng xe</h2>
+      </div>
+      <div class="duo-compare" style="margin-top:2vh">
+        <div class="col">
+          <div class="col-tag"><span class="num">A</span> Từ khóa chung</div>
+          <div class="col-ttl">Nhiễu</div>
+          <div class="col-desc">Từ khóa "VinFast" chung trả về nhiều logo, ảnh nội thất, poster marketing — sai đối tượng cần học.</div>
+          <ul class="col-list">
+            <li>Lẫn logo &amp; ảnh nội thất</li>
+            <li>Ảnh studio / marketing</li>
+            <li>Khó học đặc trưng thân xe</li>
+          </ul>
+        </div>
+        <div class="vrule"></div>
+        <div class="col accent">
+          <div class="col-tag"><span class="num">B</span> Theo dòng xe</div>
+          <div class="col-ttl">Đúng xe</div>
+          <div class="col-desc">Cào riêng từng model: VF8 · VF9 · VF5 · Lux A2.0 · Lux SA2.0 · Fadil · VF e34 · President.</div>
+          <ul class="col-list">
+            <li>Đúng thân xe, đúng góc nhìn</li>
+            <li>8 dòng xe phủ rộng</li>
+            <li>30/100 ảnh VinFast là model-specific</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NEW · §3 · S11 · Pipeline làm sạch ========== -->
+<section class="slide light" data-layout="S11" data-animate="timeline-walk">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§3 · Pipeline làm sạch</div>
+      <div class="r">07 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">Từ ảnh cào thô đến tập sạch &amp; cân bằng</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Đường ống làm sạch</h2>
+      </div>
+      <div class="timeline-h" data-anim="timeline">
+        <div class="tl-row">
+          <div class="th-node up accent">
+            <div class="label"><span class="yr">01</span><span class="name">Ảnh hỏng</span><span class="desc">cv2 đọc lỗi → loại</span></div>
+            <span class="dot"></span>
+          </div>
+          <div class="th-node down">
+            <div class="label"><span class="yr">02</span><span class="name">YOLO semantic</span><span class="desc">chỉ giữ ảnh có xe</span></div>
+            <span class="dot"></span>
+          </div>
+          <div class="th-node up">
+            <div class="label"><span class="yr">03</span><span class="name">pHash dedup</span><span class="desc">loại ảnh gần-trùng</span></div>
+            <span class="dot"></span>
+          </div>
+          <div class="th-node down">
+            <div class="label"><span class="yr">04</span><span class="name">Chuẩn hoá</span><span class="desc">JPEG RGB cho tf.keras</span></div>
+            <span class="dot"></span>
+          </div>
+          <div class="th-node up accent">
+            <div class="label"><span class="yr">05</span><span class="name">Cào bù + cap</span><span class="desc">~100 ảnh/lớp cân bằng</span></div>
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NEW · §3a · S21 · YOLO semantic clean ========== -->
+<section class="slide light" data-layout="S21" data-animate="tech-spec">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§3a · Lọc ngữ nghĩa</div>
+      <div class="r">08 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto auto 1fr;gap:3.4vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">YOLOv8 giữ lại ảnh thực sự có xe</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.2vw,9.2vh);line-height:1;letter-spacing:-.03em">Lọc rác bằng<br/>YOLOv8 semantic</h2>
+      </div>
+      <div data-anim="kpi" class="kpi-row-4" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-cell">
+          <div class="lbl">Lớp COCO giữ</div>
+          <div class="nb">3</div>
+          <div class="note">car · bus · truck</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Ngưỡng conf</div>
+          <div class="nb">0.30</div>
+          <div class="note">phát hiện phương tiện</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Ảnh màu bị loại</div>
+          <div class="nb" style="color:var(--accent)">38<span class="unit">%</span></div>
+          <div class="note">vô lăng · nội thất · logo</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Sau lọc</div>
+          <div class="nb">100<span class="unit">%</span></div>
+          <div class="note">ảnh đều chứa xe</div>
+        </div>
+      </div>
+      <div data-anim="foot" style="align-self:end;display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--border-subtle);padding-top:1.8vh">
+        <div class="t-helper" style="max-width:54ch">Thay cho lọc tay: ảnh không chứa phương tiện bị chuyển sang khu "garbage" tự động.</div>
+        <div class="t-meta">semantic_clean · DS-05</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NEW · §3b · S05 · pHash concept ========== -->
+<section class="slide dark" data-layout="S05" data-animate="stack-build">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§3b · Khử trùng lặp</div>
+      <div class="r">09 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">Perceptual hashing — vì sao &amp; thế nào</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.4vw,9.6vh);line-height:1;letter-spacing:-.03em">pHash: dấu vân tay ảnh</h2>
+      </div>
+      <div class="stack-row" data-anim="stack" style="margin-top:0">
+        <div class="stack-block b-grey">
+          <div class="layer-nb">BƯỚC 01</div>
+          <div class="layer-ttl">Hash 8×8 (DCT)</div>
+          <div class="layer-desc">Mỗi ảnh → fingerprint 64-bit từ thành phần tần số thấp (DCT), bất biến với resize và nén nhẹ.</div>
+          <div class="layer-tag">64-bit fingerprint</div>
+        </div>
+        <div class="stack-block b-accent">
+          <div class="layer-nb">BƯỚC 02</div>
+          <div class="layer-ttl">Hamming ≤ 5</div>
+          <div class="layer-desc">Hai ảnh có khoảng cách Hamming ≤ 5 bit được coi là gần-trùng → chỉ giữ lại một.</div>
+          <div class="layer-tag">ngưỡng = 5 bit</div>
+        </div>
+        <div class="stack-block b-ink">
+          <div class="layer-nb">BƯỚC 03</div>
+          <div class="layer-ttl">Vì sao cần</div>
+          <div class="layer-desc">Cào đa từ khóa tạo nhiều ảnh chồng lấn; pHash loại trùng mà vẫn giữ được sự đa dạng thật.</div>
+          <div class="layer-tag">chống rò rỉ train/test</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ========== SLIDE 04 · S22 · Image hero · EDA phân bố lớp ========== -->
 <section class="slide hero light" data-layout="S22" data-animate="image-hero">
   <div class="canvas-card" style="padding:0;display:flex;flex-direction:column;overflow:hidden">
@@ -1343,8 +1578,8 @@
            data-image-slot="s22-hero-21x9"
            style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center center;padding:4vh 5vw">
       <div class="chrome-min" style="position:absolute;top:0;left:0;right:0;color:var(--text-helper);padding:5.6vh 5vw 0">
-        <div class="l">§3 · EDA · Phân bố lớp</div>
-        <div class="r">04 / 11</div>
+        <div class="l">§3c · EDA · Phân bố lớp</div>
+        <div class="r">10 / 18</div>
       </div>
       <div data-anim="title-block" style="position:absolute;left:5vw;top:11vh;background:var(--paper);padding:2.8vh 2.6vw;max-width:44vw">
         <div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:1;letter-spacing:-.03em;color:var(--text-primary)">Tám lớp,<br/>hai <span style="font-style:italic;font-weight:300">nhãn</span></div>
@@ -1368,7 +1603,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§4 · Sổ dữ liệu</div>
-      <div class="r">05 / 11</div>
+      <div class="r">11 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2.4vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.2vh">
@@ -1406,7 +1641,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§5 · Mất cân bằng</div>
-      <div class="r">06 / 11</div>
+      <div class="r">12 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1440,12 +1675,54 @@
   </div>
 </section>
 
+<!-- ========== NEW · §5b · S21 · Train/Val/Test split ========== -->
+<section class="slide light" data-layout="S21" data-animate="tech-spec">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">§5b · Chia tập dữ liệu</div>
+      <div class="r">13 / 18</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto auto 1fr;gap:3.4vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">Có tập test giữ-riêng — thay cho "test 5 ảnh"</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.2vw,9.2vh);line-height:1;letter-spacing:-.03em">Phân chia<br/>70 / 15 / 15</h2>
+      </div>
+      <div data-anim="kpi" class="kpi-row-4" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-cell">
+          <div class="lbl">Train</div>
+          <div class="nb">70<span class="unit">%</span></div>
+          <div class="note">huấn luyện</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Validation</div>
+          <div class="nb">15<span class="unit">%</span></div>
+          <div class="note">chọn mô hình · early-stop</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Test giữ-riêng</div>
+          <div class="nb" style="color:var(--accent)">15<span class="unit">%</span></div>
+          <div class="note">màu 118 · hãng 119</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">Seed</div>
+          <div class="nb">42</div>
+          <div class="note">tái lập được</div>
+        </div>
+      </div>
+      <div data-anim="foot" style="align-self:end;display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--border-subtle);padding-top:1.8vh">
+        <div class="t-helper" style="max-width:54ch">Split vật lý vào <code>processed/classifiers/*</code> — tập test KHÔNG bao giờ được nhìn thấy khi huấn luyện.</div>
+        <div class="t-meta">split_dataset · DS-08</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ========== SLIDE 07 · S11 · Horizontal timeline · Tiền xử lý ========== -->
 <section class="slide light" data-layout="S11" data-animate="timeline-walk">
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§6 · Tiền xử lý</div>
-      <div class="r">07 / 11</div>
+      <div class="r">14 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1459,15 +1736,15 @@
             <span class="dot"></span>
           </div>
           <div class="th-node down">
-            <div class="label"><span class="yr">02</span><span class="name">Chuẩn hoá</span><span class="desc">EfficientNet-B0 [0,255]</span></div>
+            <div class="label"><span class="yr">02</span><span class="name">Rescaling 255</span><span class="desc">[0,1] → [0,255]</span></div>
             <span class="dot"></span>
           </div>
           <div class="th-node up">
-            <div class="label"><span class="yr">03</span><span class="name">Rescaling</span><span class="desc">MobileNetV3 [-1,1]</span></div>
+            <div class="label"><span class="yr">03</span><span class="name">Backbone tự chuẩn hoá</span><span class="desc">include_preprocessing</span></div>
             <span class="dot"></span>
           </div>
           <div class="th-node down">
-            <div class="label"><span class="yr">04</span><span class="name">Augmentation</span><span class="desc">xoay · lật · contrast</span></div>
+            <div class="label"><span class="yr">04</span><span class="name">Augmentation</span><span class="desc">lật · xoay · zoom</span></div>
             <span class="dot"></span>
           </div>
           <div class="th-node up accent">
@@ -1485,7 +1762,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§7 · Augmentation & chuẩn hoá</div>
-      <div class="r">08 / 11</div>
+      <div class="r">15 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:1.6vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1512,22 +1789,22 @@
           <div class="desc">Horizontal flip nhân đôi biến thể hướng xe mà không đổi nhãn lớp.</div>
         </div>
         <div class="sub-card accent" style="border-radius:0">
-          <i data-lucide="contrast" class="lucide"></i>
+          <i data-lucide="zoom-in" class="lucide"></i>
           <span class="nb-corner">04</span>
-          <div class="ttl">Contrast 0.8–1.2</div>
-          <div class="desc">Dao động độ tương phản để chịu được điều kiện sáng khác nhau ngoài trời.</div>
+          <div class="ttl">Zoom ±10%</div>
+          <div class="desc">RandomZoom mô phỏng khoảng cách xe–camera thay đổi; chỉ áp trên tập train.</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="ratio" class="lucide"></i>
           <span class="nb-corner">05</span>
-          <div class="ttl">EfficientNet [0,255]</div>
-          <div class="desc">EfficientNet-B0 nhận pixel nguyên gốc [0,255], không rescale thủ công.</div>
+          <div class="ttl">Rescaling 255</div>
+          <div class="desc">Dataset trả [0,1]; lớp Rescaling(255) đưa về [0,255] đúng kỳ vọng backbone.</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="sliders-horizontal" class="lucide"></i>
           <span class="nb-corner">06</span>
-          <div class="ttl">MobileNetV3 [-1,1]</div>
-          <div class="desc">MobileNetV3 chuẩn hoá về [-1,1] qua lớp Rescaling tích hợp sẵn.</div>
+          <div class="ttl">Backbone [0,255]</div>
+          <div class="desc">Cả EfficientNet-B0 &amp; MobileNetV3 dùng include_preprocessing — tự chuẩn hoá nội bộ.</div>
         </div>
       </div>
     </div>
@@ -1539,7 +1816,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§8 · Vì sao dữ liệu sạch</div>
-      <div class="r">09 / 11</div>
+      <div class="r">16 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2.4vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1578,7 +1855,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§9 · Kiểm thử & kết luận</div>
-      <div class="r">10 / 11</div>
+      <div class="r">17 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:flex;flex-direction:column">
       <div data-anim="top" style="display:flex;gap:4vw;align-items:start">
@@ -1608,7 +1885,7 @@
       <div class="half b-accent" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden">
         <canvas class="ascii-bg" aria-hidden="true"></canvas>
         <div class="chrome-min" style="margin-bottom:0;position:relative;z-index:1">
-          <div class="l">11 / 11</div>
+          <div class="l">18 / 18</div>
           <div class="r">KẾT LUẬN</div>
         </div>
 
