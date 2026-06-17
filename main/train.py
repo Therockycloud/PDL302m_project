@@ -161,6 +161,43 @@ def _build_color_model(cfg: dict) -> tf.keras.Model:
     return model
 
 
+# ── Fine-tuning ─────────────────────────────────────────────────────
+
+def _fine_tune(model, train_ds, val_ds, model_name, save_dir, epochs, lr,
+               unfreeze_from=0.5):
+    """Unfreeze the top of the frozen backbone and continue training at low LR.
+
+    Finds the nested backbone (a ``tf.keras.Model`` layer), unfreezes its top
+    ``(1 - unfreeze_from)`` fraction of layers, and recompiles at ``lr``. The
+    backbone is still called with ``training=False`` (set at build time), so its
+    BatchNorm layers stay in inference mode — the recommended fine-tuning recipe
+    that avoids wrecking the pretrained running stats on small batches.
+    """
+    base = next((l for l in model.layers if isinstance(l, tf.keras.Model)), None)
+    if base is None:
+        logger.warning("No backbone sub-model found; skipping fine-tune.")
+        return None
+    base.trainable = True
+    cut = int(len(base.layers) * unfreeze_from)
+    for layer in base.layers[:cut]:
+        layer.trainable = False
+    # Keep all BatchNorm frozen regardless of depth.
+    for layer in base.layers:
+        if isinstance(layer, tf.keras.layers.BatchNormalization):
+            layer.trainable = False
+    trainable = sum(1 for l in base.layers if l.trainable)
+    logger.info("Fine-tuning: unfroze %d/%d backbone layers at lr=%g",
+                trainable, len(base.layers), lr)
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
+    )
+    from src.engine.trainer import ModelTrainer
+    trainer = ModelTrainer(model, model_name=model_name)
+    return trainer.train(train_ds, val_ds, epochs=epochs, save_dir=save_dir)
+
+
 # ── Test-set evaluation ─────────────────────────────────────────────
 
 def _evaluate_on_test(model, test_ds, class_names, model_name, save_dir):
@@ -260,6 +297,15 @@ def _train_brand(args: argparse.Namespace) -> None:
         train_ds, val_ds, epochs=epochs, save_dir=save_dir
     )
 
+    # ── Optional fine-tuning (unfreeze backbone top at low LR) ────
+    if getattr(args, "fine_tune", False):
+        ft_epochs = args.fine_tune_epochs or brand_cfg.get("fine_tune_epochs", 10)
+        ft_lr = args.fine_tune_lr or brand_cfg.get("fine_tune_learning_rate", 1e-5)
+        ft_hist = _fine_tune(model, train_ds, val_ds, "brand_classifier",
+                             save_dir, ft_epochs, ft_lr)
+        if ft_hist is not None:
+            history = ft_hist
+
     # ── Post-training ────────────────────────────────────────────
     trainer.plot_history(history)
     metrics = trainer.evaluate(val_ds)
@@ -318,6 +364,15 @@ def _train_color(args: argparse.Namespace) -> None:
         train_ds, val_ds, epochs=epochs, save_dir=save_dir
     )
 
+    # ── Optional fine-tuning (unfreeze backbone top at low LR) ────
+    if getattr(args, "fine_tune", False):
+        ft_epochs = args.fine_tune_epochs or color_cfg.get("fine_tune_epochs", 10)
+        ft_lr = args.fine_tune_lr or color_cfg.get("fine_tune_learning_rate", 1e-5)
+        ft_hist = _fine_tune(model, train_ds, val_ds, "color_classifier",
+                             save_dir, ft_epochs, ft_lr)
+        if ft_hist is not None:
+            history = ft_hist
+
     # ── Post-training ────────────────────────────────────────────
     trainer.plot_history(history)
     metrics = trainer.evaluate(val_ds)
@@ -365,6 +420,16 @@ def main() -> None:
         default=DEFAULT_SAVE_DIR,
         help="Where to save model checkpoints (default: %(default)s).",
     )
+    brand_parser.add_argument(
+        "--fine_tune", action="store_true",
+        help="After frozen-head training, unfreeze the backbone top and train at low LR.",
+    )
+    brand_parser.add_argument(
+        "--fine_tune_epochs", type=int, default=None, help="Fine-tune epochs.",
+    )
+    brand_parser.add_argument(
+        "--fine_tune_lr", type=float, default=None, help="Fine-tune learning rate.",
+    )
     brand_parser.set_defaults(func=_train_brand)
 
     # ── color ────────────────────────────────────────────────────
@@ -388,6 +453,16 @@ def main() -> None:
         type=str,
         default=DEFAULT_SAVE_DIR,
         help="Where to save model checkpoints (default: %(default)s).",
+    )
+    color_parser.add_argument(
+        "--fine_tune", action="store_true",
+        help="After frozen-head training, unfreeze the backbone top and train at low LR.",
+    )
+    color_parser.add_argument(
+        "--fine_tune_epochs", type=int, default=None, help="Fine-tune epochs.",
+    )
+    color_parser.add_argument(
+        "--fine_tune_lr", type=float, default=None, help="Fine-tune learning rate.",
     )
     color_parser.set_defaults(func=_train_color)
 

@@ -11,68 +11,68 @@
     "Toyota",
     "VinFast"
   ],
-  "test_accuracy": 0.3277310924369748,
-  "test_macro_f1": 0.3234985375277729,
+  "test_accuracy": 0.35294117647058826,
+  "test_macro_f1": 0.3369215174921697,
   "per_class": {
     "Ford": {
-      "precision": 0.5714285714285714,
-      "recall": 0.26666666666666666,
-      "f1-score": 0.36363636363636365,
+      "precision": 0.6,
+      "recall": 0.2,
+      "f1-score": 0.3,
       "support": 15.0
     },
     "Honda": {
-      "precision": 0.25,
-      "recall": 0.2,
-      "f1-score": 0.2222222222222222,
+      "precision": 0.23809523809523808,
+      "recall": 0.3333333333333333,
+      "f1-score": 0.2777777777777778,
       "support": 15.0
     },
     "Hyundai": {
-      "precision": 0.18604651162790697,
-      "recall": 0.5333333333333333,
-      "f1-score": 0.27586206896551724,
-      "support": 15.0
-    },
-    "Kia": {
-      "precision": 0.42857142857142855,
-      "recall": 0.2,
-      "f1-score": 0.2727272727272727,
-      "support": 15.0
-    },
-    "Mazda": {
-      "precision": 0.5,
-      "recall": 0.2,
-      "f1-score": 0.2857142857142857,
-      "support": 15.0
-    },
-    "Mitsubishi": {
-      "precision": 0.4,
-      "recall": 0.26666666666666666,
-      "f1-score": 0.32,
-      "support": 15.0
-    },
-    "Toyota": {
-      "precision": 0.4444444444444444,
-      "recall": 0.2857142857142857,
-      "f1-score": 0.34782608695652173,
-      "support": 14.0
-    },
-    "VinFast": {
-      "precision": 0.4,
-      "recall": 0.6666666666666666,
+      "precision": 0.5384615384615384,
+      "recall": 0.4666666666666667,
       "f1-score": 0.5,
       "support": 15.0
     },
-    "accuracy": 0.3277310924369748,
+    "Kia": {
+      "precision": 0.3333333333333333,
+      "recall": 0.13333333333333333,
+      "f1-score": 0.19047619047619047,
+      "support": 15.0
+    },
+    "Mazda": {
+      "precision": 0.25,
+      "recall": 0.13333333333333333,
+      "f1-score": 0.17391304347826086,
+      "support": 15.0
+    },
+    "Mitsubishi": {
+      "precision": 0.2857142857142857,
+      "recall": 0.4,
+      "f1-score": 0.3333333333333333,
+      "support": 15.0
+    },
+    "Toyota": {
+      "precision": 0.5,
+      "recall": 0.42857142857142855,
+      "f1-score": 0.46153846153846156,
+      "support": 14.0
+    },
+    "VinFast": {
+      "precision": 0.3333333333333333,
+      "recall": 0.7333333333333333,
+      "f1-score": 0.4583333333333333,
+      "support": 15.0
+    },
+    "accuracy": 0.35294117647058826,
     "macro avg": {
-      "precision": 0.3975613695090439,
-      "recall": 0.3273809523809524,
-      "f1-score": 0.3234985375277729,
+      "precision": 0.3848672161172161,
+      "recall": 0.35357142857142854,
+      "f1-score": 0.3369215174921697,
       "support": 119.0
     },
     "weighted avg": {
-      "precision": 0.3971673940894187,
-      "recall": 0.3277310924369748,
-      "f1-score": 0.323294104339296,
+      "precision": 0.3838997137316465,
+      "recall": 0.35294117647058826,
+      "f1-score": 0.3358743162816966,
       "support": 119.0
     }
   }
