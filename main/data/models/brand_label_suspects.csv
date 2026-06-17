@@ -1,0 +1,3 @@
+path,true_label,pred_label,confidence
+/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/processed/classifiers/brands/train/Mitsubishi/brands_000025.jpg,Mitsubishi,VinFast,0.9031225442886353
+/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/processed/classifiers/brands/train/Mitsubishi/brands_000037.jpg,Mitsubishi,VinFast,0.8355573415756226

@@ -1,0 +1,5 @@
+path,true_label,pred_label,confidence
+/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/processed/classifiers/colors/train/Brown/topup2_000015.jpg,Brown,Red,0.926842451095581
+/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/processed/classifiers/colors/train/Black/img_189.jpg,Black,Blue,0.8221062421798706
+/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/processed/classifiers/colors/train/Blue/colors_000048.jpg,Blue,Red,0.8040139675140381
+/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/processed/classifiers/colors/train/Brown/colors_000055.jpg,Brown,Red,0.8029853701591492
