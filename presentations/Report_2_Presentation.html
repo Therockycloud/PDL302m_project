@@ -1159,6 +1159,73 @@
     .grid-2-7-5,.grid-2-6-6,.grid-2-8-4,.grid-2-4-8{grid-template-columns:1fr}
     .grid-12{grid-template-columns:repeat(6,1fr)}
   }
+
+  /* ============ PRINT / PDF EXPORT ============ */
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    /* Color accuracy */
+    html, body, .slide, #deck {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    /* Reset layout for print */
+    html, body {
+      width: 1280px !important;
+      height: auto !important;
+      overflow: visible !important;
+      background: #fff !important;
+    }
+    /* Kill the horizontal flex rail and fixed positioning */
+    #deck {
+      position: static !important;
+      display: block !important;
+      width: 1280px !important;
+      height: auto !important;
+      transform: none !important;
+      transition: none !important;
+      overflow: visible !important;
+      will-change: auto !important;
+    }
+    /* Each slide = one landscape page */
+    .slide {
+      display: block !important;
+      position: relative !important;
+      transform: none !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      width: 1280px !important;
+      height: 720px !important;
+      flex: none !important;
+      overflow: hidden !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      padding: 44px 64px 56px 64px !important;
+    }
+    /* Hide nav dots, canvas backgrounds, and any overview overlay */
+    #nav,
+    canvas.bg,
+    canvas.ascii-bg,
+    #overview,
+    #hint,
+    .nav-bar,
+    .controls,
+    .progress {
+      display: none !important;
+    }
+    /* Ensure dark/accent background slides render their bg color */
+    .slide.dark { background: var(--ink) !important; color: var(--paper) !important; }
+    .slide.accent { background: var(--accent) !important; color: var(--accent-on) !important; }
+    .slide.grey { background: var(--grey-1) !important; }
+    /* vw/vh font sizes: fix to pixel equivalents at 1280x720 */
+    .h-hero   { font-size: 141px !important; }  /* 11vw @ 1280 */
+    .h-hero-zh{ font-size: 108px !important; }  /* 8.4vw */
+    .h-xl     { font-size: 77px  !important; }  /* 6vw */
+    .h-xl-zh  { font-size: 64px  !important; }  /* 5vw */
+    .h-md     { font-size: 33px  !important; }  /* 2.6vw */
+    .h-sub    { font-size: 28px  !important; }  /* 2.2vw */
+    .lead     { font-size: 20px  !important; }  /* 1.55vw */
+  }
+  /* ============ END PRINT ============ */
 </style>
 </head>
 <body class="canvas-mode">
