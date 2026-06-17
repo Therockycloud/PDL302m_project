@@ -1,6 +1,56 @@
 import tensorflow as tf
 import os
 
+
+def load_split_dataset(base_dir, batch_size=32, img_height=224, img_width=224, seed=42):
+    """Load a pre-split dataset laid out as ``base_dir/{train,val,test}/<class>``.
+
+    Unlike :func:`load_classification_dataset` (which carves a validation slice
+    out of one folder and exposes no test set), this consumes the physical
+    train/val/test split produced by ``scripts/split_dataset.py`` so the held-out
+    test set is stable and never seen during training.
+
+    Images are normalised to ``[0, 1]``; the model's own input Rescaling layer
+    then maps to whatever range its backbone expects. Augmentation is applied to
+    the training split only.
+
+    Returns:
+        ``(train_ds, val_ds, test_ds, class_names)``.
+    """
+    if not os.path.isdir(base_dir):
+        raise FileNotFoundError(f"Split dataset directory not found at: {base_dir}")
+
+    normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
+    augmentation_model = tf.keras.Sequential([
+        tf.keras.layers.RandomFlip("horizontal"),
+        tf.keras.layers.RandomRotation(0.1),
+        tf.keras.layers.RandomZoom(0.1),
+    ])
+
+    def _make(split):
+        ds = tf.keras.utils.image_dataset_from_directory(
+            os.path.join(base_dir, split),
+            seed=seed,
+            image_size=(img_height, img_width),
+            batch_size=batch_size,
+            label_mode="categorical",
+            shuffle=(split == "train"),
+        )
+        class_names = ds.class_names
+        if split == "train":
+            ds = ds.map(lambda x, y: (augmentation_model(normalization_layer(x)), y),
+                        num_parallel_calls=tf.data.AUTOTUNE)
+        else:
+            ds = ds.map(lambda x, y: (normalization_layer(x), y),
+                        num_parallel_calls=tf.data.AUTOTUNE)
+        return ds.prefetch(tf.data.AUTOTUNE), class_names
+
+    train_ds, class_names = _make("train")
+    val_ds, _ = _make("val")
+    test_ds, _ = _make("test")
+    return train_ds, val_ds, test_ds, class_names
+
+
 def load_classification_dataset(data_dir, batch_size=32, img_height=224, img_width=224, validation_split=0.2, subset="both", seed=42):
     """
     Loads and splits a classification dataset from a directory of subfolders.

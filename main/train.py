@@ -83,13 +83,18 @@ def _build_brand_model(cfg: dict) -> tf.keras.Model:
     )
     base.trainable = False
 
-    model = tf.keras.Sequential([
-        tf.keras.layers.Rescaling(255.0),
-        base,
-        tf.keras.layers.GlobalAveragePooling2D(),
-        tf.keras.layers.Dropout(dropout),
-        tf.keras.layers.Dense(num_classes, activation="softmax"),
-    ])
+    # Functional API + explicit training=False on the frozen base keeps its
+    # BatchNorm layers in inference mode (see the colour model for why a
+    # Sequential breaks frozen transfer learning). EfficientNetB0 bundles its own
+    # normalisation and expects [0,255]; the dataset delivers [0,1], hence
+    # Rescaling(255.0).
+    inputs = tf.keras.Input(shape=input_shape)
+    x = tf.keras.layers.Rescaling(255.0)(inputs)
+    x = base(x, training=False)
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(dropout)(x)
+    outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+    model = tf.keras.Model(inputs, outputs)
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
@@ -133,13 +138,20 @@ def _build_color_model(cfg: dict) -> tf.keras.Model:
     )
     base.trainable = False
 
-    model = tf.keras.Sequential([
-        tf.keras.layers.Rescaling(scale=2.0, offset=-1.0),
-        base,
-        tf.keras.layers.GlobalAveragePooling2D(),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(num_classes, activation="softmax"),
-    ])
+    # Functional API with an explicit ``training=False`` on the frozen base so
+    # its BatchNorm layers run in INFERENCE mode (moving averages). Inside a
+    # Sequential the base would run with training=True and BN would use per-batch
+    # statistics, destabilising the frozen features so badly the head never
+    # learns (accuracy collapses to chance). MobileNetV3Small has
+    # include_preprocessing=True (expects [0,255]); the dataset delivers [0,1],
+    # hence Rescaling(255.0) — matching the brand model.
+    inputs = tf.keras.Input(shape=input_shape)
+    x = tf.keras.layers.Rescaling(255.0)(inputs)
+    x = base(x, training=False)
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+    outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+    model = tf.keras.Model(inputs, outputs)
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
@@ -147,6 +159,52 @@ def _build_color_model(cfg: dict) -> tf.keras.Model:
         metrics=["accuracy"],
     )
     return model
+
+
+# ── Test-set evaluation ─────────────────────────────────────────────
+
+def _evaluate_on_test(model, test_ds, class_names, model_name, save_dir):
+    """Evaluate on the held-out test split and write a metrics report.
+
+    Computes overall accuracy + macro-F1 and a per-class classification
+    report, persisting both to ``<save_dir>/<model_name>_test_report.json``.
+    """
+    import json
+    import numpy as np
+
+    y_true, y_pred = [], []
+    for xb, yb in test_ds:
+        probs = model.predict(xb, verbose=0)
+        y_pred.extend(np.argmax(probs, axis=1).tolist())
+        y_true.extend(np.argmax(yb.numpy(), axis=1).tolist())
+
+    try:
+        from sklearn.metrics import classification_report, accuracy_score, f1_score
+        acc = float(accuracy_score(y_true, y_pred))
+        macro_f1 = float(f1_score(y_true, y_pred, average="macro"))
+        report = classification_report(
+            y_true, y_pred, target_names=class_names, output_dict=True, zero_division=0
+        )
+    except ImportError:
+        acc = float(np.mean(np.array(y_true) == np.array(y_pred)))
+        macro_f1, report = None, None
+
+    out = {
+        "model": model_name,
+        "n_test": len(y_true),
+        "class_names": class_names,
+        "test_accuracy": acc,
+        "test_macro_f1": macro_f1,
+        "per_class": report,
+    }
+    os.makedirs(save_dir, exist_ok=True)
+    path = os.path.join(save_dir, f"{model_name}_test_report.json")
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, indent=2)
+    logger.info("TEST  accuracy=%.4f  macro_f1=%s  (n=%d) -> %s",
+                acc, f"{macro_f1:.4f}" if macro_f1 is not None else "n/a",
+                len(y_true), path)
+    return out
 
 
 # ── Subcommand handlers ─────────────────────────────────────────────
@@ -173,18 +231,18 @@ def _train_brand(args: argparse.Namespace) -> None:
 
     # ── Data ─────────────────────────────────────────────────────
     try:
-        from src.datasets.vehicle_dataset import load_classification_dataset
+        from src.datasets.vehicle_dataset import load_split_dataset
     except ImportError as exc:
         logger.error("Cannot import dataset loader: %s", exc)
         sys.exit(1)
 
-    train_ds, val_ds = load_classification_dataset(
-        data_dir=data_dir,
+    train_ds, val_ds, test_ds, class_names = load_split_dataset(
+        base_dir=data_dir,
         batch_size=batch_size,
         img_height=brand_cfg.get("input_shape", [224])[0],
         img_width=brand_cfg.get("input_shape", [224, 224])[1],
-        subset="both",
     )
+    logger.info("  classes    : %s", class_names)
 
     # ── Model ────────────────────────────────────────────────────
     model = _build_brand_model(brand_cfg)
@@ -206,6 +264,7 @@ def _train_brand(args: argparse.Namespace) -> None:
     trainer.plot_history(history)
     metrics = trainer.evaluate(val_ds)
     logger.info("Final validation metrics: %s", metrics)
+    _evaluate_on_test(model, test_ds, class_names, "brand_classifier", save_dir)
 
 
 def _train_color(args: argparse.Namespace) -> None:
@@ -230,18 +289,18 @@ def _train_color(args: argparse.Namespace) -> None:
 
     # ── Data ─────────────────────────────────────────────────────
     try:
-        from src.datasets.vehicle_dataset import load_classification_dataset
+        from src.datasets.vehicle_dataset import load_split_dataset
     except ImportError as exc:
         logger.error("Cannot import dataset loader: %s", exc)
         sys.exit(1)
 
-    train_ds, val_ds = load_classification_dataset(
-        data_dir=data_dir,
+    train_ds, val_ds, test_ds, class_names = load_split_dataset(
+        base_dir=data_dir,
         batch_size=batch_size,
         img_height=color_cfg.get("input_shape", [224])[0],
         img_width=color_cfg.get("input_shape", [224, 224])[1],
-        subset="both",
     )
+    logger.info("  classes    : %s", class_names)
 
     # ── Model ────────────────────────────────────────────────────
     model = _build_color_model(color_cfg)
@@ -263,6 +322,7 @@ def _train_color(args: argparse.Namespace) -> None:
     trainer.plot_history(history)
     metrics = trainer.evaluate(val_ds)
     logger.info("Final validation metrics: %s", metrics)
+    _evaluate_on_test(model, test_ds, class_names, "color_classifier", save_dir)
 
 
 # ── CLI ──────────────────────────────────────────────────────────────

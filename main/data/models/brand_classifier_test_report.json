@@ -1,0 +1,79 @@
+{
+  "model": "brand_classifier",
+  "n_test": 119,
+  "class_names": [
+    "Ford",
+    "Honda",
+    "Hyundai",
+    "Kia",
+    "Mazda",
+    "Mitsubishi",
+    "Toyota",
+    "VinFast"
+  ],
+  "test_accuracy": 0.3277310924369748,
+  "test_macro_f1": 0.3234985375277729,
+  "per_class": {
+    "Ford": {
+      "precision": 0.5714285714285714,
+      "recall": 0.26666666666666666,
+      "f1-score": 0.36363636363636365,
+      "support": 15.0
+    },
+    "Honda": {
+      "precision": 0.25,
+      "recall": 0.2,
+      "f1-score": 0.2222222222222222,
+      "support": 15.0
+    },
+    "Hyundai": {
+      "precision": 0.18604651162790697,
+      "recall": 0.5333333333333333,
+      "f1-score": 0.27586206896551724,
+      "support": 15.0
+    },
+    "Kia": {
+      "precision": 0.42857142857142855,
+      "recall": 0.2,
+      "f1-score": 0.2727272727272727,
+      "support": 15.0
+    },
+    "Mazda": {
+      "precision": 0.5,
+      "recall": 0.2,
+      "f1-score": 0.2857142857142857,
+      "support": 15.0
+    },
+    "Mitsubishi": {
+      "precision": 0.4,
+      "recall": 0.26666666666666666,
+      "f1-score": 0.32,
+      "support": 15.0
+    },
+    "Toyota": {
+      "precision": 0.4444444444444444,
+      "recall": 0.2857142857142857,
+      "f1-score": 0.34782608695652173,
+      "support": 14.0
+    },
+    "VinFast": {
+      "precision": 0.4,
+      "recall": 0.6666666666666666,
+      "f1-score": 0.5,
+      "support": 15.0
+    },
+    "accuracy": 0.3277310924369748,
+    "macro avg": {
+      "precision": 0.3975613695090439,
+      "recall": 0.3273809523809524,
+      "f1-score": 0.3234985375277729,
+      "support": 119.0
+    },
+    "weighted avg": {
+      "precision": 0.3971673940894187,
+      "recall": 0.3277310924369748,
+      "f1-score": 0.323294104339296,
+      "support": 119.0
+    }
+  }
+}
