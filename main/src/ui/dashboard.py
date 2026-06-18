@@ -230,9 +230,6 @@ def _run_pipeline(
 
     try:
         detections = detector.detect(image, conf_threshold=conf_threshold)
-    except TypeError:
-        # Fallback if detect() doesn't accept conf_threshold kwarg.
-        detections = detector.detect(image)
     except Exception:
         logger.exception("Detection error.")
         return [], round((time.perf_counter() - t0) * 1000, 2)
@@ -573,7 +570,16 @@ with col_feed:
 
                     session = models.get("session")
                     if session is not None:
+                        _t0 = time.perf_counter()
                         out = session.process_frame(frame)
+                        _frame_latency = round((time.perf_counter() - _t0) * 1000, 2)
+
+                        # U2 — track per-frame latency (cap list to last 100)
+                        _lat_list = st.session_state["latencies"]
+                        _lat_list.append(_frame_latency)
+                        if len(_lat_list) > 100:
+                            st.session_state["latencies"] = _lat_list[-100:]
+
                         for d in out["overlay_results"]:
                             x1, y1, x2, y2 = d["bbox"]
                             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 135, 90), 2)
@@ -583,15 +589,40 @@ with col_feed:
                         )
                         if out["decision"] is not None:
                             dec = out["decision"]
-                            st.session_state["total_processed"] += 1
                             warn = dec.get("action") == "ALLOW_WARN"
-                            if dec["status"] == "UNREGISTERED" or warn:
-                                st.session_state["alert_count"] += 1
+                            # Overlay the verdict every frame while the gate is latched.
                             label = f"{dec['status']}: {dec['plate']}" + (" (colour?)" if warn else "")
                             cv2.putText(
                                 frame, label, (10, 65),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
                             )
+                            # U1 — count ONCE per car: only on the rising edge into
+                            # DECIDED. The gate latches DECIDED until the car leaves
+                            # (parking_trigger.py) and _decision persists on every frame
+                            # (parking_session.py), so a plain non-None check recounts
+                            # every frame (the 334/334 bug seen in the live test).
+                            if (
+                                out["state"] == "DECIDED"
+                                and st.session_state.get("_prev_gate_state") != "DECIDED"
+                            ):
+                                st.session_state["total_processed"] += 1
+                                if dec["status"] == "UNREGISTERED" or warn:
+                                    st.session_state["alert_count"] += 1
+                                # U4 — one results-log entry per car for the panel.
+                                _vid_res = {
+                                    "plate": dec.get("plate", "—"),
+                                    "status": dec.get("status", "UNKNOWN"),
+                                    "action": dec.get("action", ""),
+                                    "confidence": dec.get("confidence", 0.0),
+                                    "color": dec.get("color", ""),
+                                    "brand": dec.get("brand", ""),
+                                    "latency_ms": _frame_latency,
+                                }
+                                st.session_state["results_log"].insert(0, _vid_res)
+                                _current_results.append(_vid_res)
+
+                        # Track gate state across frames for the rising-edge test above.
+                        st.session_state["_prev_gate_state"] = out["state"]
 
                     display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame_slot.image(display_rgb, use_column_width=True)
@@ -639,10 +670,14 @@ with col_results:
         unsafe_allow_html=True,
     )
 
-    if _current_results:
-        # Update session counters
+    if mode == "Upload Image" and _current_results:
+        # Update session counters (image mode only — video mode updates them
+        # inside the video loop to avoid double-counting)
         st.session_state["total_processed"] += 1
         st.session_state["latencies"].append(_current_latency)
+        # Cap latencies list to avoid unbounded growth
+        if len(st.session_state["latencies"]) > 100:
+            st.session_state["latencies"] = st.session_state["latencies"][-100:]
 
         for res in _current_results:
             st.session_state["results_log"].insert(0, res)
@@ -656,7 +691,7 @@ with col_results:
     if not st.session_state["results_log"]:
         st.markdown(
             '<div style="text-align:center; color:var(--muted); padding:60px 0;">'
-            "No detections yet — upload an image to begin.</div>",
+            "No detections yet — process an image or video to begin.</div>",
             unsafe_allow_html=True,
         )
     else:

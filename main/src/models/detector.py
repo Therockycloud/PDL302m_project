@@ -122,11 +122,18 @@ class PlateDetector:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def detect(self, image: np.ndarray) -> list[dict[str, Any]]:
+    def detect(
+        self,
+        image: np.ndarray,
+        conf_threshold: float | None = None,
+    ) -> list[dict[str, Any]]:
         """Run plate detection on a single image.
 
         Args:
             image: BGR image as a NumPy array of shape ``(H, W, 3)``.
+            conf_threshold: Optional confidence threshold override.  When
+                provided this value is used instead of ``self.conf_threshold``
+                for this call only.
 
         Returns:
             A list of detection dictionaries, each containing:
@@ -144,10 +151,12 @@ class PlateDetector:
             )
             return []
 
+        conf = conf_threshold if conf_threshold is not None else self.conf_threshold
+
         try:
             results = self.model.predict(
                 source=image,
-                conf=self.conf_threshold,
+                conf=conf,
                 device=self.device,
                 verbose=False,
             )
