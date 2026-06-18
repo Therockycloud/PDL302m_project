@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rp2-slides",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7821", "--directory", "/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/presentations"],
+      "port": 7821
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 300" font-family="'Plus Jakarta Sans', sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#71717a"/>
+    </marker>
+  </defs>
+  <style>
+    .box{fill:#ffffff;stroke:#e4e4e7;stroke-width:1.5;rx:10;}
+    .acc{fill:#f0fdf4;stroke:#15803d;stroke-width:2;}
+    .dark{fill:#0b0f14;}
+    .t{fill:#18181b;font-size:15px;font-weight:700;}
+    .s{fill:#71717a;font-size:11px;}
+    .ta{fill:#15803d;font-size:15px;font-weight:700;}
+    .mono{font-family:'JetBrains Mono',monospace;fill:#15803d;font-size:11px;font-weight:700;}
+    .flow{stroke:#71717a;stroke-width:1.6;fill:none;}
+  </style>
+
+  <text x="20" y="30" class="t" font-size="17">Pipeline 2 tầng — plate-primary</text>
+
+  <!-- frame -->
+  <rect x="20" y="70" width="120" height="74" rx="10" class="dark"/>
+  <text x="80" y="103" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="700">Khung hình</text>
+  <text x="80" y="122" text-anchor="middle" fill="#3f4754" font-size="10" font-family="'JetBrains Mono',monospace">CCTV / webcam</text>
+
+  <!-- yolo vehicle -->
+  <rect x="190" y="70" width="130" height="74" rx="10" class="box"/>
+  <text x="255" y="100" text-anchor="middle" class="t">YOLOv8n</text>
+  <text x="255" y="120" text-anchor="middle" class="s">phát hiện xe</text>
+
+  <!-- gate -->
+  <rect x="370" y="70" width="130" height="74" rx="10" class="box"/>
+  <text x="435" y="100" text-anchor="middle" class="t">Gate "đã đỗ"</text>
+  <text x="435" y="120" text-anchor="middle" class="s">chạy nặng 1 lần/xe</text>
+
+  <!-- yolo plate -->
+  <rect x="550" y="70" width="130" height="74" rx="10" class="box"/>
+  <text x="615" y="100" text-anchor="middle" class="t">YOLOv8n</text>
+  <text x="615" y="120" text-anchor="middle" class="s">cắt vùng biển</text>
+
+  <!-- paddleocr -->
+  <rect x="730" y="70" width="130" height="74" rx="10" class="acc"/>
+  <text x="795" y="100" text-anchor="middle" class="ta">PaddleOCR</text>
+  <text x="795" y="120" text-anchor="middle" class="mono">81% exact</text>
+
+  <!-- colour branch -->
+  <rect x="550" y="196" width="130" height="64" rx="10" class="box"/>
+  <text x="615" y="222" text-anchor="middle" class="t" font-size="14">MobileNetV3</text>
+  <text x="615" y="240" text-anchor="middle" class="s">màu xe (phụ)</text>
+
+  <!-- decision -->
+  <rect x="730" y="190" width="190" height="78" rx="10" class="acc"/>
+  <text x="825" y="220" text-anchor="middle" class="ta" font-size="15">Quyết định</text>
+  <text x="825" y="240" text-anchor="middle" class="s">biển = khoá chính</text>
+  <text x="825" y="256" text-anchor="middle" class="s">màu = cảnh báo mềm</text>
+
+  <!-- arrows -->
+  <line x1="140" y1="107" x2="186" y2="107" class="flow" marker-end="url(#arr)"/>
+  <line x1="320" y1="107" x2="366" y2="107" class="flow" marker-end="url(#arr)"/>
+  <line x1="500" y1="107" x2="546" y2="107" class="flow" marker-end="url(#arr)"/>
+  <line x1="680" y1="107" x2="726" y2="107" class="flow" marker-end="url(#arr)"/>
+  <!-- paddle -> decision -->
+  <path d="M795,144 L795,170 L825,170 L825,186" class="flow" marker-end="url(#arr)"/>
+  <!-- colour -> decision -->
+  <line x1="680" y1="228" x2="726" y2="228" class="flow" marker-end="url(#arr)"/>
+  <!-- vehicle -> colour branch -->
+  <path d="M255,144 L255,228 L546,228" class="flow" marker-end="url(#arr)"/>
+</svg>
