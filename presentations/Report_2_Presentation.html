@@ -1160,72 +1160,6 @@
     .grid-12{grid-template-columns:repeat(6,1fr)}
   }
 
-  /* ============ PRINT / PDF EXPORT ============ */
-  @page { size: 1280px 720px; margin: 0; }
-  @media print {
-    /* Color accuracy */
-    html, body, .slide, #deck {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    /* Reset layout for print */
-    html, body {
-      width: 1280px !important;
-      height: auto !important;
-      overflow: visible !important;
-      background: #fff !important;
-    }
-    /* Kill the horizontal flex rail and fixed positioning */
-    #deck {
-      position: static !important;
-      display: block !important;
-      width: 1280px !important;
-      height: auto !important;
-      transform: none !important;
-      transition: none !important;
-      overflow: visible !important;
-      will-change: auto !important;
-    }
-    /* Each slide = one landscape page */
-    .slide {
-      display: block !important;
-      position: relative !important;
-      transform: none !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      width: 1280px !important;
-      height: 720px !important;
-      flex: none !important;
-      overflow: hidden !important;
-      page-break-after: always !important;
-      break-after: page !important;
-      padding: 44px 64px 56px 64px !important;
-    }
-    /* Hide nav dots, canvas backgrounds, and any overview overlay */
-    #nav,
-    canvas.bg,
-    canvas.ascii-bg,
-    #overview,
-    #hint,
-    .nav-bar,
-    .controls,
-    .progress {
-      display: none !important;
-    }
-    /* Ensure dark/accent background slides render their bg color */
-    .slide.dark { background: var(--ink) !important; color: var(--paper) !important; }
-    .slide.accent { background: var(--accent) !important; color: var(--accent-on) !important; }
-    .slide.grey { background: var(--grey-1) !important; }
-    /* vw/vh font sizes: fix to pixel equivalents at 1280x720 */
-    .h-hero   { font-size: 141px !important; }  /* 11vw @ 1280 */
-    .h-hero-zh{ font-size: 108px !important; }  /* 8.4vw */
-    .h-xl     { font-size: 77px  !important; }  /* 6vw */
-    .h-xl-zh  { font-size: 64px  !important; }  /* 5vw */
-    .h-md     { font-size: 33px  !important; }  /* 2.6vw */
-    .h-sub    { font-size: 28px  !important; }  /* 2.2vw */
-    .lead     { font-size: 20px  !important; }  /* 1.55vw */
-  }
-  /* ============ END PRINT ============ */
 </style>
 </head>
 <body class="canvas-mode">
@@ -1271,7 +1205,7 @@
       <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
       <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
     </div>
-    
+
     <div style="flex:1;padding:0;display:flex;flex-direction:column;justify-content:center;gap:4vh">
       <div class="cover-row" style="display:grid;grid-template-columns:1fr 6fr;gap:2vw;align-items:start;border-bottom:1px solid var(--border-subtle);padding-bottom:1.5vh">
         <div style="font-family:var(--sans);font-weight:200;font-size:min(4.5vw,8vh);line-height:1;color:var(--accent)">01</div>
@@ -1289,15 +1223,15 @@
         <p class="t-body" style="font-weight:300;color:var(--text-secondary)">Học phần: Học sâu (DPL302m)</p>
       </div>
     </div>
-    
+
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 01 / 11</div>
+      <div class="r">TRANG 01 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 02 · S03 · Split Statement · Đặt vấn đề & Mục tiêu ========== -->
+<!-- ========== SLIDE 02 · S03 · Split Statement · Đặt vấn đề ========== -->
 <section class="slide split" data-layout="S03" data-animate="statement">
   <div class="canvas-card">
     <div class="split-half">
@@ -1313,10 +1247,59 @@
         </div>
         <div class="foot" style="border-top:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);opacity:1;padding-top:1vh">
           <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-          <div class="r">TRANG 02 / 11</div>
+          <div class="r">TRANG 02 / 18</div>
         </div>
       </div>
-      <!-- Right Half - light grey background (grey) -->
+      <!-- Right Half - light grey background -->
+      <div class="half b-grey" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden">
+        <img src="assets/report_data_1.png" alt="" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.08;z-index:0;pointer-events:none">
+        <div class="chrome-min" style="margin-bottom:0">
+          <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+          <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+        </div>
+        <div data-anim="right" style="display:flex;flex-direction:column;gap:2.4vh">
+          <div class="t-meta">ĐẶT VẤN ĐỀ AN NINH BÃI XE</div>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(17px,1.15vw);line-height:1.65;color:var(--text-primary);font-weight:400">
+            Các hệ thống an ninh đơn yếu tố — thẻ từ hoặc OCR biển số — rất dễ bị vượt qua bằng thủ thuật <strong>tháo lắp, tráo đổi</strong> hoặc che khuất biển số vật lý. Một biển số giả mạo chỉ cần vài phút để sao chép.
+          </p>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(17px,1.15vw);line-height:1.65;color:var(--text-secondary);font-weight:400">
+            Giải pháp: cơ chế <strong>đối chiếu chéo đa nhân tố</strong> kết hợp ba đặc trưng sinh trắc học trực quan của phương tiện — phát hiện lập tức bất kỳ sự không khớp thuộc tính nào tại cổng kiểm soát.
+          </p>
+          <div style="margin-top:1.2vh;padding:2vh 1.6vw;background:var(--paper);border-left:3px solid var(--accent)">
+            <p style="font-family:var(--mono);font-size:max(14px,.88vw);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.9">Mục tiêu Giai đoạn 2</p>
+            <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,1vw);line-height:1.55;color:var(--text-primary);margin-top:.6vh">Xây dựng pipeline dữ liệu sạch, cân bằng — nền tảng cho các mô hình nhận diện giai đoạn sau.</p>
+          </div>
+        </div>
+        <div class="foot" style="padding-top:1vh">
+          <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+          <div class="r">TRANG 02 / 18</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 03 · S03 · Split · Giải pháp: Đối chiếu chéo 3 thuộc tính ========== -->
+<section class="slide split" data-layout="S03" data-animate="statement">
+  <div class="canvas-card">
+    <div class="split-half">
+      <!-- Left Half - ink dark -->
+      <div class="half b-ink" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between">
+        <div class="chrome-min" style="margin-bottom:0">
+          <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+          <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+        </div>
+        <div data-anim="left" style="display:flex;flex-direction:column;gap:2vh">
+          <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">Cơ chế đối chiếu chéo</div>
+          <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(4.6vw,8.4vh);line-height:.98;letter-spacing:-.03em;color:#fff">Ba thuộc tính<br/><span style="font-style:italic;font-weight:300">cùng khớp</span><br/>mới mở cổng.</h2>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,1vw);line-height:1.6;color:rgba(255,255,255,.72);font-weight:300;margin-top:1vh">Biển số bị tráo không thể đồng thời khớp đúng hãng xe và màu sắc xe — xác suất gian lận giảm mạnh.</p>
+        </div>
+        <div class="foot" style="border-top:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);opacity:1;padding-top:1vh">
+          <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+          <div class="r">TRANG 03 / 18</div>
+        </div>
+      </div>
+      <!-- Right Half - light grey -->
       <div class="half b-grey" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden">
         <img src="assets/report_data_1.png" alt="" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.08;z-index:0;pointer-events:none">
         <div class="chrome-min" style="margin-bottom:0">
@@ -1325,37 +1308,37 @@
         </div>
         <div data-anim="right" style="display:flex;flex-direction:column;gap:0">
           <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle)">
-            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--text-primary)">01</div>
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--accent)">01</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Biển số xe (License Plate)</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Khóa định danh chính — tuy nhiên rất dễ bị tháo, tráo đổi, hoặc che khuất.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Khóa định danh chính — nhận dạng OCR, là điều kiện cần bắt buộc để tra cứu hồ sơ đăng ký.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--text-primary)">02</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Hãng xe (Car Brand)</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Nhân tố đối chiếu phụ — biển số giả rất khó khớp đúng với hãng xe thật.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Nhân tố đối chiếu phụ — biển số giả rất khó đồng thời khớp đúng hãng xe thật trong hồ sơ.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--accent)">03</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.5vw);line-height:1.2;color:var(--accent);margin-bottom:.6vh">Màu xe (Car Color)</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Cảnh báo phụ — thêm một chiều đối chiếu sinh trắc học trực quan.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.5;color:var(--text-secondary)">Cảnh báo phụ — chiều đối chiếu sinh trắc học trực quan, camera bãi xe nhận diện trực tiếp.</p>
             </div>
           </div>
         </div>
         <div class="foot" style="padding-top:1vh">
           <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-          <div class="r">TRANG 02 / 11</div>
+          <div class="r">TRANG 03 / 18</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 03 · S13 · Three Columns · Nghiên cứu tài liệu tham khảo ========== -->
+<!-- ========== SLIDE 04 · S13 · Three Columns · Nghiên cứu tài liệu tham khảo ========== -->
 <section class="slide light" data-layout="S13" data-animate="three-forces">
   <div class="canvas-card">
     <div class="chrome-min">
@@ -1410,12 +1393,70 @@
     </div>
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 03 / 11</div>
+      <div class="r">TRANG 04 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 04 · S21 · Tech Spec Sheet · Quy trình thu thập dữ liệu ========== -->
+<!-- ========== SLIDE 05 · NEW · Mục tiêu & Phạm vi Giai đoạn 2 ========== -->
+<section class="slide light" data-layout="S21" data-animate="progression">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+      <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
+      <div data-anim="line" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">SCOPE &amp; DELIVERABLES · GIAI ĐOẠN 2</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Mục tiêu &amp; Phạm vi Giai đoạn 2</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:5fr 7fr;gap:3vw;align-items:start" data-anim="up">
+        <!-- Left: core thesis -->
+        <div style="display:flex;flex-direction:column;gap:2.4vh">
+          <div class="callout" style="border-left-color:var(--accent)">
+            <strong style="font-family:var(--sans),var(--sans-zh);font-size:max(17px,1.1vw);font-weight:600;color:var(--text-primary)">Pipeline dữ liệu là nền tảng</strong>
+            <p style="margin-top:.8vh;font-size:max(16px,1vw);line-height:1.6;color:var(--text-secondary)">Không có tập dữ liệu sạch, cân bằng, đại diện thì mọi kiến trúc mô hình đều vô nghĩa. Giai đoạn 2 tập trung giải quyết triệt để vấn đề này trước khi sang giai đoạn huấn luyện.</p>
+          </div>
+          <div class="callout" style="border-left-color:var(--border-strong)">
+            <strong style="font-family:var(--sans),var(--sans-zh);font-size:max(17px,1.1vw);font-weight:600;color:var(--text-primary)">Phạm vi kỹ thuật</strong>
+            <p style="margin-top:.8vh;font-size:max(16px,1vw);line-height:1.6;color:var(--text-secondary)">Thu thập đa nguồn, làm sạch tự động 5 bước, cân bằng lớp, tiền xử lý &amp; augmentation, huấn luyện thử nghiệm, đánh giá baseline.</p>
+          </div>
+        </div>
+        <!-- Right: deliverables list -->
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div class="t-meta" style="margin-bottom:1.6vh">Kết quả bàn giao</div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:start;padding:2vh 0;border-top:1px solid var(--border-subtle)">
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.2vw,5.6vh);line-height:.9;color:var(--accent)">01</div>
+            <div>
+              <h4 style="font-family:var(--sans),var(--sans-zh);font-weight:600;font-size:max(17px,1.2vw);color:var(--text-primary);margin-bottom:.4vh">Dataset sạch &amp; cân bằng</h4>
+              <p style="font-size:max(15px,.9vw);line-height:1.5;color:var(--text-secondary)">792 ảnh hãng xe (8 lớp) + 783 ảnh màu xe (8 lớp) — ~100 ảnh/lớp, chia 70/15/15 seed 42.</p>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:start;padding:2vh 0;border-top:1px solid var(--border-subtle)">
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.2vw,5.6vh);line-height:.9;color:var(--text-primary)">02</div>
+            <div>
+              <h4 style="font-family:var(--sans),var(--sans-zh);font-weight:600;font-size:max(17px,1.2vw);color:var(--text-primary);margin-bottom:.4vh">Pipeline làm sạch tự động</h4>
+              <p style="font-size:max(15px,.9vw);line-height:1.5;color:var(--text-secondary)">5 bước tự động từ ảnh thô đến tập chuẩn, vượt qua 100% kiểm thử tự động <code>test_dataset.py</code>.</p>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:start;padding:2vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.2vw,5.6vh);line-height:.9;color:var(--accent)">03</div>
+            <div>
+              <h4 style="font-family:var(--sans),var(--sans-zh);font-weight:600;font-size:max(17px,1.2vw);color:var(--accent);margin-bottom:.4vh">Baseline model đã đánh giá</h4>
+              <p style="font-size:max(15px,.9vw);line-height:1.5;color:var(--text-secondary)">Màu xe: MobileNetV3-Small 55.1%, Hãng xe: EfficientNet-B0 35.3% — kết quả thực chứng định hướng thiết kế hệ thống.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+      <div class="r">TRANG 05 / 18</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 06 · S21 · Tech Spec Sheet · Tổng quan thu thập đa nguồn ========== -->
 <section class="slide light" data-layout="S21" data-animate="tech-spec">
   <div class="canvas-card">
     <div class="chrome-min">
@@ -1424,46 +1465,209 @@
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto auto 1fr;gap:3.4vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">DATA ACQUISITION &amp; MULTI-SOURCE PIPELINE</div>
+        <div class="t-meta">DATA ACQUISITION &amp; MULTI-SOURCE PIPELINE · OVERVIEW</div>
         <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Quy trình thu thập dữ liệu đa nguồn</h2>
       </div>
-
       <div data-anim="kpi" class="kpi-row-4" style="grid-template-columns:repeat(4,1fr)">
         <div class="kpi-cell">
           <div class="lbl">HÃNG XE (BRANDS)</div>
           <div class="nb" style="color:var(--accent)">792<span class="unit">ảnh</span></div>
-          <div class="note">Stanford Cars + VinFast cào Bing theo từng dòng xe cụ thể (VF8, VF9, VF5...) để lọc nhiễu logo/nội thất.</div>
+          <div class="note">8 thương hiệu phổ biến VN. VinFast cào Bing theo từng dòng VF8/VF9/Fadil để lọc nhiễu logo/nội thất.</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">MÀU XE (COLORS)</div>
           <div class="nb">783<span class="unit">ảnh</span></div>
-          <div class="note">Cào Bing 8 lớp màu phổ biến. Cách ly và loại bỏ 39 ảnh lớp "green" không dùng do không khớp 8 lớp mô hình.</div>
+          <div class="note">8 màu cơ bản. Loại bỏ 39 ảnh lớp "green" không khớp 8 lớp mô hình hỗ trợ.</div>
         </div>
         <div class="kpi-cell">
-          <div class="lbl">PHÂN PHỐI LỚP</div>
-          <div class="nb">8+8<span class="unit">lớp</span></div>
-          <div class="note">8 hãng xe Việt Nam phổ biến và 8 nhóm màu sắc xe cơ bản, được phân chia đều ~100 ảnh/lớp.</div>
+          <div class="lbl">BIỂN SỐ (YOLO)</div>
+          <div class="nb">6,176<span class="unit">ảnh</span></div>
+          <div class="note">Dataset HuggingFace cho bộ định vị YOLOv8-nano nhận diện biển số xe máy/ô tô.</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">PHÂN CHIA TẬP</div>
           <div class="nb">70/15/15<span class="unit">%</span></div>
-          <div class="note">Chia train/val/test vật lý với seed=42. Tập held-out test độc lập: 118 màu và 119 hãng.</div>
+          <div class="note">Chia train/val/test vật lý seed=42 cố định. Ảnh bãi xe VN thu thủ công làm integration test.</div>
         </div>
       </div>
-
       <div data-anim="foot" style="align-self:end;display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--border-subtle);padding-top:1.8vh;width:100%">
-        <div class="t-helper" style="max-width:64ch">Sử dụng icrawler cào đa từ khóa để vượt giới hạn rate limit. Bộ định vị YOLOv8-n nhận diện biển số xe máy/ô tô. Tập ảnh thực tế tại Việt Nam làm tập kiểm thử tích hợp (E2E).</div>
+        <div class="t-helper" style="max-width:64ch">Công cụ: icrawler cào đa từ khóa để vượt giới hạn rate limit. Ảnh thực tế bãi xe Việt Nam thu thủ công làm tập kiểm thử tích hợp đầu-cuối (E2E).</div>
         <div class="t-meta">DPL302m · DATA PIPELINE</div>
       </div>
     </div>
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 04 / 11</div>
+      <div class="r">TRANG 06 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 05 · S11 · Horizontal Timeline · Làm sạch & Cân bằng dữ liệu ========== -->
+<!-- ========== SLIDE 07 · NEW · Dữ liệu Hãng xe ========== -->
+<section class="slide light" data-layout="S08" data-animate="duo-mirror">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+      <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">BRAND CLASSIFICATION DATASET · 8 THƯƠNG HIỆU</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Dữ liệu Hãng xe</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:5fr 7fr;gap:3vw;align-items:start" data-anim="up">
+        <div style="display:flex;flex-direction:column;gap:2vh">
+          <div style="padding-top:1.6vh;border-top:3px solid var(--accent)">
+            <div class="t-meta" style="margin-bottom:.8vh">Tổng ảnh thu về</div>
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,11vh);line-height:.88;letter-spacing:-.04em;color:var(--accent)">792</div>
+            <div class="t-helper" style="margin-top:.8vh">ảnh · 8 lớp thương hiệu</div>
+          </div>
+          <div style="padding-top:1.6vh;border-top:1px solid var(--border-subtle)">
+            <div class="t-meta" style="margin-bottom:.8vh">Sau cân bằng</div>
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(5vw,8vh);line-height:.9;letter-spacing:-.03em">~100</div>
+            <div class="t-helper" style="margin-top:.8vh">ảnh/lớp · hệ số lệch ~1.0</div>
+          </div>
+          <div class="callout" style="border-left-color:var(--accent);margin-top:.4vh">
+            <p style="font-size:max(15px,.95vw);line-height:1.6;color:var(--text-secondary)">Nguồn: cào Bing đa từ khóa (icrawler) + Stanford Cars dataset làm seed ban đầu.</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div class="t-meta" style="margin-bottom:1.4vh">8 thương hiệu phổ biến tại Việt Nam</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Toyota</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle)"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Honda</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Hyundai</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle)"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Kia</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Mazda</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle)"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Ford</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw"><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Mitsubishi</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent);padding-left:1.4vw;border-left:1px solid var(--border-subtle)"><span style="font-family:var(--sans),var(--sans-zh);font-weight:600;font-size:max(16px,1.05vw);color:var(--accent)">VinFast ★</span></div>
+          </div>
+          <div class="callout" style="border-left-color:var(--accent);margin-top:2vh">
+            <strong style="font-size:max(15px,.95vw);color:var(--accent)">Case VinFast:</strong>
+            <p style="font-size:max(15px,.95vw);line-height:1.6;color:var(--text-secondary);margin-top:.4vh">Cào Bing chi tiết theo từng dòng xe (VF8, VF9, Fadil…) thay vì từ khóa chung "VinFast" — tránh thu phải ảnh logo thương hiệu, nội thất xe và ảnh nhiễu sự kiện ra mắt.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+      <div class="r">TRANG 07 / 18</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 08 · NEW · Dữ liệu Màu xe ========== -->
+<section class="slide light" data-layout="S08" data-animate="duo-mirror">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+      <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">COLOR CLASSIFICATION DATASET · 8 MÀU CƠ BẢN</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Dữ liệu Màu xe</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:5fr 7fr;gap:3vw;align-items:start" data-anim="up">
+        <div style="display:flex;flex-direction:column;gap:2vh">
+          <div style="padding-top:1.6vh;border-top:3px solid var(--accent)">
+            <div class="t-meta" style="margin-bottom:.8vh">Tổng ảnh thu về</div>
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,11vh);line-height:.88;letter-spacing:-.04em;color:var(--accent)">783</div>
+            <div class="t-helper" style="margin-top:.8vh">ảnh · 8 lớp màu sắc</div>
+          </div>
+          <div style="padding-top:1.6vh;border-top:1px solid var(--border-subtle)">
+            <div class="t-meta" style="margin-bottom:.8vh">Loại bỏ</div>
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(5vw,8vh);line-height:.9;letter-spacing:-.03em">39</div>
+            <div class="t-helper" style="margin-top:.8vh">ảnh màu xanh lá — không hỗ trợ</div>
+          </div>
+          <div class="callout" style="border-left-color:var(--border-strong);margin-top:.4vh">
+            <p style="font-size:max(15px,.95vw);line-height:1.6;color:var(--text-secondary)">Phương pháp: cào Bing đa từ khóa theo màu cụ thể ("black car vietnam parking", "white sedan…").</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div class="t-meta" style="margin-bottom:1.4vh">8 màu cơ bản được hỗ trợ</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw;display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#111;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Đen (Black)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle);display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#f5f5f0;border:1px solid #ccc;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Trắng (White)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw;display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#888;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Xám (Silver)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle);display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#990000;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Đỏ (Red)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw;display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#003580;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Xanh dương (Blue)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle);display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#c8a040;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Vàng (Yellow)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);padding-right:1.4vw;display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#b06020;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Nâu (Brown)</span></div>
+            <div style="padding:1.4vh 0;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);padding-left:1.4vw;border-left:1px solid var(--border-subtle);display:flex;align-items:center;gap:.8vw"><div style="width:1.2vw;height:1.2vw;background:#505050;border:2px solid #aaa;flex-shrink:0"></div><span style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.05vw)">Khác (Other)</span></div>
+          </div>
+          <div style="margin-top:1.6vh;padding:1.4vh 1.4vw;background:var(--grey-1);display:flex;gap:1.2vw;align-items:flex-start">
+            <div style="font-family:var(--mono);font-size:max(14px,.82vw);letter-spacing:.16em;color:var(--accent);flex-shrink:0">CHÚ Ý</div>
+            <p style="font-size:max(15px,.92vw);line-height:1.55;color:var(--text-secondary)">Lớp "Green" ban đầu có 39 ảnh nhưng đã bị loại hoàn toàn — màu xanh lá xe rất hiếm ở VN và mô hình không hỗ trợ lớp này.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+      <div class="r">TRANG 08 / 18</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 09 · NEW · Biển số & Tập kiểm thử thực tế ========== -->
+<section class="slide light" data-layout="S21" data-animate="tech-spec">
+  <div class="canvas-card">
+    <div class="chrome-min">
+      <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+      <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto auto 1fr;gap:3.4vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">LICENSE PLATE DETECTOR &amp; REAL-WORLD TEST SET</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Biển số &amp; Tập kiểm thử thực tế</h2>
+      </div>
+      <div data-anim="kpi" class="kpi-row-4" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-cell">
+          <div class="lbl">DATASET BIỂN SỐ</div>
+          <div class="nb" style="color:var(--accent)">6,176<span class="unit">ảnh</span></div>
+          <div class="note">HuggingFace license plate dataset. Dùng để huấn luyện bộ định vị YOLOv8-nano phát hiện vùng biển số xe máy và ô tô.</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">MÔ HÌNH ĐỊNH VỊ</div>
+          <div class="nb">YOLOv8<span class="unit">-nano</span></div>
+          <div class="note">Backbone siêu nhẹ, tốc độ inference nhanh, phù hợp cho bài toán edge deployment tại cổng bãi xe.</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="lbl">TẬP TEST TÍCH HỢP</div>
+          <div class="nb">Thực<span class="unit">tế VN</span></div>
+          <div class="note">Ảnh bãi đỗ xe Việt Nam thu thủ công — làm integration test E2E cho toàn bộ pipeline nhận diện.</div>
+        </div>
+      </div>
+      <div data-anim="foot" style="align-self:end;display:grid;grid-template-columns:1fr 1fr;gap:2.4vw;border-top:1px solid var(--border-subtle);padding-top:2vh">
+        <div>
+          <div class="t-meta" style="margin-bottom:1vh">Phân chia tập dữ liệu phân loại (cố định)</div>
+          <div class="h-bar-chart" style="grid-template-columns:6em minmax(0,1fr) 4em;margin-top:.8vh">
+            <span class="row-lbl">Train</span>
+            <div class="row-track"><div class="row-fill accent" style="width:70%"></div></div>
+            <span class="row-val">70<span class="unit">%</span></span>
+            <span class="row-lbl">Validation</span>
+            <div class="row-track"><div class="row-fill" style="width:15%"></div></div>
+            <span class="row-val">15<span class="unit">%</span></span>
+            <span class="row-lbl">Test (held-out)</span>
+            <div class="row-track"><div class="row-fill grey" style="width:15%"></div></div>
+            <span class="row-val">15<span class="unit">%</span></span>
+          </div>
+        </div>
+        <div class="callout" style="border-left-color:var(--accent)">
+          <strong style="font-size:max(15px,.95vw);color:var(--accent)">seed=42 cố định</strong>
+          <p style="font-size:max(15px,.92vw);line-height:1.6;color:var(--text-secondary);margin-top:.6vh">Đảm bảo tính tái tạo (reproducibility) hoàn toàn. Tập test held-out: 118 ảnh màu và 119 ảnh hãng — không bao giờ được dùng để huấn luyện hay tuning.</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+      <div class="r">TRANG 09 / 18</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 10 · S11 · Pipeline Bước 1-3 · Làm sạch dữ liệu ========== -->
 <section class="slide light" data-layout="S11" data-animate="timeline-walk">
   <div class="canvas-card">
     <img src="assets/report_data_2.png" alt="" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.08;z-index:0;pointer-events:none">
@@ -1471,44 +1675,76 @@
       <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
       <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
     </div>
-    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">AUTOMATED DATA CLEANING &amp; BALANCING FLOW</div>
-        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Pipeline</h2>
+        <div class="t-meta">AUTOMATED CLEANING PIPELINE · BƯỚC 1–3 / 5</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Đường ống làm sạch — Bước 1–3</h2>
       </div>
-      <div class="timeline-h" data-anim="timeline">
-        <div class="tl-row">
-          <div class="th-node up accent">
-            <div class="label"><span class="yr">01</span><span class="name">clean_corrupted</span><span class="desc">OpenCV lọc ảnh lỗi vật lý</span></div>
-            <span class="dot"></span>
+      <div class="pipeline" data-cols="3" data-anim="pipeline" data-animate="pipeline">
+        <div class="step accent-top">
+          <span class="step-nb">Bước 01</span>
+          <span class="step-title">clean_corrupted_images</span>
+          <span class="step-desc">Dùng <strong>OpenCV</strong> để đọc và kiểm tra cấu trúc vật lý từng file ảnh. Loại bỏ toàn bộ ảnh bị lỗi encoding, truncated hoặc không decode được — đảm bảo pipeline không crash ở bước sau.</span>
+        </div>
+        <div class="step accent-top">
+          <span class="step-nb">Bước 02</span>
+          <span class="step-title">semantic_clean_images</span>
+          <span class="step-desc">Dùng <strong>YOLOv8-nano</strong> chạy detection trên từng ảnh. Loại bỏ ~<strong>38%</strong> ảnh nhiễu ngữ nghĩa không thực sự chứa xe: cận cảnh vô lăng, ảnh logo thương hiệu, đường phố trống, nội thất xe.</span>
+        </div>
+        <div class="step accent-top">
+          <span class="step-nb">Bước 03</span>
+          <span class="step-title">remove_duplicates</span>
+          <span class="step-desc">Áp dụng <strong>pHash</strong> (Perceptual Hashing) qua thư viện <code>imagehash</code>. Khoảng cách Hamming ≤ 5 để phát hiện ảnh trùng lặp hoặc gần trùng (cùng xe, khác crop nhẹ). Xóa để tránh data leakage.</span>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+      <div class="r">TRANG 10 / 18</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 11 · NEW · Pipeline Bước 4-5 · Chuẩn hóa & Cân bằng ========== -->
+<section class="slide light" data-layout="S11" data-animate="timeline-walk">
+  <div class="canvas-card">
+    <img src="assets/report_data_2.png" alt="" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.08;z-index:0;pointer-events:none">
+    <div class="chrome-min">
+      <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+      <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+    </div>
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
+      <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
+        <div class="t-meta">AUTOMATED CLEANING PIPELINE · BƯỚC 4–5 / 5</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Đường ống làm sạch — Bước 4–5</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.4vw;flex:1;align-items:start" data-anim="up">
+        <div class="step accent-top" style="padding-top:2vh">
+          <span class="step-nb">Bước 04</span>
+          <span class="step-title">normalize_images</span>
+          <span class="step-desc" style="font-size:max(16px,1vw);line-height:1.6">Ép toàn bộ ảnh sang định dạng <strong>JPEG RGB</strong> chuẩn. Loại bỏ ảnh RGBA, grayscale, palette mode để đảm bảo Keras đọc được nhất quán. Xử lý cả trường hợp ảnh có alpha channel hoặc EXIF metadata gây lỗi rotate.</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2.4vh">
+          <div class="step accent-top" style="padding-top:2vh">
+            <span class="step-nb">Bước 05</span>
+            <span class="step-title">Cào bù chuyên biệt + Cap ~100 ảnh/lớp</span>
+            <span class="step-desc" style="font-size:max(16px,1vw);line-height:1.6">Sau 4 bước lọc, các lớp thiếu (Vàng còn ~25 ảnh, Trắng ~40 ảnh) được cào bù chuyên biệt theo từ khóa lớp đó. Sau đó cắt ngưỡng (cap) tối đa ~100 ảnh/lớp để đạt phân bố cân bằng tuyệt đối.</span>
           </div>
-          <div class="th-node down">
-            <div class="label"><span class="yr">02</span><span class="name">semantic_clean</span><span class="desc">YOLOv8 loại 38% ảnh không xe</span></div>
-            <span class="dot"></span>
-          </div>
-          <div class="th-node up">
-            <div class="label"><span class="yr">03</span><span class="name">remove_duplicates</span><span class="desc">pHash (Hamming &le; 5) xóa trùng</span></div>
-            <span class="dot"></span>
-          </div>
-          <div class="th-node down">
-            <div class="label"><span class="yr">04</span><span class="name">normalize_images</span><span class="desc">Ép sang JPEG RGB cho Keras</span></div>
-            <span class="dot"></span>
-          </div>
-          <div class="th-node up accent">
-            <div class="label"><span class="yr">05</span><span class="name">Cào bù &amp; Cap</span><span class="desc">Đạt cân bằng ~100 ảnh/lớp</span></div>
-            <span class="dot"></span>
+          <div style="padding:2vh 1.6vw;background:var(--grey-1)">
+            <div class="t-meta" style="margin-bottom:.8vh;color:var(--accent)">Triết lý dữ liệu</div>
+            <p style="font-size:max(16px,1vw);line-height:1.6;color:var(--text-secondary)"><strong>"Ít nhưng chất"</strong> — ưu tiên thu thập ảnh thật cân bằng thay vì augmentation nhân tạo trên tập mất cân bằng nghiêm trọng. Hệ số lệch lớp cuối ≈ 1.0.</p>
           </div>
         </div>
       </div>
     </div>
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 05 / 11</div>
+      <div class="r">TRANG 11 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 06 · S22 · Image Hero · Phân tích thống kê dữ liệu ========== -->
+<!-- ========== SLIDE 12 · S22 · Image Hero · EDA phân bố lớp ========== -->
 <section class="slide hero light" data-layout="S22" data-animate="image-hero">
   <div class="canvas-card" style="padding:0;display:flex;flex-direction:column;overflow:hidden">
     <div data-anim="img" style="position:relative;flex:0 0 58%;overflow:hidden;background:var(--paper)">
@@ -1520,12 +1756,12 @@
         <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
       </div>
       <div data-anim="title-block" style="position:absolute;left:5vw;top:11vh;background:var(--paper);padding:2.8vh 2.6vw;max-width:44vw">
-        <div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:1;letter-spacing:-.03em;color:var(--text-primary)">Phân tích<br/>thống kê <span style="font-style:italic;font-weight:300">EDA</span></div>
+        <div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:1;letter-spacing:-.03em;color:var(--text-primary)">Phân bố lớp<br/><span style="font-style:italic;font-weight:300">cân bằng</span></div>
       </div>
     </div>
     <div data-anim="kpi" class="image-hero-body">
       <div style="max-width:54ch;font-family:var(--sans),var(--sans-zh);font-size:max(18px,1.3vw);line-height:1.55;font-weight:400;color:var(--text-primary);letter-spacing:-.005em">
-        Trực quan hóa phân bố lớp sau khi làm sạch và cân bằng. Khắc phục triệt để sự chênh lệch lớn ban đầu (như màu Vàng chỉ 25 ảnh so với màu Đen 200 ảnh) bằng cách cào bù chuyên biệt thay vì phụ thuộc hoàn toàn vào augmentation nhân tạo.
+        Triết lý <strong>"ít nhưng chất"</strong>: khắc phục mất cân bằng ban đầu (Vàng 25 ảnh vs Đen 200 ảnh) bằng cào bù chuyên biệt thay vì augmentation nhân tạo. Hệ số lệch lớp cuối ≈ 1.0 — triệt tiêu nguy cơ thiên lệch mô hình.
       </div>
       <div class="image-hero-stats" style="gap:4vw">
         <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Lớp hãng xe</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">8</div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">792 ảnh (cân bằng)</p></div>
@@ -1535,12 +1771,12 @@
     </div>
     <div class="foot" style="position:absolute;bottom:4.4vh;left:5vw;right:5vw;z-index:2;margin-top:0">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 06 / 11</div>
+      <div class="r">TRANG 12 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 07 · S04 · Six Cells · Tiền xử lý & Tăng cường dữ liệu ========== -->
+<!-- ========== SLIDE 13 · S04 · Six Cells · Tiền xử lý & Augmentation ========== -->
 <section class="slide hero light" data-layout="S04" data-animate="six-cells">
   <div class="canvas-card">
     <div class="chrome-min">
@@ -1549,56 +1785,56 @@
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:1.6vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">IMAGE PREPROCESSING &amp; GEOMETRIC AUGMENTATION</div>
-        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Tiền xử lý và tăng cường hình ảnh</h2>
+        <div class="t-meta">IMAGE PREPROCESSING &amp; AUGMENTATION · TRAIN ONLY</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Tiền xử lý &amp; Augmentation</h2>
       </div>
       <div class="sub-grid-3-2" data-anim="cells" style="margin-top:0">
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="maximize-2" class="lucide"></i>
           <span class="nb-corner">01</span>
           <div class="ttl">Resize 224²</div>
-          <div class="desc">Đồng bộ kích thước hình ảnh đầu vào chuẩn của hai backbone mạng.</div>
+          <div class="desc">Đồng bộ kích thước đầu vào chuẩn cho cả MobileNetV3-Small và EfficientNet-B0.</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="flip-horizontal-2" class="lucide"></i>
           <span class="nb-corner">02</span>
-          <div class="ttl">Lật ngang</div>
-          <div class="desc">Random flip lật ngang nhân đôi biến thể góc hướng xe tiếp cận bãi xe.</div>
+          <div class="ttl">Horizontal Flip</div>
+          <div class="desc">Lật ngang ngẫu nhiên — nhân đôi biến thể hướng xe tiếp cận từ trái/phải cổng bãi xe.</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="rotate-cw" class="lucide"></i>
           <span class="nb-corner">03</span>
-          <div class="ttl">Xoay ngẫu nhiên</div>
-          <div class="desc">Random rotation &plusmn;10&deg; giúp mô hình bất biến trước camera bị nghiêng nhẹ.</div>
+          <div class="ttl">Random Rotation ±10°</div>
+          <div class="desc">Mô phỏng camera bị nghiêng nhẹ, giúp mô hình bất biến trước lệch góc gắn camera.</div>
         </div>
         <div class="sub-card accent" style="border-radius:0">
           <i data-lucide="zoom-in" class="lucide"></i>
           <span class="nb-corner">04</span>
-          <div class="ttl">Phóng ngẫu nhiên</div>
-          <div class="desc">Random zoom &plusmn;10% mô phỏng sự thay đổi khoảng cách từ xe đến camera.</div>
+          <div class="ttl">Random Zoom ±10%</div>
+          <div class="desc">Mô phỏng xe ở khoảng cách khác nhau tới camera, tăng tính bất biến khoảng cách.</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="ratio" class="lucide"></i>
           <span class="nb-corner">05</span>
-          <div class="ttl">Pixel Scaling</div>
-          <div class="desc">Chuyển đổi dải giá trị điểm ảnh qua lớp Rescaling(255.0) tích hợp đầu mô hình.</div>
+          <div class="ttl">Rescaling(255.0)</div>
+          <div class="desc">Lớp Rescaling tích hợp đầu mô hình chuyển [0,1] → [0,255]. Không áp dụng scaling ngoài.</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="sliders-horizontal" class="lucide"></i>
           <span class="nb-corner">06</span>
           <div class="ttl">Backbone Preprocessing</div>
-          <div class="desc">Đưa dữ liệu qua bộ tiền xử lý nội bộ của backbone MobileNetV3 và EfficientNet.</div>
+          <div class="desc">Bộ tiền xử lý nội bộ của MobileNetV3 / EfficientNet. Augmentation chỉ áp dụng cho train.</div>
         </div>
       </div>
     </div>
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 07 / 11</div>
+      <div class="r">TRANG 13 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 08 · S08 · Duo Compare · Sửa lỗi tiền xử lý ========== -->
+<!-- ========== SLIDE 14 · S08 · Duo Compare · Chẩn đoán & Khắc phục 2 lỗi ========== -->
 <section class="slide light" data-layout="S08" data-animate="duo-mirror">
   <div class="canvas-card">
     <div class="chrome-min">
@@ -1607,173 +1843,220 @@
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">DIAGNOSTICS &amp; RESOLUTIONS FOR TRAINING ANOMALIES</div>
-        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Chẩn đoán lỗi &amp; Khắc phục</h2>
+        <div class="t-meta">DIAGNOSTICS &amp; RESOLUTIONS · 2 CRITICAL BUGS</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Chẩn đoán &amp; Khắc phục 2 lỗi</h2>
       </div>
       <div class="duo-compare" style="margin-top:2vh">
         <div class="col">
-          <div class="col-tag"><span class="num">A</span> LỖI CŨ (BEFORE)</div>
-          <div class="col-ttl">BatchNorm &amp; Double Scale</div>
-          <div class="col-desc">Sequential API khiến lớp BatchNorm tiếp tục tính toán thống kê khi inference thay vì dùng moving average; Lỗi chuẩn hóa dải đầu vào hai lần (double-preprocessing) làm mất phân bố đặc trưng.</div>
+          <div class="col-tag"><span class="num">1</span> BATCHNORM BUG</div>
+          <div class="col-ttl">Sequential API</div>
+          <div class="col-desc">Sequential API đóng băng backbone nhưng các lớp BatchNorm vẫn tiếp tục chạy thống kê theo batch huấn luyện thay vì dùng moving average lúc inference.</div>
           <ul class="col-list">
-            <li>Độ chính xác bị kẹt ở mức ngẫu nhiên ~12.5%</li>
-            <li>Loss bị đi ngang (flat loss), không hội tụ</li>
-            <li>BatchNorm làm lệch phân phối đặc trưng</li>
+            <li>Accuracy kẹt ở mức ngẫu nhiên ~12.5% (1/8 lớp)</li>
+            <li>Loss đi ngang hoàn toàn, không hội tụ</li>
+            <li><strong>Fix:</strong> Functional API + <code>base_model(x, training=False)</code></li>
           </ul>
         </div>
         <div class="vrule"></div>
         <div class="col accent">
-          <div class="col-tag"><span class="num">B</span> KHẮC PHỤC (AFTER)</div>
-          <div class="col-ttl">Functional API &amp; Fixed Scale</div>
-          <div class="col-desc">Chuyển sang Functional API của Keras, gọi backbone dưới dạng base_model(x, training=False) để khóa BN chạy ở inference; Loại bỏ scaling ngoài, chuẩn hóa dải pixel [0, 255] trước khi nạp.</div>
+          <div class="col-tag"><span class="num">2</span> DOUBLE-PREPROCESSING</div>
+          <div class="col-ttl">Sai dải pixel</div>
+          <div class="col-desc">Cấu hình nhầm scaling đầu vào hai lần — ảnh đã được scale [0,1] nhưng backbone lại mong nhận [0,255], làm sai lệch hoàn toàn phân bố đặc trưng đầu vào.</div>
           <ul class="col-list">
-            <li>Khóa cứng BatchNorm ở chế độ inference</li>
-            <li>Dải pixel đầu vào đồng bộ và chuẩn xác</li>
-            <li>Mô hình bắt đầu hội tụ ổn định, giảm loss</li>
+            <li>Đặc trưng bị bão hòa, gradient triệt tiêu</li>
+            <li>Loss không giảm dù thay đổi learning rate</li>
+            <li><strong>Fix:</strong> Bỏ scaling ngoài, dùng <code>Rescaling(255.0)</code> đầu model</li>
           </ul>
         </div>
       </div>
     </div>
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 08 / 11</div>
+      <div class="r">TRANG 14 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 09 · S07 · Horizontal Bar · Huấn luyện & Đánh giá ========== -->
+<!-- ========== SLIDE 15 · S07 · Horizontal Bar · Kết quả test held-out ========== -->
 <section class="slide light" data-layout="S07" data-animate="bar-grow">
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
       <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
     </div>
-    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:4vh">
+    <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr auto;gap:3vh">
       <div data-anim="line" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">Model Accuracy &amp; Macro-F1 on Held-out Test Splits</div>
-        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Hiệu năng phân loại trên tập test giữ-riêng</h2>
+        <div class="t-meta">MODEL ACCURACY &amp; MACRO-F1 · HELD-OUT TEST SPLITS</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Kết quả test trên tập giữ-riêng</h2>
       </div>
+      <div style="display:flex;flex-direction:column;gap:3vh">
+        <div class="h-bar-chart" style="grid-template-columns:16em minmax(0,1fr) 8em">
+          <span class="row-lbl">MobileNetV3-Small (Màu xe)</span>
+          <div class="row-track"><div class="row-fill accent" style="width:55.1%"></div></div>
+          <span class="row-val">55.1<span class="unit">%</span></span>
 
-      <div class="h-bar-chart" style="grid-template-columns:16em minmax(0,1fr) 8em;margin-top:2vh">
-        <span class="row-lbl">MobileNetV3-Small (Màu xe)</span>
-        <div class="row-track"><div class="row-fill accent" style="width:55.1%"></div></div>
-        <span class="row-val">55.1<span class="unit">%</span></span>
+          <span class="row-lbl">EfficientNet-B0 (Hãng xe)</span>
+          <div class="row-track"><div class="row-fill" style="width:35.3%"></div></div>
+          <span class="row-val">35.3<span class="unit">%</span></span>
 
-        <span class="row-lbl">EfficientNet-B0 (Hãng xe)</span>
-        <div class="row-track"><div class="row-fill" style="width:35.3%"></div></div>
-        <span class="row-val">35.3<span class="unit">%</span></span>
-
-        <span class="row-lbl">Mức ngẫu nhiên (Random Baseline)</span>
-        <div class="row-track"><div class="row-fill grey" style="width:12.5%"></div></div>
-        <span class="row-val">12.5<span class="unit">%</span></span>
+          <span class="row-lbl">Mức ngẫu nhiên (Baseline)</span>
+          <div class="row-track"><div class="row-fill grey" style="width:12.5%"></div></div>
+          <span class="row-val">12.5<span class="unit">%</span></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.4vw">
+          <div style="padding:1.8vh 1.6vw;background:var(--grey-1)">
+            <div class="t-meta" style="color:var(--accent);margin-bottom:.6vh">Màu xe · MobileNetV3-Small</div>
+            <p style="font-size:max(15px,.94vw);line-height:1.6;color:var(--text-secondary)">Accuracy <strong>55.1%</strong> / Macro-F1 <strong>0.545</strong> — gấp &gt;4× mức ngẫu nhiên 12.5%. Đủ độ tin cậy làm tín hiệu cảnh báo phụ trong hệ thống.</p>
+          </div>
+          <div style="padding:1.8vh 1.6vw;background:var(--grey-1)">
+            <div class="t-meta" style="margin-bottom:.6vh">Hãng xe · EfficientNet-B0</div>
+            <p style="font-size:max(15px,.94vw);line-height:1.6;color:var(--text-secondary)">Accuracy <strong>35.3%</strong> / Macro-F1 <strong>0.337</strong> — đo trên ảnh web sạch. Nguyên nhân: bài toán fine-grained + ít data (~70 ảnh/lớp). Blur camera chỉ làm tệ thêm, không phải nguyên nhân gốc.</p>
+          </div>
+        </div>
       </div>
-
-      <div class="t-helper" style="border-top:1px solid var(--border-subtle);padding-top:1.8vh">
-        Độ chính xác phân loại màu đạt 55.1% / Macro-F1 0.545 (gấp 4 lần mức ngẫu nhiên 12.5%), phù hợp làm cảnh báo phụ. Độ chính xác hãng xe đo trên tập test web sạch chỉ đạt 35.3% / Macro-F1 0.337 — nguyên nhân chính là bài toán phân biệt thương hiệu có độ khó cao (fine-grained) và dữ liệu ít (~70 ảnh/lớp); blur camera chỉ làm tệ thêm chứ không phải nguyên nhân gốc; quyết định loại bỏ hãng xe khỏi hệ thống quyết định (R3/R4) để tránh từ chối sai (false rejection).
+      <div class="t-helper" style="border-top:1px solid var(--border-subtle);padding-top:1.4vh">
+        Cả hai mô hình đều vượt xa mức ngẫu nhiên sau khi khắc phục 2 lỗi kỹ thuật. Kết quả này làm cơ sở cho quyết định thiết kế hệ thống ở slide tiếp theo.
       </div>
     </div>
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 09 / 11</div>
+      <div class="r">TRANG 15 / 18</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 10 · S10 · Split Closing · Kết luận & Định hướng ========== -->
+<!-- ========== SLIDE 16 · NEW · Quyết định kỹ thuật ========== -->
+<section class="slide split" data-layout="S03" data-animate="statement">
+  <div class="canvas-card">
+    <div class="split-half">
+      <div class="half b-accent" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between">
+        <div class="chrome-min" style="margin-bottom:0">
+          <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+          <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+        </div>
+        <div data-anim="left" style="display:flex;flex-direction:column;gap:2vh">
+          <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">Quyết định thiết kế</div>
+          <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(4.6vw,8.4vh);line-height:.98;letter-spacing:-.03em;color:#fff">An toàn hơn<br/>là <span style="font-style:italic;font-weight:300">không chặn</span><br/>xe hợp lệ.</h2>
+          <p style="font-family:var(--sans),var(--sans-zh);font-size:max(15px,.98vw);line-height:1.65;color:rgba(255,255,255,.78);font-weight:300;margin-top:1vh;max-width:34ch">False rejection (từ chối xe hợp lệ) gây ùn tắc và mất lòng tin người dùng — nghiêm trọng hơn false acceptance trong bài toán bãi xe.</p>
+        </div>
+        <div class="foot" style="border-top:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);opacity:1;padding-top:1vh">
+          <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+          <div class="r">TRANG 16 / 18</div>
+        </div>
+      </div>
+      <div class="half b-grey" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between">
+        <div class="chrome-min" style="margin-bottom:0">
+          <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
+          <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
+        </div>
+        <div data-anim="right" style="display:flex;flex-direction:column;gap:0">
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle)">
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--text-secondary)">→</div>
+            <div>
+              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:600;font-size:max(17px,1.4vw);line-height:1.2;color:var(--text-primary);margin-bottom:.6vh">Loại Hãng xe khỏi hệ thống quyết định</h3>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(15px,.92vw);line-height:1.55;color:var(--text-secondary)">EfficientNet-B0 đạt 35.3% trên ảnh web sạch — quá thấp để dùng làm điều kiện bắt buộc. Áp dụng từ R3/R4 trở đi, hãng xe bị bỏ hoàn toàn khỏi luồng quyết định mở/đóng cổng để tránh false rejection.</p>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:start;padding:2.4vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">
+            <div style="font-family:var(--sans);font-weight:200;font-size:min(3.6vw,6.4vh);line-height:.9;color:var(--accent)">→</div>
+            <div>
+              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:600;font-size:max(17px,1.4vw);line-height:1.2;color:var(--accent);margin-bottom:.6vh">Màu xe giữ làm tín hiệu cảnh báo phụ</h3>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(15px,.92vw);line-height:1.55;color:var(--text-secondary)">MobileNetV3-Small đạt 55.1% / Macro-F1 0.545 — gấp &gt;4× baseline. Đủ độ tin cậy để phát cảnh báo khi màu xe không khớp hồ sơ, nhưng không chặn cổng tự động.</p>
+            </div>
+          </div>
+        </div>
+        <div class="foot" style="padding-top:1vh">
+          <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
+          <div class="r">TRANG 16 / 18</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 17 · S10 · Split Closing · Kết luận & Roadmap ========== -->
 <section class="slide split" data-layout="S10" data-animate="split-statement">
   <div class="canvas-card">
     <div class="split-half">
-      <!-- Left Half - accent background with ASCII characters -->
       <div class="half b-accent" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden">
         <canvas class="ascii-bg" aria-hidden="true"></canvas>
         <div class="chrome-min" style="margin-bottom:0;position:relative;z-index:1">
           <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
           <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
         </div>
-
         <div data-anim="manifesto" style="display:flex;flex-direction:column;gap:2vh;position:relative;z-index:1">
-          <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em;margin-bottom:1.6vh">KẾT QUẢ</div>
+          <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em;margin-bottom:1.6vh">KẾT LUẬN GIAI ĐOẠN 2</div>
           <h2 style="font-family:var(--sans),var(--sans-zh);font-size:min(6.4vw,11vh);line-height:.96;letter-spacing:-.025em;font-weight:200;color:var(--accent-on)">Dữ liệu<br/>chuẩn hóa,<br/><span style="font-style:italic;font-weight:300">sẵn sàng</span> training.</h2>
-          <div style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,1vw);line-height:1.6;color:rgba(255,255,255,.86);font-weight:300;max-width:38ch;margin-top:1.4vh">Bàn giao quy trình dữ liệu thô cào đa luồng được làm sạch, cân bằng hoàn toàn và vượt qua 100% kiểm thử tự động của test_dataset.py.</div>
+          <div style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,1vw);line-height:1.6;color:rgba(255,255,255,.86);font-weight:300;max-width:38ch;margin-top:1.4vh">Dataset sạch, cân bằng, vượt qua 100% kiểm thử tự động <code>test_dataset.py</code>. Pipeline 5 bước tái tạo hoàn toàn với seed=42.</div>
         </div>
-
         <div class="foot" style="border-top:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);opacity:1;padding-top:1vh;position:relative;z-index:1">
           <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-          <div class="r">TRANG 10 / 11</div>
+          <div class="r">TRANG 17 / 18</div>
         </div>
       </div>
-
-      <!-- Right Half - takeaways list -->
       <div class="half" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden">
         <img src="assets/report_data_3.png" alt="" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.08;z-index:0;pointer-events:none">
         <div class="chrome-min" style="margin-bottom:0">
           <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
           <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
         </div>
-
         <div data-anim="rules" style="display:flex;flex-direction:column;gap:0">
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--text-primary)">01</div>
             <div>
-              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Dữ liệu thực tế</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Thu thập thêm dữ liệu camera thực tế tại các bãi đỗ xe Việt Nam để thu hẹp khoảng cách miền dữ liệu (domain gap).</p>
+              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Dữ liệu camera thực tế</h3>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Thu thập dữ liệu camera CCTV thực tế tại bãi đỗ VN để thu hẹp domain gap — ảnh web vs ảnh camera.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--text-primary)">02</div>
             <div>
-              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Fine-tune Backbone</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Thử nghiệm mở băng (fine-tune) một số block cuối của MobileNetV3 để tối ưu hóa đặc trưng lớp màu xe.</p>
+              <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Fine-tune MobileNetV3</h3>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Mở băng (fine-tune) một số block cuối của MobileNetV3 backbone để tối ưu đặc trưng màu xe.</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--accent)">03</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--accent);margin-bottom:1vh">ONNX Quantization</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Nén và lượng tử hóa mô hình sang định dạng ONNX, chuẩn bị cho việc tích hợp biên thời gian thực.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Nén và lượng tử hóa mô hình sang ONNX, chuẩn bị cho tích hợp edge / thời gian thực.</p>
             </div>
           </div>
         </div>
-
         <div class="foot" style="padding-top:1vh">
           <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-          <div class="r">TRANG 10 / 11</div>
+          <div class="r">TRANG 17 / 18</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ========== SLIDE 11 · S10 · Ack & Q&A · Acknowledgements & Q&A ========== -->
+<!-- ========== SLIDE 18 · Cảm ơn & Q&A ========== -->
 <section class="slide light" data-layout="S10" data-animate="manifesto">
   <div class="canvas-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5vh;padding:6vh 6vw">
     <div class="chrome-min" style="width:100%;margin-bottom:0">
       <div class="l">TRƯỜNG TOP 1 CÔNG NGHỆ TRONG LÒNG TÔI</div>
       <div class="r">BÁO CÁO GIAI ĐOẠN 2: DỮ LIỆU</div>
     </div>
-
     <div style="display:flex;flex-direction:column;align-items:center;gap:3.5vh;flex:1;justify-content:center" data-anim="manifesto">
       <div style="width:56px;height:2px;background:var(--accent);opacity:.8"></div>
-
       <h1 style="font-family:var(--sans);font-weight:200;font-size:min(8.5vw,14vh);line-height:.92;letter-spacing:-.04em;color:var(--accent)">
         XIN CHÂN THÀNH CẢM ƠN<br/><span style="font-size:.55em;font-style:italic;font-weight:300;color:var(--text-secondary)">thầy và các bạn</span>
       </h1>
-
       <p style="font-family:var(--sans);font-size:max(15px,1.05vw);font-weight:300;line-height:1.7;color:var(--text-secondary);max-width:52ch">
         Chúng em xin chân thành cảm ơn thầy cô hội đồng và các bạn đã theo dõi.<br/>
         Nhóm sẵn sàng tiếp thu mọi câu hỏi phản biện và đóng góp ý kiến.
       </p>
-
       <div style="margin-top:1.5vh;display:flex;align-items:center;gap:1.6vw">
         <div style="width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:.7"></div>
         <span style="font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-helper)">Hỏi &amp; Đáp mở (Q&amp;A)</span>
         <div style="width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:.7"></div>
       </div>
     </div>
-
     <div class="foot">
       <div class="l">SVTH: NHÓM 7 · GVHD: THẦY LƯƠNG TRUNG KIÊN</div>
-      <div class="r">TRANG 11 / 11</div>
+      <div class="r">TRANG 18 / 18</div>
     </div>
   </div>
 </section>
