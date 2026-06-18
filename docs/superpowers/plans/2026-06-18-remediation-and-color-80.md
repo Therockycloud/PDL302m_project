@@ -129,7 +129,7 @@ Lăng kính: 🎓 = người chấm · 🧪 = tester · 👤 = người dùng
 > Mỗi dòng là **một phiên Claude riêng**. Bắt đầu phiên = mở file này, làm WS chưa tick, rồi dừng.
 
 - [x] **Session 1 — P0 rẻ + khởi động long-pole** · WS-DOCS ✅ (commit d9cd827) ∥ WS-COLOR script ✅ (commit sau). **CÒN LẠI:** bạn chạy full train offline → khi acc test ≥80% thì Session 3 mới swap `color_MobileNetV3Small_ft.pt` → `color_MobileNetV3Small.pt`.
-- [ ] **Session 2 — P1 bug nhìn-thấy-ngay** · WS-UIMETRICS, rồi WS-OCR. Verify bằng E2E video. (Đây là phần tốn token nhất vì có screenshot → để riêng 1 phiên.)
+- [~] **Session 2 — P1 bug nhìn-thấy-ngay** · WS-UIMETRICS ✅ commit `0e0ca2b` (E2E: TOTAL 334→1, FPS 0→96, slider+panel) · WS-OCR ⏳ HOÃN (VF3 — lỗi engine, xem findings §5).
 - [ ] **Session 3 — P1 runtime + P0 an ninh + chốt màu** · WS-RUNTIME + WS-SECEVAL; nếu train màu xong → Opus verify ≥80%, swap `color_*.pt` runtime, cập nhật report.
 - [ ] **Session 4 — P2 polish + nghiệm thu** · WS-REPRO + full verification (pytest + E2E + đọc lại report tìm mâu thuẫn còn sót).
 
@@ -147,4 +147,7 @@ Lăng kính: 🎓 = người chấm · 🧪 = tester · 👤 = người dùng
 
 ## 5. Progress log
 - 2026-06-18 — Plan tạo bởi Opus sau 3 audit + 1 live UI test. Baseline 44/7. Chưa WS nào chạy.
-- 2026-06-18 — **Session 1 xong.** WS-DOCS (D1–D8) commit `d9cd827`. WS-COLOR `main/scripts/train_color.py` commit (xem git log). Verify: pytest 44/7 xanh; class order khớp `torch_color.py` (drop-in); phase-1→phase-2 chạy OK (train acc 0.19→0.80 trong 6 epoch short-run). Runtime `color_MobileNetV3Small.pt` CHƯA đụng. **Chờ:** full train offline → verify ≥80% ở Session 3 rồi swap.
+- 2026-06-18 — **Session 1 xong.** WS-DOCS (D1–D8) commit `d9cd827`. WS-COLOR `main/scripts/train_color.py` commit `7e9a121`. Verify: pytest 44/7 xanh; class order khớp `torch_color.py` (drop-in); phase-1→phase-2 chạy OK (train acc 0.19→0.80 trong 6 epoch short-run). Runtime `color_MobileNetV3Small.pt` CHƯA đụng. **Chờ:** full train offline → verify ≥80% ở Session 3 rồi swap.
+- 2026-06-18 — **Session 2 (một phần).** WS-UIMETRICS commit `0e0ca2b`. E2E live verify: TOTAL 334→**1**, ALERTS 334→**1**, FPS 0→**96.2**, AVG lat 0→**10.4ms**, panel hiện verdict. pytest 44/7. Lỗi gốc U1: gate latch DECIDED + `_decision` persist mỗi frame → đã sửa bằng rising-edge (`out["state"]=="DECIDED" và prev!=DECIDED`). WS-OCR HOÃN.
+  **Findings cho WS-OCR (VF3) — phiên sau:** video path DÙNG 2-stage (VehicleDetector→plate_yolov8n→OCR) qua `ParkingSession` nhưng vẫn đọc "VF3" → lỗi ở `src/engine/parking_session.py:79` `_collect` đang gọi `plate_reader.read(crop)` trên **vehicle crop** (`veh.get("crop")`), KHÔNG phải plate crop từ plate_yolov8n. Image path `_run_pipeline` (dashboard.py) còn OCR thẳng box của detector COCO `yolov8n` (cả xe). Fix: chèn bước plate-detect trên vehicle crop rồi OCR plate crop; nếu không có plate hợp lệ → no-plate (đừng kết luận UNREGISTERED).
+  **Findings cho Session 3 (swap model màu):** train/serve mismatch — `_run_pipeline` (dashboard.py:272) cho `color_clf.predict(image)` ăn **FULL frame**; session path ăn vehicle crop; `train_color.py` train trên body-crop. Khi swap model 80% phải cho runtime color_clf ăn vehicle/body crop, nếu không 80% test cũng vô dụng ở runtime.
