@@ -131,8 +131,8 @@ Khi xe đi vào bãi đỗ (Check-in), hệ thống tự động ghi nhận bộ
 |:---|:---|:---|:---|
 | **Plate Detector** | YOLOv8-nano (Ultralytics) | Frame video gốc | Tọa độ bounding box biển số xe |
 | **OCR Engine** | PaddleOCR hoặc EasyOCR | Ảnh biển số đã crop | Chuỗi ký tự biển số (ví dụ: `30F12345`) |
-| **Brand Classifier** | ResNet50 (TensorFlow/Keras) | Ảnh toàn bộ xe đã crop | Nhãn hiệu xe (ví dụ: `Toyota Vios`) |
-| **Color Classifier** | MobileNetV2 (TensorFlow/Keras) | Ảnh toàn bộ xe đã crop | Màu sắc xe (ví dụ: `White`) |
+| **Brand Classifier** | EfficientNet-B0 (TensorFlow/Keras) *(đề xuất ban đầu: ResNet50 — đã thay bằng EfficientNet-B0 trong bản giao cuối; xem ghi chú phiên bản)* | Ảnh toàn bộ xe đã crop | Nhãn hiệu xe (ví dụ: `Toyota Vios`) — *(diagnostic only — đã loại khỏi quyết định)* |
+| **Color Classifier** | MobileNetV3-Small (TF/Keras, training/eval) → **PyTorch MobileNetV3-Small** (runtime/inference) *(đề xuất ban đầu: MobileNetV2 — đã thay bằng MobileNetV3-Small trong bản giao cuối; xem ghi chú phiên bản)* | Ảnh toàn bộ xe đã crop | Màu sắc xe (ví dụ: `White`) — cảnh báo mềm |
 | **Logic Matcher** | Python + Pandas | Bộ ba {Biển số, Nhãn hiệu, Màu sắc} | Trạng thái: AUTHORIZED / MISMATCH / UNREGISTERED |
 | **Web Dashboard** | Streamlit | Kết quả từ Logic Matcher | Giao diện trực quan thời gian thực |
 
@@ -215,8 +215,8 @@ Khi xe đi vào bãi đỗ (Check-in), hệ thống tự động ghi nhận bộ
 | Dữ liệu biển số Việt Nam không đủ đa dạng | Trung bình | Bổ sung dữ liệu bằng cách chụp thêm ảnh thực tế ngoài đường hoặc scraping Google Images |
 | Mô hình OCR đọc sai ký tự do ảnh bị mờ/nghiêng | Cao | Áp dụng tiền xử lý ảnh (chuyển grayscale, thresholding, deskew) trước khi đưa vào OCR |
 | Overfitting trên tập train nhỏ | Trung bình | Sử dụng Dropout, BatchNormalization, Early Stopping và Data Augmentation |
-| Tốc độ xử lý chậm khi chạy nhiều mô hình cùng lúc | Thấp | Sử dụng mô hình nhẹ (YOLOv8-nano, MobileNetV2) và tối ưu bằng threading |
-| Không có phần cứng GPU mạnh tại local | Trung bình | Huấn luyện mô hình trên môi trường Google Colab miễn phí (sau đó tải file model .pt/.h5 về chạy), đồng thời tối ưu hóa sử dụng các mô hình gọn nhẹ (YOLOv8-nano, MobileNetV2) để chạy suy luận (inference) mượt mà trên CPU máy tính cá nhân. |
+| Tốc độ xử lý chậm khi chạy nhiều mô hình cùng lúc | Thấp | Sử dụng mô hình nhẹ (YOLOv8-nano, MobileNetV3-Small) và tối ưu bằng threading *(đề xuất ban đầu: MobileNetV2)* |
+| Không có phần cứng GPU mạnh tại local | Trung bình | Huấn luyện mô hình trên môi trường Google Colab miễn phí (sau đó tải file model .pt/.h5 về chạy), đồng thời tối ưu hóa sử dụng các mô hình gọn nhẹ (YOLOv8-nano, MobileNetV3-Small) để chạy suy luận (inference) mượt mà trên CPU máy tính cá nhân. *(Đề xuất ban đầu: MobileNetV2 — bản giao cuối dùng MobileNetV3-Small)* |
 
 ---
 
@@ -224,10 +224,10 @@ Khi xe đi vào bãi đỗ (Check-in), hệ thống tự động ghi nhận bộ
 
 | CLO | Nội dung | Áp dụng trong dự án |
 |:---|:---|:---|
-| **CLO1** | Xây dựng và huấn luyện mạng neural fully-connected | Các tầng Dense cuối cùng của ResNet50 và MobileNetV2 classifiers |
+| **CLO1** | Xây dựng và huấn luyện mạng neural fully-connected | Các tầng Dense cuối cùng của EfficientNet-B0 và MobileNetV3-Small classifiers (đề xuất ban đầu: ResNet50/MobileNetV2 — đã thay bằng kiến trúc giao nộp thực tế) |
 | **CLO2** | Phân tích bias/variance, tối ưu hóa, sử dụng TensorFlow | Hyperparameter Tuning, Regularization (Dropout, BatchNorm), sử dụng tf.keras |
 | **CLO3** | Chẩn đoán lỗi trong hệ thống ML, Transfer Learning | Error Analysis trên Confusion Matrix, Transfer Learning từ ImageNet |
-| **CLO4** | Xây dựng CNN cho phát hiện và nhận dạng hình ảnh | YOLOv8 Object Detection, ResNet50, MobileNetV2 |
+| **CLO4** | Xây dựng CNN cho phát hiện và nhận dạng hình ảnh | YOLOv8 Object Detection, EfficientNet-B0 (Brand), MobileNetV3-Small (Color) |
 | **CLO6** | Thực hiện pipeline dự án DL hoàn chỉnh | Data Collection → Wrangling → EDA → Model Dev → Evaluation → Reporting |
 | **CLO7** | Ứng dụng AI tools để hoàn thành dự án | Sử dụng PaddleOCR/EasyOCR, Streamlit, Keras Tuner |
 

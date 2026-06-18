@@ -71,10 +71,12 @@ Hệ thống được thiết kế theo mô hình Microservices phân tách đ�
 
 Hệ thống được huấn luyện và đánh giá trên bộ dữ liệu thực tế đã qua tiền xử lý, loại bỏ hoàn toàn mock data:
 
-*   **Tập phân loại hãng xe (Brands)**: Tổng cộng **1,209** hình ảnh được làm sạch phân chia trên 8 lớp:
-    *   *Toyota (168), Hyundai (200), Kia (120), Mazda (120), Honda (161), VinFast (120 - cào từ Wikimedia), Ford (200), Mitsubishi (120)*.
-*   **Tập phân loại màu sắc xe (Colors)**: Tổng cộng **1,130** hình ảnh trên 8 gam màu:
-    *   *White (185), Black (200), Grey (200), Silver (175), Red (110), Blue (200), Brown (35), Yellow (25)*.
+*   **Tập phân loại hãng xe (Brands)**:
+    *   **Thô/đã thu thập**: ~1,209 ảnh trên 8 lớp — *Toyota (168), Hyundai (200), Kia (120), Mazda (120), Honda (161), VinFast (120 - cào từ Wikimedia), Ford (200), Mitsubishi (120)*.
+    *   **Dùng huấn luyện** (sau làm sạch & cân bằng ~100/lớp): **792 ảnh** — *Ford (100), Honda (99), Hyundai (99), Kia (99), Mazda (100), Mitsubishi (100), Toyota (95), VinFast (100)*.
+*   **Tập phân loại màu sắc xe (Colors)**:
+    *   **Thô/đã thu thập**: ~1,130 ảnh trên 8 gam màu — *White (185), Black (200), Grey (200), Silver (175), Red (110), Blue (200), Brown (35), Yellow (25)*.
+    *   **Dùng huấn luyện** (sau làm sạch & cân bằng ~100/lớp): **783 ảnh** — *Black (100), Blue (100), Brown (91), Grey (100), Red (100), Silver (100), White (100), Yellow (92)*.
 *   **Dữ liệu biển số kiểm thử (License Plates)**: **5** hình ảnh xe thực tế tại Việt Nam kèm file nhãn định dạng YOLO tương ứng để đánh giá E2E.
 
 ---
@@ -130,7 +132,7 @@ Dashboard mở tại `http://localhost:8501`. Chọn **Upload Video → “Play 
 
 ### 🧪 Chạy test
 ```bash
-cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 28 passed, 5 skipped
+cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 44 passed, 7 skipped
 ```
 
 ### 🛠️ Khắc phục sự cố (Troubleshooting)
@@ -147,7 +149,7 @@ cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 28 passed, 5 skip
 
 ## 🏃 Kiểm thử hệ thống (Running Tests inside Container)
 
-Để thực thi bộ unit test tự động (hiện **28 passed, 5 skipped** — kiểm tra OCR, so khớp CSDL, logic tiền xử lý) bên trong môi trường Docker đang chạy:
+Để thực thi bộ unit test tự động (hiện **44 passed, 7 skipped** — kiểm tra OCR, so khớp CSDL, logic tiền xử lý) bên trong môi trường Docker đang chạy:
 
 ```bash
 docker compose exec backend pytest main/tests/
@@ -167,7 +169,7 @@ Khi TensorFlow và PyTorch chạy song song, việc tranh chấp luồng tính t
     *   `OPENBLAS_NUM_THREADS=1`
     *   `VECLIB_MAXIMUM_THREADS=1`
     *   `NUMEXPR_NUM_THREADS=1`
-*   *Giải pháp này đưa độ trễ suy luận ổn định về mức cực thấp chỉ **~1.6 giây / xe**.*
+*   *Giải pháp này giúp hệ thống chạy ổn định ở mức **~1.6 giây / xe** (từ ảnh thứ hai trở đi; cold-start ảnh đầu ~4.5 s). Lưu ý: mục tiêu KPI ban đầu đặt ra là <1.0 giây — chưa đạt được do chạy thuần CPU và overhead khởi động PaddleOCR.*
 
 ### 2. Cấu hình chạy ngoại tuyến hoàn toàn (100% Offline Mode)
 *   **EasyOCR**: Tắt tính năng tự động tải hoặc kiểm tra mô hình qua mạng bằng cách khởi tạo: `easyocr.Reader(..., download_enabled=False)`.

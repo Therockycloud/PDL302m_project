@@ -66,16 +66,35 @@ Ngoài ra `learning_rate` ban đầu (1e-4) quá thấp khiến EarlyStopping d�
 
 Sau khi sửa, đánh giá được thực hiện trên **tập test giữ-riêng** (118 ảnh màu / 119 ảnh hãng, split 70/15/15 — xem Report 2), chưa từng thấy khi huấn luyện.
 
-### 5.1. Mô hình phân loại màu sắc xe (Color Classifier — TF/Keras MobileNetV3-Small)
+### 5.1. Mô hình phân loại màu sắc xe (Color Classifier — MobileNetV3-Small)
+
+> **Lưu ý runtime:** Mô hình TF/Keras (`color_classifier.keras`) chỉ dùng cho **training và đánh giá**. Mô hình **runtime/inference** là **PyTorch MobileNetV3-Small** (`main/data/models/color_MobileNetV3Small.pt`, được nạp bởi `main/src/models/torch_color.py`). Hai phiên bản được kiểm chứng cùng kiến trúc backbone; kết quả đánh giá dưới đây được đo trên tập test bằng phiên bản đã giao nộp.
+
 | Cấu hình | Test accuracy | Macro-F1 |
 | :--- | :---: | :---: |
 | Head đông cứng (frozen) | 48.3% | 0.48 |
-| **+ Fine-tuning (mở băng nửa trên backbone, lr=1e-4)** | **54.2%** | **0.54** |
+| **+ Fine-tuning (mở băng nửa trên backbone, lr=1e-4)** | **55.1%** | **0.545** |
 
-Fine-tuning nâng accuracy thêm ~6 điểm (gấp >4 lần mức ngẫu nhiên 12.5% trên 8 lớp). Đây là mô hình màu **đang chạy ở runtime** (`color_classifier.keras`), phục vụ qua tiến trình riêng để đồng tồn với PaddleOCR (xem Report 4).
+Fine-tuning nâng accuracy thêm ~7 điểm (gấp >4 lần mức ngẫu nhiên 12.5% trên 8 lớp). Mô hình màu được dùng làm **cảnh báo mềm** trong runtime (xem Report 4).
 *   **Biểu đồ huấn luyện**: [color_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/color_classifier_training_curves.png)
 
-### 5.2. Mô hình phân loại hãng xe (Brand Classifier — TF/Keras EfficientNet-B0)
+#### Ma trận nhầm lẫn & hiệu năng theo lớp (Colour Classifier — tập test 118 ảnh)
+
+| Lớp | Precision | Recall | F1-score | Support |
+| :--- | :---: | :---: | :---: | :---: |
+| Black | 0.615 | 0.533 | 0.571 | 15 |
+| Blue | 0.727 | 0.533 | 0.615 | 15 |
+| Brown | 0.273 | 0.214 | 0.240 | 14 |
+| Grey | 0.500 | 0.467 | 0.483 | 15 |
+| Red | 0.565 | 0.867 | 0.684 | 15 |
+| Silver | 0.429 | 0.400 | 0.414 | 15 |
+| White | 0.476 | 0.667 | 0.556 | 15 |
+| Yellow | 0.909 | 0.714 | 0.800 | 14 |
+| **Macro avg** | **0.562** | **0.549** | **0.545** | **118** |
+
+*Nhận xét: Brown và Silver là hai lớp khó nhất (F1 ≤ 0.41), phù hợp với độ tương đồng về sắc tố. Yellow đạt F1 = 0.80 cao nhất nhờ màu nổi bật. Kết quả này củng cố vai trò "cảnh báo mềm" — không dùng màu để từ chối cứng.*
+
+### 5.2. Mô hình phân loại hãng xe (Brand Classifier — EfficientNet-B0, diagnostic only — đã loại khỏi quyết định)
 | Cấu hình | Test accuracy | Macro-F1 |
 | :--- | :---: | :---: |
 | Head đông cứng | 32.8% | 0.32 |
@@ -94,5 +113,5 @@ Dù đã sửa lỗi + fine-tune, phân loại hãng vẫn yếu (~35%) — bài
 
 ## 6. Đề xuất cải tiến độ chính xác (Future Enhancements)
 1.  **Thu thập dữ liệu in-domain**: quay và cắt ảnh xe trực tiếp tại bãi giữ xe Việt Nam với góc máy cố định để khớp phân phối train/test.
-2.  **Fine-tune sâu hơn**: pha fine-tuning hiện mở nửa trên backbone ở lr=1e-4 (đã nâng màu 48.3%→54.2%); với GPU có thể mở nhiều tầng hơn, chạy 50–100 epochs và class-balanced sampling để đẩy cao hơn nữa.
+2.  **Fine-tune sâu hơn**: pha fine-tuning hiện mở nửa trên backbone ở lr=1e-4 (đã nâng màu 48.3%→55.1%); với GPU có thể mở nhiều tầng hơn, chạy 50–100 epochs và class-balanced sampling để đẩy cao hơn nữa.
 3.  **Cân bằng & mở rộng dữ liệu**: nâng các lớp hiếm (Brown/Yellow) vượt ~100 ảnh và bổ sung biến thể ánh sáng bãi xe.

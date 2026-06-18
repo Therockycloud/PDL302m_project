@@ -21,7 +21,8 @@ main/
     ├── datasets/
     │   └── vehicle_dataset.py # Custom data loaders for classifiers
     └── models/
-        ├── classifiers.py   # ResNet50 (Brand) & MobileNetV3 (Color) classifiers
+        ├── classifiers.py   # EfficientNet-B0 (Brand, TF/Keras) & MobileNetV3-Small (Color, TF/Keras training; PyTorch runtime) classifiers
+        ├── torch_color.py   # PyTorch MobileNetV3-Small runtime colour classifier
         ├── detector.py      # Ultralytics YOLOv8 vehicle plate detection wrapper
         └── ocr.py           # EasyOCR character recognition engine wrapper
 ```
@@ -61,9 +62,10 @@ main/
   * **Confidence Threshold:** 0.25
 * **Processing:** Crops the detected bounding box of the license plate with a safety margin (padding of $5\%$) to avoid clipping plate characters.
 
-### B. Character Recognition (EasyOCR)
+### B. Character Recognition (PaddleOCR — primary; EasyOCR — fallback)
 * **Model Class:** `OCRReader` (`main/src/models/ocr.py`)
-* **Backend:** EasyOCR
+* **Primary Backend:** PaddleOCR (PP-OCRv4, CRNN+CTC) — configured via `main/configs/config.yaml` (`ocr.engine: ppocr`). Benchmark C: 81% exact-match on real CCTV plates vs. EasyOCR 0%.
+* **Fallback Backend:** EasyOCR — activated by setting `ocr.engine: easyocr` in config.
 * **Post-processing:**
   * Alphanumeric character cleaning (removes punctuation, dashes, spaces, and dots).
   * 2-line plate correction: sorts the bounding boxes based on vertical and horizontal coordinates to read the top line first, then the bottom line.
@@ -77,12 +79,17 @@ main/
 * **Optimization:** Adam Optimizer, `categorical_crossentropy` loss.
 * **Freezing:** Base model is frozen during transfer learning.
 
-#### 2. Color Classifier (`ColorClassifier` in `main/src/models/classifiers.py`)
+#### 2. Color Classifier — Training/Eval (`ColorClassifier` in `main/src/models/classifiers.py`, TF/Keras)
 * **Base Model:** `MobileNetV3Small` (Pre-trained on ImageNet)
-* **Top Layer:** `GlobalAveragePooling2D → Dropout(0.3) → Dense(num_classes=8, activation='softmax')`
+* **Top Layer:** `Rescaling(255.0) → GlobalAveragePooling2D → Dropout(0.3) → Dense(num_classes=8, activation='softmax')`
 * **Input Shape:** 224x224x3
-* **Preprocessing:** Scaling layer rescales input pixels to `[-1, 1]` range.
+* **Preprocessing:** `Rescaling(255.0)` converts [0,1] input back to [0,255] — MobileNetV3's built-in `include_preprocessing=True` then normalises internally. *Note: an earlier version incorrectly used `Rescaling(1/127.5, -1)` causing double-preprocessing (fixed).*
 * **Optimization:** Adam Optimizer, `categorical_crossentropy` loss.
+
+#### 2b. Color Classifier — Runtime/Inference (`main/src/models/torch_color.py`, PyTorch)
+* **Weights file:** `main/data/models/color_MobileNetV3Small.pt`
+* **Base Model:** `MobileNetV3-Small` (PyTorch / torchvision)
+* **Note:** The runtime uses PyTorch to avoid OpenMP conflicts with PaddleOCR in the same process. TF/Keras is used for training and evaluation only.
 
 ---
 
@@ -90,12 +97,12 @@ main/
 
 ### A. Verification Database Matcher (`main/src/utils/matching.py`)
 * **Database Schema (`database.csv`):** `license_plate,car_brand,car_color`
-* **Matching Logic (`verify_vehicle`):**
+* **Matching Logic (`verify_vehicle`) — delivered (plate-primary):**
   1. Searches the database for the detected plate character string.
   2. If the plate is not present $\rightarrow$ return status `UNREGISTERED` and action `DENY`.
-  3. If the plate is present $\rightarrow$ compares the detected brand and color with the registered records.
-  4. If both brand and color match $\rightarrow$ return status `AUTHORIZED` and action `ALLOW`.
-  5. If brand or color does not match $\rightarrow$ return status `MISMATCH` and action `DENY_ALERT`.
+  3. If the plate is present $\rightarrow$ plate match alone yields `AUTHORIZED`.
+  4. If colour deviates from registered record $\rightarrow$ `AUTHORIZED` with soft warning (`ALLOW_WARN`); barrier opens but alert is logged.
+  5. Brand prediction is **diagnostic only — đã loại khỏi quyết định**: recorded in logs but does not affect AUTHORIZED/MISMATCH/UNREGISTERED outcome.
 
 ### B. Visual Overlay Overlay (`main/src/utils/visualization.py`)
 * Draw bounding boxes and text around detected license plates.
