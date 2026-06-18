@@ -128,7 +128,7 @@ Lăng kính: 🎓 = người chấm · 🧪 = tester · 👤 = người dùng
 
 > Mỗi dòng là **một phiên Claude riêng**. Bắt đầu phiên = mở file này, làm WS chưa tick, rồi dừng.
 
-- [ ] **Session 1 — P0 rẻ + khởi động long-pole** · WS-DOCS ∥ WS-COLOR(viết script). Chạy song song (khác file). Sau phiên: **bạn kick off train màu offline (CPU/Colab)** để nó "nấu" trong lúc làm phiên khác.
+- [x] **Session 1 — P0 rẻ + khởi động long-pole** · WS-DOCS ✅ (commit d9cd827) ∥ WS-COLOR script ✅ (commit sau). **CÒN LẠI:** bạn chạy full train offline → khi acc test ≥80% thì Session 3 mới swap `color_MobileNetV3Small_ft.pt` → `color_MobileNetV3Small.pt`.
 - [ ] **Session 2 — P1 bug nhìn-thấy-ngay** · WS-UIMETRICS, rồi WS-OCR. Verify bằng E2E video. (Đây là phần tốn token nhất vì có screenshot → để riêng 1 phiên.)
 - [ ] **Session 3 — P1 runtime + P0 an ninh + chốt màu** · WS-RUNTIME + WS-SECEVAL; nếu train màu xong → Opus verify ≥80%, swap `color_*.pt` runtime, cập nhật report.
 - [ ] **Session 4 — P2 polish + nghiệm thu** · WS-REPRO + full verification (pytest + E2E + đọc lại report tìm mâu thuẫn còn sót).
@@ -147,3 +147,4 @@ Lăng kính: 🎓 = người chấm · 🧪 = tester · 👤 = người dùng
 
 ## 5. Progress log
 - 2026-06-18 — Plan tạo bởi Opus sau 3 audit + 1 live UI test. Baseline 44/7. Chưa WS nào chạy.
+- 2026-06-18 — **Session 1 xong.** WS-DOCS (D1–D8) commit `d9cd827`. WS-COLOR `main/scripts/train_color.py` commit (xem git log). Verify: pytest 44/7 xanh; class order khớp `torch_color.py` (drop-in); phase-1→phase-2 chạy OK (train acc 0.19→0.80 trong 6 epoch short-run). Runtime `color_MobileNetV3Small.pt` CHƯA đụng. **Chờ:** full train offline → verify ≥80% ở Session 3 rồi swap.
