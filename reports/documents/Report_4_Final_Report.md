@@ -37,9 +37,10 @@ Quy trình tích hợp được hiện thực hóa trong mã nguồn [run_evalua
          v
 +-----------------------------+     +----------------------+     +----------------------+
 | So khớp DatabaseMatcher     | --> | AUTHORIZED (Khớp)    | --> | Mở Barrier (Xanh)    |
-| (Đối chiếu Plate,Brand,Col) |     | MISMATCH/UNREG (Sai) | --> | Cảnh báo Còi (Đỏ)    |
+| (Đối chiếu Plate, Màu)      |     | MISMATCH/UNREG (Sai) | --> | Cảnh báo Còi (Đỏ)    |
 +-----------------------------+     +----------------------+     +----------------------+
 ```
+> **Lưu ý:** Sơ đồ trên giữ nguyên hai nhánh classifier (EfficientNet cho hãng, MobileNetV3 cho màu) đúng như mã nguồn chạy suy luận để tham khảo, nhưng ở **cơ chế quyết định delivered**, **hãng xe (brand) đã bị loại khỏi đối chiếu** — `DatabaseMatcher` chỉ đối chiếu **Biển số (khoá chính)** và **Màu xe (cảnh báo mềm)**; dự đoán hãng chỉ còn vai trò *diagnostic*, không ảnh hưởng đến AUTHORIZED/MISMATCH/UNREGISTERED (xem Report 3 §5.5).
 
 ---
 
@@ -54,6 +55,8 @@ Nhóm đã chạy thực nghiệm toàn bộ pipeline trên tập dữ liệu ki
 | **clip3_new_2.jpg** | '5IDS133112*56' | Honda (0.2472) | Silver (0.1794) | **UNREGISTERED** | 1,632.75 ms |
 | **clip3_new_3.jpg** | '' (Không đọc được) | Mitsubishi (0.1828) | Silver (0.1816) | **UNREGISTERED** | 1,347.41 ms |
 | **clip3_new_4.jpg** | '66P189575' | Honda (0.2910) | Silver (0.1753) | **AUTHORIZED** | 1,771.46 ms |
+
+> **Lưu ý (cột Màu xe đã lỗi thời):** Bảng E2E trên được chạy bằng phiên bản **cũ** của model phân loại màu (~55% accuracy, dự đoán gần ngẫu nhiên — toàn bộ 5 ảnh đều ra "Silver" với confidence thấp ~0.18, đúng với hành vi của model yếu thời điểm đó). Model màu hiện tại đã được nâng cấp lên **86% (TTA)** trên VCoR (xem Report 3 §5.1). Cột "Hãng xe"/"Màu xe dự đoán (Conf)" ở bảng này **cần được chạy lại** với model màu mới để cập nhật số liệu đối chiếu E2E — chưa có số đo lại nên không bịa số mới ở đây.
 
 ### 4.2. Thống kê số liệu tổng hợp (Aggregate Metrics)
 *   **Tổng số lượng mẫu kiểm thử**: 5 xe
@@ -82,4 +85,4 @@ Trong quá trình tích hợp, hệ thống đã gặp hai thách thức lớn �
 ---
 
 ## 6. Kết luận
-Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (runtime: **PyTorch MobileNetV3-Small**, `color_MobileNetV3Small.pt`; training/eval: TF/Keras cùng backbone; **55.1%** test giữ-riêng sau fine-tuning) được dùng làm **cảnh báo mềm**; phân loại **hãng** (TF/Keras EfficientNet-B0, ~**35%** — *diagnostic only — đã loại khỏi quyết định*) bị loại khỏi quyết định do còn yếu. Classifier màu phục vụ runtime qua `torch_color.py` để đồng tồn với PaddleOCR mà không cần cách ly tiến trình TF. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU (~1.6 s/xe sau cold-start), giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain + fine-tuning sâu hơn để nâng màu/hãng (xem Report 3 §6).
+Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (runtime: **PyTorch MobileNetV3-Small**, `color_MobileNetV3Small.pt`) đã được nâng cấp đáng kể: từ baseline lịch sử ~55% (frozen-backbone, data cũ) lên **86,3% TTA (85,3% plain)** trên tập test giữ-riêng VCoR sau full fine-tune + class-weight + label-smoothing + TTA (chi tiết: Report 3 §5.1). Màu xe nay là một **thành phần mạnh** của hệ thống (~86%), nhưng **vẫn giữ vai trò "cảnh báo mềm"** thay vì khoá chính — không phải vì model yếu, mà vì số 86% đo trên ảnh VCoR sạch (web/marketplace), **chưa được kiểm chứng trên domain CCTV bãi xe thật** (ánh sáng yếu, nhiễu, góc nghiêng — xem caveat Report 3 §5.1); phân loại **hãng** (TF/Keras EfficientNet-B0, ~**35%** — *diagnostic only — đã loại khỏi quyết định*) bị loại khỏi quyết định do còn yếu. Classifier màu phục vụ runtime qua `torch_color.py` để đồng tồn với PaddleOCR mà không cần cách ly tiến trình TF. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU (~1.6 s/xe sau cold-start), giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain CCTV để xác nhận màu giữ được ~86% ngoài VCoR + fine-tuning sâu hơn để nâng hãng (xem Report 3 §6).

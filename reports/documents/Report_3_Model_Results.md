@@ -126,7 +126,35 @@ Ma trận nhầm lẫn (hàng = nhãn thật, cột = nhãn dự đoán, dự đ
 Dù đã sửa lỗi + fine-tune, phân loại hãng vẫn yếu (~35%) — bài toán 8 hãng nhìn từ phía sau với ~70 ảnh/lớp là khó. Kết quả này **củng cố quyết định bỏ phân loại hãng** khỏi cơ chế quyết định.
 *   **Biểu đồ huấn luyện**: [brand_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/brand_classifier_training_curves.png)
 
-### 5.3. Cơ chế quyết định delivered (plate-primary)
+### 5.3. Bộ phát hiện biển số (Plate Detector — YOLOv8-nano, Benchmark B)
+
+Tập validation: **1.765 ảnh** (HuggingFace `keremberke/license-plate-object-detection`, một lớp `license_plate`, có chứa biển số xe Việt Nam). Hai cấu hình cùng huấn luyện 80 epoch trên Apple M1 Max (MPS), imgsz 640, batch 16; latency đo trên CPU.
+
+| Mô hình | Khởi tạo | mAP50 | mAP50-95 | Latency (ms/ảnh, CPU) | Kích thước (MB) |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **plate_finetune** | transfer từ COCO `yolov8n.pt` | **0.9896** | **0.7040** | 110.3 | 6.24 |
+| plate_scratch | random init (`yolov8n.yaml`) | 0.9790 | 0.6972 | 110.4 | 6.24 |
+
+*Kết luận: `plate_finetune` (transfer learning từ COCO) thắng `plate_scratch` ở **mọi** chỉ số chính xác (mAP50 +1.06 điểm, mAP50-95 +0.68 điểm) với cùng latency và kích thước, đồng thời hội tụ sớm hơn nhiều (mAP50 ≈ 0.97 đã đạt từ epoch 9). Mô hình `plate_finetune` được chọn và xuất sang `plate_yolov8n.onnx` làm bộ phát hiện biển số ở giai đoạn 2 của pipeline.*
+
+Chi tiết đầy đủ: `docs/benchmarks/plate_benchmark.md`.
+
+### 5.4. Bộ nhận diện ký tự biển số (OCR — Benchmark C)
+
+Tập đánh giá: **16 ảnh crop biển số CCTV thật** (gán nhãn tay, gồm 1 biển xe máy 2 dòng). CER = khoảng cách Levenshtein / độ dài ground-truth; latency đo trên CPU.
+
+| Phương pháp | Exact-match | Mean CER | Latency (ms/biển) |
+| :--- | :---: | :---: | :---: |
+| EasyOCR | 0,000 | 0,278 | 31,7 |
+| EasyOCR + enhance (deskew/CLAHE) | 0,062 | 0,289 | 47,2 |
+| **PaddleOCR (ppocr)** | **0,812** | **0,031** | 423,2 |
+| PaddleOCR + enhance | 0,438 | 0,092 | 423,3 |
+
+*Kết luận: **PaddleOCR thắng tuyệt đối** — exact-match từ 0% (EasyOCR) lên **81,2%**, CER giảm từ 0,278 xuống **0,031**. Tiền xử lý (deskew + CLAHE + upscale) **không giúp ích** — nhúc nhích EasyOCR (0 → 6%) nhưng lại **gây hại** PaddleOCR (0,81 → 0,44), nên bị loại. PaddleOCR chậm hơn EasyOCR ~13× (423 ms vs 32 ms/biển) nhưng vẫn chấp nhận được vì OCR chỉ chạy **một lần/xe** qua cơ chế parking-trigger, không chạy theo từng khung hình. **Lựa chọn: PaddleOCR** (`ocr.engine: ppocr`) làm engine chính; EasyOCR giữ làm fallback khi PaddlePaddle không khả dụng.*
+
+Chi tiết đầy đủ: `docs/benchmarks/ocr_benchmark.md`.
+
+### 5.5. Cơ chế quyết định delivered (plate-primary)
 1.  **Biển số (PaddleOCR) là khoá chính** — Benchmark C: exact-match 81% so với EasyOCR 0% trên biển CCTV thật.
 2.  **Màu là "cảnh báo mềm"**: màu lệch so với CSDL chỉ phát cảnh báo (`ALLOW_WARN`) chống tráo biển, không từ chối cứng.
 3.  **Bỏ phân loại hãng** khỏi quyết định (giữ lại như thử nghiệm).
