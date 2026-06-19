@@ -75,8 +75,9 @@ Hệ thống được huấn luyện và đánh giá trên bộ dữ liệu th�
     *   **Thô/đã thu thập**: ~1,209 ảnh trên 8 lớp — *Toyota (168), Hyundai (200), Kia (120), Mazda (120), Honda (161), VinFast (120 - cào từ Wikimedia), Ford (200), Mitsubishi (120)*.
     *   **Dùng huấn luyện** (sau làm sạch & cân bằng ~100/lớp): **792 ảnh** — *Ford (100), Honda (99), Hyundai (99), Kia (99), Mazda (100), Mitsubishi (100), Toyota (95), VinFast (100)*.
 *   **Tập phân loại màu sắc xe (Colors)**:
-    *   **Thô/đã thu thập**: ~1,130 ảnh trên 8 gam màu — *White (185), Black (200), Grey (200), Silver (175), Red (110), Blue (200), Brown (35), Yellow (25)*.
-    *   **Dùng huấn luyện** (sau làm sạch & cân bằng ~100/lớp): **783 ảnh** — *Black (100), Blue (100), Brown (91), Grey (100), Red (100), Silver (100), White (100), Yellow (92)*.
+    *   **Thô/đã thu thập (ban đầu)**: ~1,130 ảnh trên 8 gam màu — *White (185), Black (200), Grey (200), Silver (175), Red (110), Blue (200), Brown (35), Yellow (25)*.
+    *   **Dùng huấn luyện (ban đầu, sau làm sạch & cân bằng ~100/lớp)**: 783 ảnh — *Black (100), Blue (100), Brown (91), Grey (100), Red (100), Silver (100), White (100), Yellow (92)*. Model này đạt **~55% test accuracy** (frozen backbone) — quá yếu để dùng thật.
+    *   **Mở rộng với VCoR (Kaggle) — model đang chạy ở runtime**: gộp thêm bộ **VCoR (Vehicle Color Recognition)** → **5,881 ảnh** hợp lệ trên 8 lớp. Full fine-tune MobileNetV3-Small + class-weighted loss + label smoothing + test-time augmentation (TTA) đẩy **test accuracy lên 86.3% (TTA)**, macro-F1 0.84 — xem `docs/benchmarks/color_finetune_report.md` (đánh giá tái lập trên model đã deploy) và [Report 3 §5.1](reports/documents/Report_3_Model_Results.md). *Lưu ý trung thực: 86% đo trên VCoR (ảnh web sạch); hiệu năng trên CCTV bãi xe thật sẽ thấp hơn do domain gap (ánh sáng/độ phân giải) — cần white-balance + thêm dữ liệu CCTV để bền khi triển khai.*
 *   **Dữ liệu biển số kiểm thử (License Plates)**: **5** hình ảnh xe thực tế tại Việt Nam kèm file nhãn định dạng YOLO tương ứng để đánh giá E2E.
 
 ---

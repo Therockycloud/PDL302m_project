@@ -68,31 +68,54 @@ Sau khi sửa, đánh giá được thực hiện trên **tập test giữ-riên
 
 ### 5.1. Mô hình phân loại màu sắc xe (Color Classifier — MobileNetV3-Small)
 
-> **Lưu ý runtime:** Mô hình TF/Keras (`color_classifier.keras`) chỉ dùng cho **training và đánh giá**. Mô hình **runtime/inference** là **PyTorch MobileNetV3-Small** (`main/data/models/color_MobileNetV3Small.pt`, được nạp bởi `main/src/models/torch_color.py`). Hai phiên bản được kiểm chứng cùng kiến trúc backbone; kết quả đánh giá dưới đây được đo trên tập test bằng phiên bản đã giao nộp.
+> **Lưu ý runtime:** Mô hình TF/Keras (`color_classifier.keras`) chỉ dùng cho **training và đánh giá** ở giai đoạn đầu. Mô hình **runtime/inference hiện tại (đã deploy)** là **PyTorch MobileNetV3-Small** (`main/data/models/color_MobileNetV3Small.pt`, được nạp bởi `main/src/models/torch_color.py`), fine-tune trên Google Colab (GPU) bằng `main/scripts/colab_train_color.py`. Kết quả đánh giá dưới đây được đo lại (tái lập, không phải số Colab tự báo) trên tập test giữ-riêng bằng script `main/scripts/eval_color_deployed.py`, chạy trực tiếp trên file `.pt` đang chạy ở runtime.
+
+**Hành trình cải tiến (journey):** ~55% (frozen-backbone, data cũ, 783 ảnh project) → ~78% (full fine-tune + bổ sung dữ liệu VCoR, 600 ảnh/lớp) → **~86% (deploy)** nhờ full VCoR (5,881 ảnh hợp lệ) + ba lever bổ sung: class-weighted loss, label smoothing 0.1, test-time augmentation (TTA, hflip).
 
 | Cấu hình | Test accuracy | Macro-F1 |
 | :--- | :---: | :---: |
-| Head đông cứng (frozen) | 48.3% | 0.48 |
-| **+ Fine-tuning (mở băng nửa trên backbone, lr=1e-4)** | **55.1%** | **0.545** |
+| Head đông cứng (frozen, data cũ) | 48.3% | 0.48 |
+| Fine-tuning nửa backbone (data cũ, 783 ảnh) | 55.1% | 0.545 |
+| Full fine-tune + VCoR 600/lớp (chưa TTA) | 77.6% | 0.776 |
+| **Full fine-tune + VCoR full (5,881 ảnh) + class-weight + label-smoothing — plain** | 85.3% | 0.829 |
+| **+ Test-time augmentation (TTA, hflip) — DEPLOYED** | **86.3%** | **0.841** |
 
-Fine-tuning nâng accuracy thêm ~7 điểm (gấp >4 lần mức ngẫu nhiên 12.5% trên 8 lớp). Mô hình màu được dùng làm **cảnh báo mềm** trong runtime (xem Report 4).
-*   **Biểu đồ huấn luyện**: [color_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/color_classifier_training_curves.png)
+Methodology: dataset = **VCoR** (Kaggle, Vehicle Color Recognition — ~5,881 ảnh dùng được trên 8 lớp màu, gộp cùng ảnh gốc của nhóm) + full fine-tune toàn bộ backbone MobileNetV3-Small (không đông cứng) + class-weighted loss (bù lệch lớp Silver/Grey hiếm) + label smoothing 0.1 + test-time augmentation (trung bình softmax ảnh gốc + ảnh lật ngang) + body-crop tiền xử lý (bỏ 20% trên/15% dưới ảnh — loại trời/đường). Đánh giá trên tập test giữ-riêng (held-out), stratified split 70/15/15, seed=42 — **889 ảnh test**, chưa từng thấy khi huấn luyện. Mô hình màu vẫn được dùng làm **cảnh báo mềm** trong runtime (xem Report 4), không từ chối cứng.
 
-#### Ma trận nhầm lẫn & hiệu năng theo lớp (Colour Classifier — tập test 118 ảnh)
+> **Lưu ý trung thực (domain gap):** 86% là đo trên VCoR — ảnh xe chụp rõ, nền sạch, ánh sáng tốt (nguồn web/marketplace), **không phải ảnh CCTV bãi xe thật**. Hiệu năng khi triển khai trên camera giám sát thực tế nhiều khả năng **thấp hơn** do khác biệt domain (ánh sáng yếu/ngược sáng, nhiễu, góc nghiêng, độ phân giải thấp). Để bền hơn khi triển khai thật cần bổ sung tiền xử lý white-balance và một lượng nhỏ dữ liệu CCTV thật để fine-tune thêm.
 
-| Lớp | Precision | Recall | F1-score | Support |
-| :--- | :---: | :---: | :---: | :---: |
-| Black | 0.615 | 0.533 | 0.571 | 15 |
-| Blue | 0.727 | 0.533 | 0.615 | 15 |
-| Brown | 0.273 | 0.214 | 0.240 | 14 |
-| Grey | 0.500 | 0.467 | 0.483 | 15 |
-| Red | 0.565 | 0.867 | 0.684 | 15 |
-| Silver | 0.429 | 0.400 | 0.414 | 15 |
-| White | 0.476 | 0.667 | 0.556 | 15 |
-| Yellow | 0.909 | 0.714 | 0.800 | 14 |
-| **Macro avg** | **0.562** | **0.549** | **0.545** | **118** |
+*   **Script đánh giá tái lập**: `main/scripts/eval_color_deployed.py` (tái sử dụng hàm load/split/eval từ `main/scripts/colab_train_color.py`).
+*   **Báo cáo đầy đủ (JSON + Markdown)**: `docs/benchmarks/color_finetune_report.json`, `docs/benchmarks/color_finetune_report.md`.
+*   **Biểu đồ huấn luyện (giai đoạn đầu, TF/Keras, data cũ)**: [color_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/color_classifier_training_curves.png)
 
-*Nhận xét: Brown và Silver là hai lớp khó nhất (F1 ≤ 0.41), phù hợp với độ tương đồng về sắc tố. Yellow đạt F1 = 0.80 cao nhất nhờ màu nổi bật. Kết quả này củng cố vai trò "cảnh báo mềm" — không dùng màu để từ chối cứng.*
+#### Ma trận nhầm lẫn & hiệu năng theo lớp (Colour Classifier — model deployed, tập test VCoR 889 ảnh, TTA)
+
+| Lớp | Precision | Recall | Support |
+| :--- | :---: | :---: | :---: |
+| Black | 0.840 | 0.773 | 88 |
+| Blue | 0.955 | 0.924 | 159 |
+| Brown | 0.980 | 0.803 | 122 |
+| Grey | 0.597 | 0.763 | 93 |
+| Red | 0.978 | 0.993 | 137 |
+| Silver | 0.632 | 0.615 | 78 |
+| White | 0.808 | 0.874 | 87 |
+| Yellow | 0.976 | 0.984 | 125 |
+| **Macro avg** | **0.846** | **0.841** | **889** |
+
+Ma trận nhầm lẫn (hàng = nhãn thật, cột = nhãn dự đoán, dự đoán TTA):
+
+| | Black | Blue | Brown | Grey | Red | Silver | White | Yellow |
+|---|---|---|---|---|---|---|---|---|
+| Black | 68 | 4 | 0 | 15 | 0 | 1 | 0 | 0 |
+| Blue | 4 | 147 | 0 | 3 | 0 | 3 | 1 | 1 |
+| Brown | 5 | 1 | 98 | 12 | 2 | 1 | 1 | 2 |
+| Grey | 3 | 1 | 1 | 71 | 1 | 14 | 2 | 0 |
+| Red | 0 | 0 | 1 | 0 | 136 | 0 | 0 | 0 |
+| Silver | 0 | 1 | 0 | 15 | 0 | 48 | 14 | 0 |
+| White | 1 | 0 | 0 | 1 | 0 | 9 | 76 | 0 |
+| Yellow | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 123 |
+
+*Nhận xét: Red/Blue/Yellow/Brown rất mạnh (F1 ≥ 0.88), màu sắc nổi bật và ít nhập nhằng. **Grey và Silver vẫn là cặp khó nhất** (Grey recall 0.763 nhưng precision chỉ 0.597 — bị Black và Silver lẫn vào; Silver precision/recall ~0.62) — ba màu trung tính (Black/Grey/Silver/White) là cụm nhập nhằng cố hữu về sắc tố, đúng như dự đoán trong các phiên thử nghiệm trước. Kết quả này củng cố vai trò "cảnh báo mềm" — không dùng màu để từ chối cứng.*
 
 ### 5.2. Mô hình phân loại hãng xe (Brand Classifier — EfficientNet-B0, diagnostic only — đã loại khỏi quyết định)
 | Cấu hình | Test accuracy | Macro-F1 |
@@ -112,6 +135,6 @@ Dù đã sửa lỗi + fine-tune, phân loại hãng vẫn yếu (~35%) — bài
 ---
 
 ## 6. Đề xuất cải tiến độ chính xác (Future Enhancements)
-1.  **Thu thập dữ liệu in-domain**: quay và cắt ảnh xe trực tiếp tại bãi giữ xe Việt Nam với góc máy cố định để khớp phân phối train/test.
-2.  **Fine-tune sâu hơn**: pha fine-tuning hiện mở nửa trên backbone ở lr=1e-4 (đã nâng màu 48.3%→55.1%); với GPU có thể mở nhiều tầng hơn, chạy 50–100 epochs và class-balanced sampling để đẩy cao hơn nữa.
-3.  **Cân bằng & mở rộng dữ liệu**: nâng các lớp hiếm (Brown/Yellow) vượt ~100 ảnh và bổ sung biến thể ánh sáng bãi xe.
+1.  **Thu thập dữ liệu in-domain**: quay và cắt ảnh xe trực tiếp tại bãi giữ xe Việt Nam với góc máy cố định để khớp phân phối train/test — đây là hướng còn lại quan trọng nhất, vì model màu hiện đo 86% trên VCoR (ảnh web sạch) chứ chưa có số đo trên CCTV thật.
+2.  **Bộ phân loại màu đã đạt mục tiêu (~86% trên VCoR, xem §5.1)** nhờ full fine-tune + dữ liệu VCoR + class-weight/label-smoothing/TTA; hướng tiếp theo không phải "fine-tune sâu hơn" mà là **thu hẹp domain gap**: thêm white-balance tiền xử lý + một lượng nhỏ dữ liệu CCTV thật để fine-tune tiếp, và xử lý riêng cụm nhập nhằng Grey/Silver/Black/White (vẫn là điểm yếu nhất, xem confusion matrix §5.1).
+3.  **Cân bằng & mở rộng dữ liệu hãng xe (Brand)**: nâng các lớp hiếm (Brown/Yellow tương ứng phía màu, hoặc các hãng ít ảnh phía brand) vượt ~100 ảnh và bổ sung biến thể ánh sáng bãi xe.

@@ -1,0 +1,155 @@
+{
+  "classes": [
+    "Black",
+    "Blue",
+    "Brown",
+    "Grey",
+    "Red",
+    "Silver",
+    "White",
+    "Yellow"
+  ],
+  "data_layout": "vcor",
+  "n_samples_total": 5881,
+  "class_weights": {
+    "Black": 1.1973,
+    "Blue": 0.6535,
+    "Brown": 0.8598,
+    "Grey": 1.1356,
+    "Red": 0.7624,
+    "Silver": 1.3432,
+    "White": 1.2062,
+    "Yellow": 0.8419
+  },
+  "test_accuracy_plain": 0.8526,
+  "test_accuracy_tta": 0.8628,
+  "test_macro_f1_plain": 0.8287,
+  "test_macro_f1_tta": 0.8407,
+  "per_class": {
+    "Black": {
+      "precision": 0.8395,
+      "recall": 0.7727
+    },
+    "Blue": {
+      "precision": 0.9545,
+      "recall": 0.9245
+    },
+    "Brown": {
+      "precision": 0.98,
+      "recall": 0.8033
+    },
+    "Grey": {
+      "precision": 0.5966,
+      "recall": 0.7634
+    },
+    "Red": {
+      "precision": 0.9784,
+      "recall": 0.9927
+    },
+    "Silver": {
+      "precision": 0.6316,
+      "recall": 0.6154
+    },
+    "White": {
+      "precision": 0.8085,
+      "recall": 0.8736
+    },
+    "Yellow": {
+      "precision": 0.9762,
+      "recall": 0.984
+    }
+  },
+  "confusion_matrix": [
+    [
+      68,
+      4,
+      0,
+      15,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      4,
+      147,
+      0,
+      3,
+      0,
+      3,
+      1,
+      1
+    ],
+    [
+      5,
+      1,
+      98,
+      12,
+      2,
+      1,
+      1,
+      2
+    ],
+    [
+      3,
+      1,
+      1,
+      71,
+      1,
+      14,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      136,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      15,
+      0,
+      48,
+      14,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      1,
+      0,
+      9,
+      76,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      0,
+      0,
+      123
+    ]
+  ],
+  "confusion_matrix_note": "rows=true, cols=predicted (TTA predictions)",
+  "levers": [
+    "class_weighted_loss (inverse frequency, mean-normalized)",
+    "label_smoothing=0.1",
+    "test_time_augmentation (orig + hflip softmax average)"
+  ],
+  "baseline_note": "prior full fine-tune (no levers) test accuracy ~= 0.776",
+  "n_test": 889,
+  "weights_path": "/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/models/color_MobileNetV3Small.pt",
+  "eval_script": "main/scripts/eval_color_deployed.py",
+  "note": "Reproducible held-out eval of the DEPLOYED runtime weights (color_MobileNetV3Small.pt), NOT a retrain. Same data load / 70-15-15 stratified split (seed=42) as colab_train_color.py, reused via import."
+}
