@@ -65,6 +65,43 @@ Nhóm đã chạy thực nghiệm toàn bộ pipeline trên tập dữ liệu ki
 *   **Xe Không đăng ký (UNREGISTERED)**: 2 xe (khóa barrier, báo động đỏ)
 *   **Thời gian phản hồi trung bình (Average Latency)**: **2,190.89 ms / xe** trên 5 ảnh test — con số này gồm *cold-start* (~4.49 s ở ảnh đầu do nạp model lần đầu). Từ ảnh thứ hai trở đi, độ trễ ổn định ở mức **~1.6 s / xe** (xem §5.1). Mục tiêu <1.0 s ở đề xuất chưa đạt do chạy thuần CPU + tải PaddleOCR.
 
+### 4.3. Đánh giá năng lực chống tráo biển (Plate-swap Detection)
+
+Đề xuất ban đầu (Report 1) đặt mục tiêu **≥95% phát hiện gian lận**, nhưng số đo ở §4.1–4.2 chỉ chạy trên **5 ảnh thực tế** và không đo riêng năng lực an ninh — đây là khoảng trống lớn nhất giữa cam kết và số liệu thực đo của toàn dự án. Mục này lấp khoảng trống đó bằng một **thực nghiệm có kiểm soát (controlled evaluation)**, đo trực tiếp trên model màu đang triển khai và logic quyết định thật, KHÔNG sửa mã nguồn/runtime.
+
+**Khái niệm đo:** hệ thống là **plate-primary**, màu xe là **cảnh báo mềm** (`DatabaseMatcher.verify_vehicle`, xem §3). Cơ chế chống tráo biển hoạt động như sau — nếu một biển số bị nhân bản (clone) từ xe A (màu đăng ký C1) và gắn lên xe B khác màu (màu thật C2 ≠ C1), bộ phân loại màu sẽ dự đoán C2 trên ảnh xe B; vì C2 ≠ C1 (màu đăng ký trong CSDL), `verify_vehicle` trả về `AUTHORIZED` kèm `action='ALLOW_WARN'`, `color_warning=True` — đây chính là tín hiệu "bắt được tráo biển".
+
+**Phương pháp:**
+*   Script: `main/scripts/eval_security.py` (mới, không sửa mã runtime/model).
+*   **Ảnh kiểm thử**: tập TEST giữ-riêng của VCoR — **tái dùng cùng split** với `eval_color_deployed.py` (`colab_train_color.py.load_samples` + `stratified_split`, seed=42, stratified 70/15/15) → 889 ảnh giữ-riêng, model màu chưa từng thấy khi huấn luyện.
+*   **Model**: trọng số ĐANG CHẠY ở runtime (`main/data/models/color_MobileNetV3Small.pt`), gọi qua `TorchColorClassifier.predict()` thật — dùng **màu dự đoán thật** của model (không dùng nhãn ground-truth), nên số đo phản ánh đúng hành vi triển khai, kể cả khi model màu đoán sai.
+*   **Logic quyết định**: `DatabaseMatcher.verify_vehicle()` thật, không sửa đổi; CSDL đăng ký là **CSV tạm** dựng riêng cho lần chạy này (cùng schema `main/data/database.csv`: `license_plate,car_brand,car_color`), không đụng đến CSDL thật của repo.
+*   **3 nhóm kịch bản, 200 trial/nhóm (cân bằng theo màu), RNG seed cố định (42) để tái lập được:**
+    1.  **legitimate** — ảnh màu thật C, biển đăng ký đúng màu C → đúng = AUTHORIZED, không cảnh báo. Cảnh báo ở đây là **báo động giả (false alarm)**.
+    2.  **plate_swap** — ảnh màu thật C2, biển đăng ký màu KHÁC C1≠C2 (giả lập tráo biển) → đúng = `color_warning=True` (bắt được tráo); không cảnh báo = **bỏ lọt (missed)**.
+    3.  **unregistered** — biển hoàn toàn không có trong CSDL → đúng = UNREGISTERED/DENY_ALERT.
+
+**Kết quả (số đo thật, 600 trial tổng, 889 ảnh pool giữ-riêng, chạy 20/06/2026):**
+
+| Kịch bản | Số trial | Chỉ số | Kết quả |
+| :--- | :---: | :--- | :---: |
+| **Phát hiện tráo biển (headline)** | 200 | tỉ lệ bắt được (`color_warning=True`) | **98,5% (197/200)** |
+| Tráo biển bị bỏ lọt | 200 | tỉ lệ miss | 1,5% (3/200) |
+| Xe hợp lệ (không tráo) | 200 | tỉ lệ báo động giả | 14,5% (29/200) |
+| Biển không đăng ký | 200 | tỉ lệ phát hiện (DENY_ALERT) | 100,0% (200/200) |
+
+*   **Tỉ lệ phát hiện tráo biển = 98,5%** — vượt mục tiêu ≥95% của đề xuất ban đầu, **đo được lần đầu** trên model + logic thật (không phải số ước lượng).
+*   **Tỉ lệ báo động giả = 14,5%** — xe hợp lệ vẫn có thể bị cảnh báo nhầm do chính model màu dự đoán sai dù biển đúng; đây là cái giá đánh đổi của việc dùng màu làm cảnh báo mềm (chấp nhận được vì hệ thống không từ chối cứng, chỉ cảnh báo).
+*   **Cặp màu bị bỏ lọt nhiều nhất**: Grey→Brown (1/2, 50%), Silver↔Grey (1/5 mỗi chiều, 20%) — đúng như dự đoán, rơi vào **cụm màu trung tính** (Black/Grey/Silver/White). Đo riêng cụm này: 50 trial, miss 2 (**4,0%**, cao hơn tỉ lệ miss tổng 1,5%) — khớp với confusion matrix màu đã ghi nhận ở Report 3 §5.1 (Grey/Silver là cặp khó nhất của chính bộ phân loại màu).
+*   Chi tiết đầy đủ (toàn bộ 52 cặp màu, breakdown JSON): `docs/benchmarks/security_eval.md` và `docs/benchmarks/security_eval.json`.
+
+**Giới hạn trung thực (đọc trước khi trích số 98,5%):**
+1.  **Chỉ bắt được khi xe gắn biển tráo có MÀU KHÁC màu đăng ký.** Nếu kẻ tráo biển dùng đúng xe cùng màu (hoặc cố tình chọn xe cùng màu/dán decal giả màu), cơ chế cross-check màu **không có khả năng phát hiện** — đây là lỗ hổng cố hữu của thiết kế "màu là cảnh báo mềm", không phải lỗi đo lường hay có thể vá bằng cách huấn luyện lại model màu.
+2.  **Phụ thuộc hoàn toàn vào việc OCR đọc đúng biển số trước đó** (Benchmark C: ~81% exact-match, xem Report 3). Thực nghiệm này đo cách ly riêng bước cross-check màu, giả định biển đã đọc đúng; trong vận hành thật, nếu OCR đọc sai/đọc thiếu biển, xe có thể rơi vào UNREGISTERED hoặc match nhầm bản ghi khác — tỉ lệ 98,5% ở trên **không bao gồm** lỗi OCR thực tế nối tiếp.
+3.  **Đo trên VCoR (ảnh web/marketplace sạch)**, không phải ảnh CCTV bãi xe thật. CCTV thực tế (ánh sáng yếu, góc nghiêng, nén ảnh, độ phân giải thấp) nhiều khả năng cho tỉ lệ phát hiện **thấp hơn** 98,5% do domain gap — cùng caveat đã nêu cho độ chính xác màu ở Report 3 §5.1 / Report 4 §5.1.
+
+**Kết luận của mục này:** đây là **lần đầu tiên** dự án có số đo định lượng cho năng lực an ninh đã cam kết ở đề xuất (mục tiêu ≥95% chưa từng được đo trước thực nghiệm này). Cross-check màu nâng đáng kể khả năng phát hiện tráo biển so với việc chỉ dùng biển số đơn thuần (chỉ dùng biển = 0% phát hiện tráo biển cùng-biển-khác-xe, vì biển vẫn khớp CSDL), nhưng **không phải là đảm bảo cứng** — nó là một lớp phòng thủ bổ sung có giới hạn rõ ràng (màu phải khác, OCR phải đúng, domain phải gần VCoR), cần kết hợp thêm các lớp khác (camera giám sát người vận hành, đối soát định kỳ) để đạt an ninh toàn diện.
+
 ---
 
 ## 5. Giải pháp tối ưu hóa hiệu năng CPU và Chế độ ngoại tuyến (Offline Optimization)

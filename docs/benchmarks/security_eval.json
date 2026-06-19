@@ -1,0 +1,418 @@
+{
+  "weights_path": "/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/models/color_MobileNetV3Small.pt",
+  "temp_db_path": "/var/folders/k8/ycp28skx4b97ns1_lxdgr1540000gn/T/dpl302m_security_eval_oe4imq4d/temp_registration.csv",
+  "data_dir": "/Users/konalyn/Downloads/archive",
+  "data_layout": "vcor",
+  "used_fallback_data_dir": false,
+  "seed": 42,
+  "n_test_pool": 889,
+  "n_total_trials": 600,
+  "elapsed_seconds": 8.78,
+  "legitimate": {
+    "n_trials": 200,
+    "correct_no_warning": 171,
+    "false_alarm_rate": 0.145,
+    "false_alarm_count": 29,
+    "unexpected_status_count": 0
+  },
+  "plate_swap": {
+    "n_trials": 200,
+    "caught": 197,
+    "missed": 3,
+    "detection_rate": 0.985,
+    "miss_rate": 0.015,
+    "colour_pair_breakdown": [
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Brown",
+        "n_trials": 2,
+        "n_missed": 1,
+        "miss_rate": 0.5
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Grey",
+        "n_trials": 5,
+        "n_missed": 1,
+        "miss_rate": 0.2
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Silver",
+        "n_trials": 5,
+        "n_missed": 1,
+        "miss_rate": 0.2
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "Black",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "Silver",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "Yellow",
+        "n_trials": 7,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "Blue",
+        "n_trials": 5,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "White",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "Red",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Blue",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Brown",
+        "n_trials": 6,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "White",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Black",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Red",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Yellow",
+        "n_trials": 1,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Red",
+        "n_trials": 5,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Black",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Grey",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Brown",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Yellow",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Silver",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "White",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Silver",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Yellow",
+        "n_trials": 8,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Black",
+        "n_trials": 7,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Grey",
+        "n_trials": 5,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Blue",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Red",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Brown",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "White",
+        "n_trials": 5,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Brown",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Red",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Grey",
+        "n_trials": 1,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Blue",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Silver",
+        "n_trials": 1,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Black",
+        "n_trials": 1,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Blue",
+        "n_trials": 5,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Red",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "White",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Black",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Blue",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Brown",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "White",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Silver",
+        "n_trials": 5,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Yellow",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Black",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Grey",
+        "n_trials": 6,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Brown",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Blue",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Red",
+        "n_trials": 3,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Silver",
+        "n_trials": 4,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Grey",
+        "n_trials": 6,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "White",
+        "n_trials": 2,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Yellow",
+        "n_trials": 1,
+        "n_missed": 0,
+        "miss_rate": 0.0
+      }
+    ],
+    "neutral_cluster_pairs": {
+      "definition": "registered AND true colour both in {Black, Grey, Silver, White}",
+      "n_trials": 50,
+      "n_missed": 2,
+      "miss_rate": 0.04
+    }
+  },
+  "unregistered": {
+    "n_trials": 200,
+    "correct": 200,
+    "detection_rate": 1.0
+  },
+  "eval_script": "main/scripts/eval_security.py",
+  "note": "Real deployed colour model (TorchColorClassifier, color_MobileNetV3Small.pt) + real DatabaseMatcher.verify_vehicle decision logic, on VCoR held-out TEST split (seed=42, 70/15/15 stratified, same split as eval_color_deployed.py). Synthetic plates/registration CSV built only for this run; main/data/database.csv untouched."
+}
