@@ -34,8 +34,11 @@ def test_reads_best_plate_box():
     assert out["plate_bbox"] == (2, 2, 8, 8)
 
 
-def test_fallback_to_whole_crop_when_no_plate_box():
-    reader = PlateReader(FakePlateDetector([]), FakeOCR("30A99999"))
+def test_no_ocr_fallback_when_no_plate_box():
+    # Regression (VF3 bug): when the plate detector finds no plate, we must NOT
+    # OCR the whole vehicle crop — that reads body badges like "VF3" and yields
+    # false UNREGISTERED verdicts. Report no plate so the decision logs NO_PLATE.
+    reader = PlateReader(FakePlateDetector([]), FakeOCR("VF3"))
     out = reader.read(_crop())
-    assert out["text"] == "30A99999"
+    assert out["text"] == ""
     assert out["plate_bbox"] is None

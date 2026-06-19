@@ -27,8 +27,11 @@ class PlateReader:
     def read(self, vehicle_crop: np.ndarray) -> dict[str, Any]:
         dets = self.plate_detector.detect(vehicle_crop)
         if not dets:
-            text = self.ocr_reader.read_plate(vehicle_crop)
-            return {"text": text, "conf": 0.0, "plate_bbox": None}
+            # No plate localized — do NOT OCR the whole vehicle crop. Doing so
+            # reads body badges (e.g. the "VF3" trunk emblem) as a plate and
+            # produces false UNREGISTERED verdicts. Report no plate; the
+            # DecisionEngine then logs NO_PLATE (action LOG) instead of alerting.
+            return {"text": "", "conf": 0.0, "plate_bbox": None}
 
         best = max(dets, key=lambda d: d["conf"])
         text = self.ocr_reader.read_plate(best["crop"])
