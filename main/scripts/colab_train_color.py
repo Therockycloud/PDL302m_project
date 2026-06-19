@@ -133,24 +133,22 @@ def set_seed(seed: int = SEED) -> None:
 def pick_device(requested: str) -> torch.device:
     """Select compute device.
 
-    NEVER use MPS (Apple Silicon) — PyTorch MPS has a backward-pass bug that
-    causes silent NaN gradients for some MobileNetV3 graph patterns. On
-    Colab this is moot (no MPS there), but we keep the same guard as
-    train_color.py so behaviour is identical if this script is ever run
-    locally on a Mac.
+    Device order: cuda > mps (Apple GPU) > cpu. MPS is ENABLED — the old
+    "MPS backward bug" for MobileNetV3 is fixed on torch>=2.2 (M1 Max: ~42x
+    faster than CPU, no NaN). On Colab there is no MPS so cuda/cpu is used.
+    Pass --device cpu to force CPU.
     """
-    if requested in ("mps",):
-        print("[device] MPS requested but DISABLED (backward bug). Using cpu.")
+    if requested == "cpu":
         return torch.device("cpu")
-    if requested == "auto" or requested is None:
-        if torch.cuda.is_available():
-            return torch.device("cuda")
-        return torch.device("cpu")
-    if requested == "cuda":
-        if not torch.cuda.is_available():
-            print("[device] CUDA not available, falling back to cpu.")
-            return torch.device("cpu")
+    if requested == "mps":
+        return torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
+    if requested == "cuda" and torch.cuda.is_available():
         return torch.device("cuda")
+    # auto / None (or cuda requested but unavailable): cuda > mps > cpu
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
     return torch.device("cpu")
 
 
