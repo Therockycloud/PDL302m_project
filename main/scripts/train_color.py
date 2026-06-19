@@ -444,13 +444,22 @@ def train(args) -> None:  # noqa: C901
     val_set   = CarColorDataset(val_s,   build_transforms(train=False))
     test_set  = CarColorDataset(test_s,  build_transforms(train=False))
 
-    num_workers = 0  # safest default for macOS + MPS-less environment
+    # DataLoader workers parallelize CPU augmentation, but they are only
+    # RELIABLE on CUDA/Linux (e.g. Colab). On macOS+MPS they are FLAKY —
+    # fork after Metal/OpenMP init crashes intermittently, and persistent
+    # workers stall the process at exit. Tested both; not worth a ~12% aug
+    # speedup. So enable workers only on cuda; keep 0 on mps/cpu for safety.
+    num_workers = 0 if device.type != "cuda" else min(6, os.cpu_count() or 0)
+    _pw = num_workers > 0
     train_loader = DataLoader(train_set, batch_size=32, shuffle=True,
-                              num_workers=num_workers, pin_memory=False)
+                              num_workers=num_workers, pin_memory=False,
+                              persistent_workers=_pw)
     val_loader   = DataLoader(val_set,   batch_size=32, shuffle=False,
-                              num_workers=num_workers, pin_memory=False)
+                              num_workers=num_workers, pin_memory=False,
+                              persistent_workers=_pw)
     test_loader  = DataLoader(test_set,  batch_size=32, shuffle=False,
-                              num_workers=num_workers, pin_memory=False)
+                              num_workers=num_workers, pin_memory=False,
+                              persistent_workers=_pw)
 
     # ------------------------------------------------------------------
     # Model

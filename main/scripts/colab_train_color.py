@@ -76,6 +76,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import random
 import time
@@ -669,11 +670,18 @@ def train(args) -> None:  # noqa: C901
     train_set = CarColorDataset(train_s, build_transforms(train=True))
     val_set = CarColorDataset(val_s, build_transforms(train=False))
 
-    num_workers = 0 if device.type != "cuda" else 2
+    # DataLoader workers parallelize CPU augmentation. RELIABLE on CUDA/Linux
+    # (Colab) — enable there. On macOS+MPS they are flaky (fork-after-Metal
+    # crashes + exit stall), so keep 0 on mps/cpu. Needs KMP_DUPLICATE_LIB_OK
+    # =TRUE locally.
+    num_workers = 0 if device.type != "cuda" else min(6, os.cpu_count() or 0)
+    _pw = num_workers > 0
     train_loader = DataLoader(train_set, batch_size=32, shuffle=True,
-                               num_workers=num_workers, pin_memory=(device.type == "cuda"))
+                               num_workers=num_workers, pin_memory=(device.type == "cuda"),
+                               persistent_workers=_pw)
     val_loader = DataLoader(val_set, batch_size=32, shuffle=False,
-                             num_workers=num_workers, pin_memory=(device.type == "cuda"))
+                             num_workers=num_workers, pin_memory=(device.type == "cuda"),
+                             persistent_workers=_pw)
 
     # ------------------------------------------------------------------
     # Lever 1: class-weighted loss (computed from TRAIN split)
