@@ -35,6 +35,14 @@ class TorchColorClassifier:
         self.model = model.eval().to(device)
 
     def predict(self, image: np.ndarray) -> tuple[str, float]:
+        # Body-crop to match training-time preprocessing (colab_train_color.py):
+        # drop the top 20% (windshield/sky) and bottom 15% (tyres/road), keeping
+        # the central body band where colour is most legible. Guard against
+        # degenerate crops (empty / < 2px tall) by falling back to the full image.
+        h = image.shape[0]
+        cropped = image[int(h * 0.20):int(h * 0.85), :]
+        if cropped.size > 0 and cropped.shape[0] >= 2:
+            image = cropped
         im = cv2.cvtColor(cv2.resize(image, (224, 224)), cv2.COLOR_BGR2RGB).astype("float32") / 255.0
         im = (im - _MEAN) / _STD
         t = torch.tensor(im.transpose(2, 0, 1)[None]).to(self.device)

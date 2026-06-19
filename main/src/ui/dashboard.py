@@ -124,26 +124,31 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
             logger.exception("PlateOCR load failed.")
 
     # Vehicle colour classifier. Brand classification was dropped from the
-    # decision (plate + colour only). Primary = TF/Keras served out-of-process;
-    # fall back to the PyTorch model only if the Keras worker can't start.
+    # decision (plate + colour only). Primary = PyTorch MobileNetV3-Small
+    # (85.3% plain / 86.3% TTA on VCoR held-out test, body-crop preprocessing);
+    # fall back to the TF/Keras worker only if the PyTorch load fails.
     _models_dir = _PROJECT_ROOT / cfg["paths"]["model_save_dir"]
-    if KerasColorClassifier is not None and (_models_dir / "color_classifier.keras").exists():
+    if TorchColorClassifier is not None:
+        try:
+            models["color_clf"] = TorchColorClassifier(
+                str(_models_dir / "color_MobileNetV3Small.pt")
+            )
+            logger.info("Colour classifier: PyTorch (primary).")
+        except Exception:
+            logger.exception("TorchColorClassifier load failed; trying Keras fallback.")
+    if (
+        "color_clf" not in models
+        and KerasColorClassifier is not None
+        and (_models_dir / "color_classifier.keras").exists()
+    ):
         try:
             worker_py = cfg.get("color_classifier", {}).get("worker_python")
             models["color_clf"] = KerasColorClassifier(
                 str(_models_dir / "color_classifier.keras"), worker_python=worker_py
             )
-            logger.info("Colour classifier: TF/Keras (out-of-process worker).")
+            logger.info("Colour classifier: TF/Keras (out-of-process worker, fallback).")
         except Exception:
-            logger.exception("KerasColorClassifier load failed; trying PyTorch fallback.")
-    if "color_clf" not in models and TorchColorClassifier is not None:
-        try:
-            models["color_clf"] = TorchColorClassifier(
-                str(_models_dir / "color_MobileNetV3Small.pt")
-            )
-            logger.info("Colour classifier: PyTorch fallback.")
-        except Exception:
-            logger.exception("TorchColorClassifier load failed.")
+            logger.exception("KerasColorClassifier load failed.")
 
     # Database matcher
     try:
@@ -262,11 +267,22 @@ def _run_pipeline(
             except Exception:
                 logger.exception("Brand clf error.")
 
-        # Colour
+        # Colour. ``cropped_plate`` is the *plate* region (see PlateDetector.
+        # detect()), not the vehicle, so it cannot stand in for a vehicle
+        # crop here. This path only has PlateDetector (no vehicle bbox), so
+        # crop the full frame to this detection's bbox instead of feeding
+        # the whole scene — closer to the body-crop the classifier expects.
         color, color_conf = "UNKNOWN", 0.0
         if color_clf is not None:
             try:
-                color, color_conf = color_clf.predict(image)
+                bbox = det.get("bbox", det.get("box"))
+                vehicle_crop = image
+                if bbox is not None:
+                    x1, y1, x2, y2 = bbox
+                    crop = image[y1:y2, x1:x2]
+                    if crop.size > 0 and crop.shape[0] >= 2 and crop.shape[1] >= 2:
+                        vehicle_crop = crop
+                color, color_conf = color_clf.predict(vehicle_crop)
             except Exception:
                 logger.exception("Colour clf error.")
 
