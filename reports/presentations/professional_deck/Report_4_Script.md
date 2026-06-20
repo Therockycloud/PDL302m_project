@@ -210,72 +210,72 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Slide này trình bày quá trình chẩn đoán lỗi hệ thống đáp ứng chuẩn đầu ra CLO2. Ban đầu, khi thiết kế bằng Keras Sequential API và đóng băng backbone, chúng em gặp hiện tượng rò rỉ BatchNorm. Ở chế độ suy luận, BatchNorm vẫn chạy chế độ huấn luyện (training=True), kết hợp với việc trùng lặp lớp chuẩn hóa Rescaling đè lên tiền xử lý gốc của MobileNetV3 khiến mô hình hoàn toàn không thể hội tụ (Flat Loss) và độ chính xác kiểm thử đứng yên ở mức ngẫu nhiên 12.5%.
 >
-> Nhóm đã khắc phục bằng cách chuyển sang Functional API, gọi trực tiếp base model dưới dạng base(x, training=False) để khóa cứng BatchNorm và đồng bộ dải tiền xử lý [0, 255]. Giải pháp này giúp loss giảm ổn định và độ chính xác phân loại màu đạt 54.2% trên dữ liệu CCTV."
+> Nhóm đã khắc phục bằng cách chuyển sang Functional API, gọi trực tiếp base model dưới dạng base(x, training=False) để khóa cứng BatchNorm và đồng bộ dải tiền xử lý [0, 255]. Giải pháp này giúp loss giảm ổn định, đưa độ chính xác phân loại màu từ mức ngẫu nhiên lên 54.2%. Đây mới là bước khởi đầu của hành trình — nhóm tiếp tục mở rộng dữ liệu VCoR, class-weight, label-smoothing và test-time augmentation để đẩy độ chính xác màu lên 86.3% ở bản deploy cuối cùng."
 
 ### 🇬🇧 English Script
 > "This slide demonstrates our system diagnostics process mapping to Course Learning Outcome 2. Initially, using the Keras Sequential API with frozen backbones caused a BatchNorm leakage. During inference, BatchNorm layers ran in training mode (training=True). Combined with a redundant Rescaling layer overriding MobileNetV3's native preprocessing, this led to flat training loss and test accuracy stuck at a random 12.5%.
 >
-> We resolved this by switching to the Functional API, invoking the base model explicitly as base(x, training=False) to freeze BatchNorm layers, and synchronizing the [0, 255] input range. This fix achieved stable loss convergence and 54.2% color test accuracy."
+> We resolved this by switching to the Functional API, invoking the base model explicitly as base(x, training=False) to freeze BatchNorm layers, and synchronizing the [0, 255] input range. This fix achieved stable loss convergence and raised color accuracy to 54.2% — only the first milestone. We then scaled up with the full VCoR dataset, class-weighting, label-smoothing, and test-time augmentation, reaching 86.3% in the final deployed model."
 
 ---
 
 ## Slide 14: Kết quả thực nghiệm & Độ chính xác (H-Bar Chart - Benchmarks and Training curves - S07)
-*   **Visual:** Biểu đồ thanh ngang so sánh độ chính xác giữa các mô hình (YOLOv8: 99%, PaddleOCR: 81%, Color: 54.2%, Brand: 35.3%, EasyOCR: 0%).
+*   **Visual:** Biểu đồ thanh ngang so sánh độ chính xác giữa các mô hình (YOLOv8: 99%, PaddleOCR: 81%, Color: 86.3%, Brand: 35.3%, EasyOCR: 0%).
 
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Đây là kết quả thực nghiệm chi tiết của các mô hình trên tập dữ liệu kiểm thử độc lập. Bộ định vị YOLOv8 đạt kết quả xuất sắc với mAP 99%. Với OCR, PaddleOCR (PP-OCRv4) đạt tỷ lệ khớp hoàn toàn 81% trên dữ liệu CCTV thật, trong khi EasyOCR chỉ đạt 0% do không thể xử lý ảnh thực tế từ camera bãi xe. 
 >
-> Độ chính xác của bộ phân loại màu MobileNetV3 đạt 54.2%. Đặc biệt, bộ phân loại thương hiệu EfficientNet-B0 chỉ đạt 35.3% do độ mờ ảnh CCTV. Sự chênh lệch lớn này là căn cứ thực tế để chúng em đưa ra quyết định loại bỏ hãng xe và chuyển sang đối chiếu Plate-Primary để bảo vệ hệ thống khỏi các lỗi khóa cổng nhầm."
+> Độ chính xác của bộ phân loại màu, sau khi mở rộng dữ liệu VCoR và áp dụng test-time augmentation, đạt 86.3% (macro-F1 0.84) trên bản deploy cuối cùng — đây là một thành phần khá mạnh của hệ thống. Ngược lại, bộ phân loại thương hiệu EfficientNet-B0 chỉ đạt 35.3% do độ mờ ảnh CCTV. Sự chênh lệch này là căn cứ thực tế để chúng em loại hãng xe khỏi quyết định (chỉ giữ vai trò diagnostic), còn màu xe vẫn đóng vai trò cảnh báo mềm — không phải vì model yếu, mà vì 86.3% đo trên ảnh VCoR sạch, chưa kiểm chứng trên domain CCTV bãi xe thật. Hệ thống chuyển sang đối chiếu Plate-Primary để bảo vệ khỏi các lỗi khóa cổng nhầm."
 
 ### 🇬🇧 English Script
 > "These are the empirical benchmark results of our models on the independent test split. The YOLOv8 plate detector achieved an outstanding 99% mAP. In OCR, PaddleOCR (PP-OCRv4) reached an 81% exact-match accuracy on real CCTV images, whereas EasyOCR failed completely at 0% due to its inability to process noisy, low-resolution plate crops.
 >
-> The MobileNetV3 color classifier achieved 54.2% accuracy. Crucially, the EfficientNet-B0 brand classifier reached only 35.3% due to CCTV blur. These findings justified our decision to omit the brand attribute and adopt a Plate-Primary matching logic to prevent false gate locking."
+> The color classifier, after scaling up to the full VCoR dataset and applying test-time augmentation, reached 86.3% accuracy (macro-F1 0.84) in the final deployed model — a genuinely strong component. In contrast, the EfficientNet-B0 brand classifier reached only 35.3% due to CCTV blur. This gap justified demoting brand to diagnostic-only, while color still serves as a soft warning signal rather than a hard gate — not because the model is weak, but because the 86.3% was measured on clean VCoR images and has not yet been validated on real CCTV parking-lot footage. The system adopted a Plate-Primary matching logic to prevent false gate locking."
 
 ---
 
-## Slide 15: Tích hợp hệ thống & Cô lập tiến trình (Loop Form - Process Isolation Integration - S14)
-*   **Visual:** Sơ đồ vòng lặp cô lập tiến trình để tránh xung đột OpenMP Deadlock đáp ứng CLO3, phân tách `keras_color_worker.py` qua đường ống IPC Pipes.
+## Slide 15: Tích hợp hệ thống & Đồng tiến trình PyTorch (Loop Form - In-Process PyTorch Color Runtime - S14)
+*   **Visual:** Sơ đồ vòng lặp tích hợp hệ thống, chạy `torch_color.py` (PyTorch) đồng tiến trình với PaddleOCR để tránh xung đột OpenMP Deadlock, đáp ứng CLO3.
 
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Trong quá trình tích hợp hệ thống đáp ứng chuẩn đầu ra CLO3, nhóm đã đối mặt với lỗi OpenMP Deadlock nghiêm trọng trên macOS khi chạy song song PyTorch (PaddleOCR) và TensorFlow (MobileNetV3) trên cùng một luồng FastAPI.
 >
-> Để giải quyết triệt để, chúng em đã triển khai kỹ thuật cô lập tiến trình (Process Isolation). Bộ phân loại màu Keras được tách hẳn sang một tiến trình độc lập `keras_color_worker.py` và giao tiếp với FastAPI thông qua đường ống dẫn IPC Pipes. Quy trình khép kín hoạt động tuần hoàn: FastAPI nhận ảnh, chạy YOLOv8 và PaddleOCR, gửi ảnh qua IPC sang worker màu, nhận lại kết quả và phản hồi sang Streamlit để đóng mở barrier an toàn."
+> Để giải quyết, chúng em chuyển bộ phân loại màu từ TensorFlow/Keras sang PyTorch (`torch_color.py`). PyTorch đồng tồn bình thường với PaddleOCR trong cùng một tiến trình mà không xung đột, nên không cần đến cơ chế cô lập tiến trình hay IPC phức tạp. TF/Keras vẫn được giữ lại nhưng chỉ dùng cho môi trường training/eval cô lập, không chạy ở runtime. Quy trình khép kín hoạt động tuần hoàn: FastAPI nhận ảnh, chạy YOLOv8 định vị biển, PaddleOCR đọc ký tự và PyTorch phân loại màu — tất cả trong cùng một tiến trình — rồi phản hồi sang Streamlit để đóng mở barrier an toàn."
 
 ### 🇬🇧 English Script
 > "During system integration to satisfy Course Learning Outcome 3, we faced severe OpenMP deadlocks on macOS when running PyTorch (PaddleOCR) and TensorFlow (MobileNetV3) concurrently within the same FastAPI process.
 >
-> To resolve this, we implemented process isolation. The Keras color classifier was separated into an independent subprocess `keras_color_worker.py` communicating with FastAPI via IPC pipes. The pipeline operates in a closed loop: FastAPI receives the image, executes YOLOv8 and PaddleOCR, passes the crop to the color worker via IPC, retrieves the prediction, and responds to Streamlit to safely operate the gate."
+> To resolve this, we migrated the color classifier from TensorFlow/Keras to PyTorch (`torch_color.py`). PyTorch coexists with PaddleOCR within the same process without conflict, eliminating the need for process isolation or IPC. TF/Keras is still used, but only in an isolated training/evaluation environment, not at runtime. The pipeline operates in a closed loop: FastAPI receives the image, runs YOLOv8 for plate detection, PaddleOCR for character recognition, and PyTorch for color classification — all within a single process — then responds to Streamlit to safely operate the gate."
 
 ---
 
 ## Slide 16: Nhật ký vận hành đầu cuối (Stacked KPI Ledger - E2E Logs & Plate-Primary Logic - S20)
-*   **Visual:** Bảng nhật ký vận hành đầu cuối gồm thông số thời gian trễ trung bình ~1.6 giây và ba kịch bản đối chiếu (AUTHORIZED, MISMATCH, UNREGISTERED).
+*   **Visual:** Bảng nhật ký vận hành đầu cuối gồm thông số độ trễ <1 giây (steady-state) và ba kịch bản đối chiếu (AUTHORIZED, MISMATCH, UNREGISTERED).
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Slide này mô tả kết quả đánh giá đầu cuối hệ thống. Tổng thời gian xử lý trung bình cho mỗi lượt xe trên CPU là khoảng 1.6 giây, bao gồm 75ms định vị, 1250ms chạy PaddleOCR và 95ms chạy phân loại màu. Độ trễ này hoàn toàn chấp nhận được và không gây ùn tắc vì hệ thống chỉ kích hoạt một lần duy nhất khi xe đã đỗ ổn định trước barrier. 
+> "Slide này mô tả kết quả đánh giá đầu cuối hệ thống. Ở chế độ steady-state, độ trễ dưới 1 giây cho mỗi lượt xe: đường bãi đỗ dùng cơ chế approach-lock đo được 0.73 giây từ lúc phát hiện xe tới lúc chốt biển số (đọc trong pha xe đang lùi vào chỗ đỗ, trước khi đỗ hẳn); đường API ảnh đơn đo được khoảng 0.96 giây. Riêng lần gọi đầu tiên có cold-start vài giây do phải nạp PaddleOCR. Độ trễ này hoàn toàn chấp nhận được và không gây ùn tắc vì hệ thống chỉ kích hoạt một lần duy nhất khi xe đã đỗ ổn định trước barrier. 
 >
 > Logic đối chiếu Plate-Primary xử lý 3 kịch bản: Hợp lệ (trùng khớp biển và màu) sẽ tự động mở cổng; Lệch màu (khớp biển số nhưng màu sắc khác) vẫn cho qua nhưng phát còi cảnh báo mềm; Không đăng ký (biển số không có trong hệ thống hoặc biển giả) sẽ khóa cứng barrier để bảo vệ."
 
 ### 🇬🇧 English Script
-> "This slide details our end-to-end system evaluation. The average processing latency per vehicle on CPU is approximately 1.6 seconds, comprising 75ms for detection, 1,250ms for PaddleOCR, and 95ms for color classification. This latency is acceptable and prevents traffic jams since inference runs only once when a vehicle stops stably at the gate.
+> "This slide details our end-to-end system evaluation. At steady-state, per-vehicle latency is under 1 second: the parking-lot path uses an approach-lock mechanism measured at 0.73 seconds from vehicle detection to plate lock (read while the vehicle is still reversing into the spot, before it fully parks); the single-image API path measures approximately 0.96 seconds. Only the very first call incurs a multi-second cold start while PaddleOCR loads. This latency is acceptable and prevents traffic jams since inference runs only once when a vehicle stops stably at the gate.
 >
 > The Plate-Primary matcher handles three scenarios: Authorized (matching plate and color) opens the gate; Mismatch (matching plate but different color) allows passage with a soft audio warning; Unregistered (plate missing from database or fake) locks the barrier for maximum security."
 
 ---
 
 ## Slide 17: Kết luận & Lộ trình (Split Closing - Retrospective & Roadmap - S10)
-*   **Visual:** Tóm tắt 3 điểm sáng (Hoàn thành đầy đủ CLO, Thực chứng thực tế, Định hướng tương lai ONNX Quantization) và lời cảm ơn Thầy Lương Trung Kiên.
+*   **Visual:** Tóm tắt 3 điểm sáng (Hoàn thành đầy đủ CLO, Thực chứng thực tế <1 giây, Định hướng tương lai xác nhận domain CCTV) và lời cảm ơn Thầy Lương Trung Kiên.
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Cuối cùng, em xin tổng kết lại các đóng góp của đồ án. Chúng em đã hoàn thành toàn diện hệ thống nhận diện và đối chiếu thuộc tính xe chạy 100% offline trên CPU, đáp ứng đầy đủ các chuẩn đầu ra từ CLO1 đến CLO7. Hệ thống được thực chứng kỹ lưỡng qua dữ liệu camera thực tế và giải quyết tốt các lỗi xung đột phần mềm. 
+> "Cuối cùng, em xin tổng kết lại các đóng góp của đồ án. Chúng em đã hoàn thành toàn diện hệ thống nhận diện và đối chiếu thuộc tính xe chạy 100% offline trên CPU, đáp ứng đầy đủ các chuẩn đầu ra từ CLO1 đến CLO7. Hệ thống được thực chứng kỹ lưỡng qua dữ liệu camera thực tế, giải quyết tốt các lỗi xung đột phần mềm và đạt độ trễ dưới 1 giây ở chế độ steady-state. 
 >
-> Lộ trình phát triển tương lai của dự án tập trung vào việc thu thập thêm dữ liệu hình ảnh đặc thù trong các hầm xe nội địa và áp dụng kỹ thuật lượng tử hóa mô hình (ONNX Quantization) nhằm giảm độ trễ xử lý xuống dưới 1 giây. Nhóm chúng em xin chân thành cảm ơn thầy Lương Trung Kiên đã tận tình hướng dẫn nhóm hoàn thành đồ án này. Kính mong nhận được ý kiến đóng góp từ thầy và các bạn."
+> Lộ trình phát triển tương lai của dự án tập trung vào việc thu thập thêm dữ liệu hình ảnh đặc thù CCTV bãi xe nội địa để xác nhận độ chính xác màu ~86% giữ vững ngoài tập VCoR, cùng với rút ngắn thời gian cold-start khi nạp PaddleOCR lần gọi đầu. Nhóm chúng em xin chân thành cảm ơn thầy Lương Trung Kiên đã tận tình hướng dẫn nhóm hoàn thành đồ án này. Kính mong nhận được ý kiến đóng góp từ thầy và các bạn."
 
 ### 🇬🇧 English Script
-> "In conclusion, I would like to summarize our project's deliverables. We successfully implemented a fully offline, CPU-based vehicle attribute recognition and cross-matching system, achieving full compliance with CLO1 through CLO7. The system was validated against real CCTV footage and resolved complex process conflict deadlocks.
+> "In conclusion, I would like to summarize our project's deliverables. We successfully implemented a fully offline, CPU-based vehicle attribute recognition and cross-matching system, achieving full compliance with CLO1 through CLO7. The system was validated against real CCTV footage, resolved complex process conflict deadlocks, and achieves sub-1-second latency at steady-state.
 >
-> Our future roadmap focuses on collecting domain-specific in-garage images and applying model quantization (ONNX Quantization) to reduce processing latency to under 1 second. We would like to express our deepest gratitude to our instructor, Mr. Luong Trung Kien, for his invaluable guidance. We now welcome questions and feedback from the committee."
+> Our future roadmap focuses on collecting domain-specific in-garage CCTV images to confirm that our ~86% color accuracy holds outside the VCoR dataset, along with shortening the cold-start time incurred when PaddleOCR loads on the first call. We would like to express our deepest gratitude to our instructor, Mr. Luong Trung Kien, for his invaluable guidance. We now welcome questions and feedback from the committee."
 
 ---
 
