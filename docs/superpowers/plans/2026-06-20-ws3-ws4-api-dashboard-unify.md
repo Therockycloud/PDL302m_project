@@ -79,9 +79,11 @@
 
 ---
 
-## Verify cuối (Opus)
-- [ ] `... pytest -q` ≥ 68 passed (+ test mới), 0 failed.
-- [ ] **E2E API thật:** khởi động/han hoặc TestClient với pipeline THẬT, POST 1 frame xe target (hoặc ảnh có biển 30M71854) → `status` plate-primary đúng (AUTHORIZED nếu đăng ký), `color_warning` theo WS-2, `brand_diagnostic` có mặt nhưng không đổi quyết định. KHÔNG còn EasyOCR/Keras ở đường chính.
-- [ ] Đối chiếu: API & dashboard cùng verdict. Tick plan + Progress log.
-- [ ] (Gộp luôn nợ reports finalization ở pass sau: §5.1 latency + §4.1 E2E.)
+## Verify cuối (Opus) — ✅ ĐẠT (2026-06-21)
+- [x] `... pytest -q` → **76 passed, 7 skipped, 0 failed** (baseline 68 → +8 test: pipeline_factory, api, consistency).
+- [x] **E2E thật** qua đường hợp nhất (`build_pipeline` + `infer_single_image`, model thật, frame xe target): `plate=30M71854`, color Yellow (0.91), **status=AUTHORIZED action=ALLOW**, `color_warning=False`, `brand_diagnostic=None` (diagnostic-only, KHÔNG vào quyết định). Engine = PaddleOCR (ppocr) — hết EasyOCR/Keras ở đường chính.
+- [x] API ≡ dashboard image-path: `test_consistency.py` khẳng định cùng verdict (cùng gọi `infer_single_image`). `test_api.py`: brand đổi KHÔNG đổi status/action. Đường video dashboard (ParkingSession + warmup WS-1) còn nguyên hành vi. API warmup lúc startup (hết cold-start request đầu).
+
+## Progress log
+- **2026-06-21 — WS-3+WS-4 XONG.** Tasks 1–4 (Sonnet, commits `ec68a56`/`77db088`/`0c77cec`/`05e7790`): `pipeline_factory.py` (`build_pipeline`+`infer_single_image` 2-tầng PaddleOCR + TorchColor body-crop + verify WS-2 có color_conf; brand=None diagnostic vì Keras xung đột PaddleOCR), API `/verify` + dashboard `_run_pipeline` cùng dùng `infer_single_image`, dashboard `_load_models` + ParkingSession dựng từ `build_pipeline`. Việc cuối (Sonnet, commits `cf8e19d`/`36cc65d`): warmup API startup + `test_consistency.py` (Task 5). Opus verify: pytest 76/7/0 + E2E thật (AUTHORIZED 30M71854 qua đường hợp nhất) + đọc diff (video path nguyên vẹn, brand không vào quyết định). **Kết quả: API & dashboard một nguồn sự thật, hết lệch engine/logic; hãng = diagnostic phụ.** **Lưu ý nhỏ:** slider conf không còn tác dụng ở đường Upload-Image (infer dùng conf cố định từ config — Sonnet đã ghi chú). **Còn nợ:** reports finalization (Report 4 §5.1 latency 1.6s→<1s sau WS-1; §4.1 E2E chạy lại; README đối chiếu API=PaddleOCR).
 ```
