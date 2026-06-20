@@ -91,3 +91,77 @@ def test_degenerate_crop_does_not_crash_and_yields_no_decision():
     for _ in range(10):
         out = sess.process_frame(frame)  # must not raise
     assert out["decision"] is None
+
+
+# -- WS-1: approach-phase capture + plate-lock ---------------------------
+
+class LockingPlateReader:
+    """Always returns the same high-conf plate (locks after lock_repeat)."""
+
+    def read(self, crop):
+        return {"text": "30M71854", "conf": 0.85, "plate_bbox": (0, 0, 5, 5)}
+
+
+class WhiteColorClf:
+    def predict(self, crop):
+        return ("WHITE", 0.9)
+
+
+class LockMatcher:
+    def verify_vehicle(self, plate, color):
+        if plate == "30M71854":
+            return {"status": "AUTHORIZED", "action": "ALLOW", "message": "ok"}
+        return {"status": "UNREGISTERED", "action": "DENY_ALERT", "message": "no"}
+
+
+class OnceThenEmptyPlateReader:
+    """Returns a high-conf read exactly once, then empty reads forever."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def read(self, crop):
+        self.calls += 1
+        if self.calls == 1:
+            return {"text": "30M71854", "conf": 0.85, "plate_bbox": (0, 0, 5, 5)}
+        return {"text": "", "conf": 0.0, "plate_bbox": None}
+
+
+def _lock_session(plate_reader, min_persist_frames=3, lock_conf=0.60, lock_repeat=2):
+    from src.engine.decision_engine import DecisionEngine
+    from src.engine.parking_trigger import ParkingTrigger
+
+    return ParkingSession(
+        vehicle_detector=FakeVehicleDetector(),
+        plate_reader=plate_reader,
+        color_clf=WhiteColorClf(),
+        decision_engine=DecisionEngine(LockMatcher()),
+        trigger=ParkingTrigger(min_area_ratio=0.15, min_persist_frames=min_persist_frames),
+        sample_interval=1,
+        collect_frames=2,
+        lock_conf=lock_conf,
+        lock_repeat=lock_repeat,
+    )
+
+
+def test_locks_plate_during_approach_and_marks_decided():
+    sess = _lock_session(LockingPlateReader())
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    decision = None
+    for _ in range(10):
+        out = sess.process_frame(frame)
+        if out["decision"] is not None:
+            decision = out["decision"]
+            break
+    assert decision is not None
+    assert decision["plate"] == "30M71854"
+    assert sess.trigger.state == "DECIDED"
+
+
+def test_single_then_empty_read_never_locks():
+    sess = _lock_session(OnceThenEmptyPlateReader())
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    for _ in range(10):
+        out = sess.process_frame(frame)
+    assert out["decision"] is None
+    assert sess.trigger.state != "DECIDED"

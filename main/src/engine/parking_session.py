@@ -3,6 +3,15 @@
 Drives one parked-vehicle decision from a frame stream. Heavy models run
 only on sampled frames and only once the ParkingTrigger gate opens.
 Collaborators are injected so the control flow is unit-testable.
+
+WS-1: collection now starts as soon as the trigger reaches READY_TO_DECIDE
+(opened during the reverse-approach motion, see parking_trigger.py) and
+commits as soon as the DecisionEngine reports a *locked* verdict
+(``status`` in {AUTHORIZED, UNREGISTERED} — ``matching.py`` has no
+``MISMATCH`` status; a colour mismatch on a registered plate is still
+AUTHORIZED with ``action=ALLOW_WARN``). There is no more hard
+``collect_frames`` count gate — a single confident, repeated plate read
+locks the decision regardless of how many frames that took.
 """
 
 from __future__ import annotations
@@ -12,6 +21,8 @@ from typing import Any
 import numpy as np
 
 from src.engine.parking_trigger import READY_TO_DECIDE, TRACKING, IDLE
+
+_LOCKED_STATUSES = {"AUTHORIZED", "UNREGISTERED"}
 
 
 class ParkingSession:
@@ -24,6 +35,8 @@ class ParkingSession:
         trigger,
         sample_interval: int = 5,
         collect_frames: int = 5,
+        lock_conf: float = 0.60,
+        lock_repeat: int = 2,
     ) -> None:
         self.vehicle_detector = vehicle_detector
         self.plate_reader = plate_reader
@@ -32,6 +45,8 @@ class ParkingSession:
         self.trigger = trigger
         self.sample_interval = sample_interval
         self.collect_frames = collect_frames
+        self.lock_conf = lock_conf
+        self.lock_repeat = lock_repeat
 
         self._frame_idx = 0
         self._collected: list[dict[str, Any]] = []
@@ -56,9 +71,13 @@ class ParkingSession:
             self._collected = []
         elif state == READY_TO_DECIDE:
             self._collect(detections)
-            if len(self._collected) >= self.collect_frames:
-                self._decision = self.decision_engine.aggregate(self._collected)
+            candidate = self.decision_engine.aggregate(
+                self._collected, lock_conf=self.lock_conf, lock_repeat=self.lock_repeat
+            )
+            if candidate["status"] in _LOCKED_STATUSES:
+                self._decision = candidate
                 self.trigger.mark_decided()
+            # UNCERTAIN/NO_PLATE: not enough evidence yet, keep collecting.
 
         return self._output()
 
@@ -77,10 +96,17 @@ class ParkingSession:
             return
         try:
             plate = self.plate_reader.read(crop)
-            color, _conf = self.color_clf.predict(crop)
+            color, color_conf = self.color_clf.predict(crop)
         except Exception:
             return
-        self._collected.append({"plate_text": plate["text"], "color": color})
+        self._collected.append(
+            {
+                "plate_text": plate["text"],
+                "plate_conf": plate.get("conf", 0.0),
+                "color": color,
+                "color_conf": color_conf,
+            }
+        )
 
     def _output(self) -> dict[str, Any]:
         return {
