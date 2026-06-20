@@ -730,8 +730,8 @@ def sort_vietnamese_plate(ocr_results):
                 <div>
                     <h3>Độ chính xác thực tế trên tập Test</h3>
                     <ul>
-                        <li><strong>Định vị biển số (YOLOv8):</strong> mAP@0.5 đạt **98.2%**.</li>
-                        <li><strong>OCR biển số:</strong> Độ chính xác ký tự đạt **94.5%** nhờ giải thuật sắp xếp dòng.</li>
+                        <li><strong>Định vị biển số (YOLOv8n):</strong> mAP@0.5 đạt **99.0%** (0.9896, Benchmark B).</li>
+                        <li><strong>OCR biển số (PaddleOCR):</strong> **81%** exact-match (Benchmark C, vs EasyOCR 0%; CER 0.031).</li>
                         <li><strong>Hãng xe (EfficientNet-B0, TF/Keras):</strong> test ~**35.3%** sau fine-tune — vẫn yếu → bỏ khỏi quyết định.</li>
                         <li><strong>Màu xe (MobileNetV3-Small, runtime PyTorch):</strong> **86.3%** TTA trên VCoR held-out (macro-F1 0.84) — dùng làm cảnh báo mềm (chưa kiểm chứng domain CCTV thật).</li>
                         <li><strong>Chặn tráo biển (gate 0.40, WS-2):</strong> Phát hiện **69%** @ tỉ lệ báo động giả **2.5%**; biển chưa đăng ký chặn **100%**.</li>
