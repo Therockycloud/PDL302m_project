@@ -167,6 +167,7 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
 
         pcfg = cfg.get("pipeline", {})
         tcfg = pcfg.get("trigger", {})
+        lcfg = pcfg.get("lock", {})
         det_model = str(_PROJECT_ROOT / cfg["paths"]["model_save_dir"] / cfg["detector"]["model_name"])
         plate_model = str(_PROJECT_ROOT / cfg["paths"]["model_save_dir"] / cfg["plate_detector"]["model_name"])
 
@@ -196,9 +197,12 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
                     min_area_ratio=tcfg.get("min_area_ratio", 0.15),
                     stable_frames=tcfg.get("stable_frames", 5),
                     move_eps=tcfg.get("move_eps", 0.02),
+                    min_persist_frames=tcfg.get("min_persist_frames", 3),
                 ),
                 sample_interval=pcfg.get("frame_sample_interval", 5),
                 collect_frames=pcfg.get("collect_frames", 5),
+                lock_conf=lcfg.get("lock_conf", 0.60),
+                lock_repeat=lcfg.get("lock_repeat", 2),
             )
             models["session"] = session
     except Exception:

@@ -63,11 +63,19 @@ color_classifier:
 # Two-stage parking pipeline
 #
 # Camera-angle calibration (no code changes needed):
-#   The trigger fires when the largest vehicle is (a) inside `roi`, (b) at least
-#   `min_area_ratio` of the frame, and (c) still for `stable_frames` samples.
-#   These are tuned for a camera mounted IN THE PARKING SLOT CORNER looking OUT,
-#   where a reverse-parking car backs toward the camera (rear plate facing it)
-#   and grows large + low in the frame before stopping.
+#   The trigger fires when the largest vehicle is (a) inside `roi` and (b) at
+#   least `min_area_ratio` of the frame, persisted for `min_persist_frames`
+#   consecutive samples. These are tuned for a camera mounted IN THE PARKING
+#   SLOT CORNER looking OUT, where a reverse-parking car backs toward the
+#   camera (rear plate facing it) and grows large + low in the frame.
+#
+#   WS-1 finding (probe on test/sample_parking.mp4): the plate is only
+#   readable while the car is APPROACHING (area ratio ~0.16-0.8, frames
+#   492-534) — once fully parked (area >0.9, peak frame ~666) the plate is
+#   too close/occluded and OCR goes blind. So the decision window opens
+#   during persistence in ROI, NOT after the vehicle stops moving
+#   (`stable_frames`/`move_eps` are kept only for backward compatibility with
+#   older callers/tests; they no longer gate readiness).
 #
 #   To calibrate for a new camera/clip, run:
 #     python scripts/calibrate_roi.py --source <your_clip.mp4> --frame-frac 0.7
@@ -80,11 +88,18 @@ pipeline:
   collect_frames: 5
   trigger:
     min_area_ratio: 0.15   # default demo clip (test/sample_parking.mp4 = real reverse-park footage) peaks ~0.99, fires the full pipeline at this calibrated value
-    stable_frames: 5
-    move_eps: 0.02
-    roi: null   # null => default middle-bottom ROI (0.2,0.4,0.8,1.0)
+    stable_frames: 5       # kept for backward compatibility; no longer gates readiness (see WS-1 note above)
+    move_eps: 0.02         # kept for backward compatibility; no longer gates readiness (see WS-1 note above)
+    roi: [0.35, 0.30, 0.65, 1.0]   # own-slot ROI for the default demo clip; calibrate per camera
+    approach_min_area: 0.15        # area ratio at which the reverse-approach window opens
+    min_persist_frames: 3          # consecutive in-ROI samples required before READY_TO_DECIDE
+  lock:
+    capture_conf: 0.50   # minimum plate-detect conf to attempt OCR on a frame
+    lock_conf: 0.60       # minimum OCR conf for a read to count toward locking
+    lock_repeat: 2        # number of matching high-conf reads required to lock the plate
+    late_area: 0.85       # area ratio past which an un-locked plate is logged as "read late"
 
 # Dedicated license-plate detector (stage 2)
 plate_detector:
   model_name: "plate_yolov8n.onnx"
-  conf_threshold: 0.3
+  conf_threshold: 0.15
