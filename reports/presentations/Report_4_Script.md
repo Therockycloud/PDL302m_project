@@ -38,39 +38,39 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 *   **Visual:** 3 khối thẻ (Cards) mô tả 3 nhân tố kiểm tra: OCR biển số, Classifier phân loại Hãng, Classifier phân loại Màu.
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Để khắc phục lỗ hổng trên, hệ thống của chúng em tích hợp 3 bộ lọc deep learning hoạt động song song:
+> "Để khắc phục lỗ hổng trên, hệ thống của chúng em triển khai chiến lược **plate-primary**: biển số là khóa chính để ra quyết định, các thuộc tính còn lại đóng vai trò bổ trợ:
 >
-> 1.  **Nhận diện biển số (OCR):** Cắt vùng biển số bằng YOLOv8-nano và đọc ký tự qua EasyOCR.
-> 2.  **Phân loại hãng xe (Brand):** Nhận diện thương hiệu xe (Toyota, VinFast, Hyundai, Honda, v.v.) bằng mạng EfficientNet-B0 để chống tráo đổi xe khác hãng.
-> 3.  **Phân loại màu sắc (Color):** Nhận diện 8 hệ màu cơ bản bằng MobileNetV3-Small để ngăn chặn các trường hợp sơn lại màu hoặc tráo xe cùng dòng nhưng khác màu."
+> 1.  **Nhận diện biển số (OCR) — khóa chính:** Cắt vùng biển số bằng YOLOv8-nano và đọc ký tự bằng **PaddleOCR (PP-OCRv4)** kết hợp giải thuật sắp xếp dòng tiếng Việt; EasyOCR chỉ giữ vai trò dự phòng (fallback).
+> 2.  **Phân loại màu sắc (Color) — cảnh báo mềm:** Nhận diện 8 hệ màu cơ bản bằng MobileNetV3-Small (chạy nền PyTorch, cùng tiến trình với PaddleOCR) để gắn cờ cảnh báo khi màu xe không khớp, có cơ chế neutral-cluster và confidence-gating để giảm báo động giả.
+> 3.  **Phân loại hãng xe (Brand) — chỉ tham khảo:** Nhận diện thương hiệu xe bằng EfficientNet-B0, nhưng do độ chính xác còn yếu nên kết quả này **không** tham gia vào quyết định khóa/mở barrier, chỉ hiển thị mang tính chẩn đoán (diagnostic)."
 
 ### 🇬🇧 English Script
-> "To close this security gap, our system integrates three parallel deep learning filters:
+> "To close this security gap, our system follows a **plate-primary** strategy: the license plate is the primary decision key, while the remaining attributes act as supporting signals:
 >
-> 1.  **License Plate OCR:** Extracts the plate region using YOLOv8-nano and recognizes text via EasyOCR.
-> 2.  **Vehicle Brand Classification:** Identifies the car manufacturer (Toyota, VinFast, Hyundai, Honda, etc.) using an EfficientNet-B0 network to prevent cross-brand vehicle swapping.
-> 3.  **Vehicle Color Classification:** Identifies 8 base color groups using MobileNetV3-Small to block swaps between identical car models with different colors."
+> 1.  **License Plate OCR — primary key:** Extracts the plate region using YOLOv8-nano and recognizes text via **PaddleOCR (PP-OCRv4)** combined with a Vietnamese line-sorting algorithm; EasyOCR is kept only as a fallback.
+> 2.  **Vehicle Color Classification — soft alert:** Identifies 8 base color groups using MobileNetV3-Small (PyTorch runtime, in-process alongside PaddleOCR) to flag a soft warning on mismatch, with neutral-cluster handling and confidence-gating to reduce false alarms.
+> 3.  **Vehicle Brand Classification — diagnostic only:** Identifies the car manufacturer using EfficientNet-B0, but since accuracy is still weak, this result is **not** part of the lock/unlock decision — it is shown for reference (diagnostic) purposes only."
 
 ---
 
 ## Slide 4: Tổng quan nghiên cứu (Literature Review)
-*   **Visual:** Bảng đối sánh các bài báo khoa học nổi bật (YOLOv8, EasyOCR, EfficientNet, MobileNetV3) kèm ưu nhược điểm.
+*   **Visual:** Bảng đối sánh các bài báo khoa học nổi bật (YOLOv8, PaddleOCR, EfficientNet, MobileNetV3) kèm ưu nhược điểm.
 
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Chúng em đã thực hiện tổng quan nghiên cứu kỹ lưỡng để chọn ra những kiến trúc tối ưu nhất:
 >
 > *   Đối với phát hiện biển số, chúng em kế thừa công nghệ **YOLOv8-nano** vì tốc độ phát hiện thời gian thực vượt trội.
-> *   Đối với phần OCR, chúng em sử dụng **EasyOCR** vì hỗ trợ tiếng Việt tốt hơn PaddleOCR trong các môi trường ánh sáng phức tạp.
-> *   Đối với phân loại hãng xe, kiến trúc **EfficientNet-B0** được chọn vì cơ chế Compound Scaling giúp đạt độ chính xác cao với số lượng tham số rất nhỏ.
-> *   Cuối cùng, mô hình **MobileNetV3-Small** được dùng cho phân loại màu sắc nhờ tối ưu cấu trúc phần cứng giúp giảm thiểu thời gian suy luận trên CPU bãi giữ xe."
+> *   Đối với phần OCR, ban đầu chúng em thử nghiệm EasyOCR, nhưng benchmark trên dữ liệu CCTV thật cho thấy EasyOCR đọc đúng **0%**. Chúng em chuyển sang **PaddleOCR (PP-OCRv4)** và đạt **81% exact-match** — vượt trội hoàn toàn. EasyOCR hiện chỉ giữ vai trò fallback dự phòng.
+> *   Đối với phân loại hãng xe, kiến trúc **EfficientNet-B0** được khảo sát vì cơ chế Compound Scaling, nhưng độ chính xác thực nghiệm vẫn còn yếu nên chỉ dùng ở mức tham khảo (diagnostic), không đưa vào quyết định cuối.
+> *   Cuối cùng, mô hình **MobileNetV3-Small** được dùng cho phân loại màu sắc (chạy nền PyTorch) nhờ tối ưu cấu trúc phần cứng, đạt **86.3%** trên tập VCoR với kỹ thuật TTA, dùng làm cảnh báo mềm."
 
 ### 🇬🇧 English Script
 > "We conducted a rigorous literature review to select the most optimal models for our pipeline:
 >
 > *   For plate detection, we utilized **YOLOv8-nano** due to its state-of-the-art real-time inference speed.
-> *   For OCR, we integrated **EasyOCR** as it offers robust multilingual character recognition including Vietnamese.
-> *   For brand classification, **EfficientNet-B0** was chosen because its Compound Scaling architecture achieves high accuracy with very few parameters.
-> *   Lastly, **MobileNetV3-Small** was selected for color classification to achieve near-instantaneous CPU inference at the parking gate."
+> *   For OCR, we initially trialed EasyOCR, but benchmarking on real CCTV data showed it reading correctly only **0%** of the time. We pivoted to **PaddleOCR (PP-OCRv4)**, achieving **81% exact-match** — a decisive win. EasyOCR is now kept only as a fallback.
+> *   For brand classification, **EfficientNet-B0** was evaluated for its Compound Scaling architecture, but empirical accuracy remained weak, so it is used only as a diagnostic signal, not part of the final decision.
+> *   Lastly, **MobileNetV3-Small** (PyTorch runtime) was selected for color classification, reaching **86.3%** on the VCoR dataset with TTA, used as a soft alert."
 
 ---
 
@@ -112,14 +112,14 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Thay vì dùng các mô hình quá nặng như ResNet50 truyền thống dễ gây trễ hệ thống, chúng em đã thiết kế lại mạng phân loại:
 >
-> *   **Phần Hãng Xe:** Chúng em dùng **EfficientNet-B0** với cấu trúc Transfer Learning, đóng băng các lớp Convolution của ImageNet và huấn luyện thêm các lớp Fully-Connected Dense với kỹ thuật Dropout tỉ lệ 0.4 để chống quá khớp.
-> *   **Phần Màu Xe:** Chúng em dùng **MobileNetV3-Small** siêu nhẹ. Việc tối ưu hóa kích cỡ ảnh đầu vào cố định 224x224 giúp tốc độ xử lý nhanh gấp 5 lần so với các mô hình CNN cổ điển."
+> *   **Phần Hãng Xe (diagnostic-only):** Chúng em dùng **EfficientNet-B0** với cấu trúc Transfer Learning, đóng băng các lớp Convolution của ImageNet và huấn luyện thêm các lớp Fully-Connected Dense với kỹ thuật Dropout tỉ lệ 0.4 để chống quá khớp. Tuy nhiên độ chính xác thực nghiệm chỉ đạt khoảng 35.3% nên hãng xe chỉ hiển thị tham khảo, không tham gia quyết định khóa/mở barrier.
+> *   **Phần Màu Xe (cảnh báo mềm):** Chúng em dùng **MobileNetV3-Small** siêu nhẹ, chạy nền PyTorch đồng tiến trình cùng PaddleOCR. Việc tối ưu hóa kích cỡ ảnh đầu vào cố định 224x224 giúp tốc độ xử lý nhanh, đạt **86.3%** trên tập VCoR với kỹ thuật Test-Time Augmentation (TTA), dùng làm cảnh báo mềm khi có sai lệch màu."
 
 ### 🇬🇧 English Script
 > "Instead of using heavy networks like ResNet50 which introduce severe latency on CPUs, we redesigned our classification networks:
 >
-> *   **For Vehicle Brand:** We leveraged **EfficientNet-B0** using transfer learning. We froze the pre-trained ImageNet convolutional layers and appended custom fully-connected layers optimized with a 0.4 Dropout layer to prevent overfitting.
-> *   **For Vehicle Color:** We utilized the lightweight **MobileNetV3-Small**. Resizing the input image to a fixed 224x224 dimension speeded up training and inference by 5x compared to scratch-trained CNNs."
+> *   **For Vehicle Brand (diagnostic-only):** We leveraged **EfficientNet-B0** using transfer learning. We froze the pre-trained ImageNet convolutional layers and appended custom fully-connected layers optimized with a 0.4 Dropout layer to prevent overfitting. However, empirical accuracy reached only around 35.3%, so brand is shown for reference only and does not participate in the lock/unlock decision.
+> *   **For Vehicle Color (soft alert):** We utilized the lightweight **MobileNetV3-Small**, running on a PyTorch backend in-process alongside PaddleOCR. Resizing the input image to a fixed 224x224 dimension keeps inference fast, reaching **86.3%** on the VCoR dataset with Test-Time Augmentation (TTA), used as a soft alert on color mismatch."
 
 ---
 
@@ -144,35 +144,37 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Đây là hình ảnh mô phỏng bảng điều khiển thực tế của bảo vệ bãi xe:
 >
-> *   **Trường hợp hợp lệ:** Xe đi ra có biển số trùng khớp với lịch sử đầu vào, đồng thời hãng xe dự đoán (Toyota) và màu sắc (White) khớp hoàn toàn với cơ sở dữ liệu. Cổng hiển thị trạng thái màu xanh lá và mở barrier.
-> *   **Trường hợp gian lận:** Kẻ gian dùng biển số thật của xe Honda Wave màu đen lắp lên xe VinFast màu đỏ. Hệ thống phát hiện biển số trùng khớp cơ sở dữ liệu nhưng hãng xe dự đoán (VinFast) và màu sắc (Red) bị lệch hoàn toàn. Hệ thống lập tức hiển thị màu đỏ báo động, khóa barrier và phát còi cảnh báo."
+> *   **Trường hợp hợp lệ:** Xe đi ra có biển số khớp với lịch sử đầu vào (PaddleOCR đọc đúng), màu sắc dự đoán (White) khớp với cơ sở dữ liệu, hãng xe (Toyota) hiển thị tham khảo. Cổng hiển thị trạng thái màu xanh lá và mở barrier.
+> *   **Trường hợp gian lận:** Kẻ gian dùng biển số thật của xe màu đen lắp lên một xe màu đỏ. Hệ thống đọc đúng biển số trùng khớp cơ sở dữ liệu, nhưng màu sắc dự đoán (Red) lệch so với hồ sơ đăng ký (Black) — cảnh báo mềm được kích hoạt theo cơ chế confidence-gating. Hệ thống lập tức hiển thị màu đỏ báo động, khóa barrier và phát còi cảnh báo; thông tin hãng xe chỉ hiển thị tham khảo, không phải căn cứ quyết định."
 
 ### 🇬🇧 English Script
 > "This screen simulates the live dashboard used by the parking attendants:
 >
-> *   **Valid Case:** The exiting car's plate matches the database, and its predicted brand (Toyota) and color (White) match perfectly. The system displays a green success status and opens the barrier.
-> *   **Fraud Case:** A thief attaches a stolen plate from a black Honda to a red VinFast car. The system matches the plate text, but notices the predicted brand (VinFast) and color (Red) do not match the database records. It instantly triggers a red alert, locks the barrier, and sounds the siren."
+> *   **Valid Case:** The exiting car's plate matches the database (correctly read by PaddleOCR), its predicted color (White) matches the registered record, and brand (Toyota) is shown for reference. The system displays a green success status and opens the barrier.
+> *   **Fraud Case:** A thief attaches a stolen plate from a black car onto a red car. The system reads the plate correctly and matches it to the database, but the predicted color (Red) does not match the registered record (Black) — triggering a soft alert via the confidence-gating mechanism. It instantly displays a red alert, locks the barrier, and sounds the siren; brand information is shown for reference only and is not used as decision evidence."
 
 ---
 
 ## Slide 10: Kết quả thực nghiệm (Performance Metrics & Latency)
-*   **Visual:** Bảng phân rã thời gian suy luận (YOLOv8: 45ms, EasyOCR: 220ms, Classifiers: 133ms, E2E: 398ms) và các chỉ số mAP, accuracy.
+*   **Visual:** Bảng phân rã thời gian suy luận theo module (YOLOv8 ~75ms, PaddleOCR ~1,250ms cold-path, EfficientNet-B0 diagnostic ~180ms, MobileNetV3-S PyTorch ~95ms — đo riêng lẻ, không phải số deploy cộng dồn) và dòng tổng độ trễ deploy thực tế <1 giây, cùng các chỉ số mAP, accuracy.
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Về mặt hiệu năng, chúng em rất tự hào khi hệ thống chạy mượt mà ngay trên CPU thường của máy tính xách tay với tổng thời gian xử lý chỉ **398 ms**, chưa tới nửa giây:
+> "Về mặt hiệu năng, chúng em đo từng mô-đun riêng lẻ trên CPU macOS, sau đó tách bạch rõ với số **deploy thực tế**:
 >
-> *   Thời gian phát hiện biển số chỉ mất 45ms.
-> *   Thời gian OCR tốn nhiều tài nguyên nhất là 220ms.
-> *   Hai bộ phân loại hãng và màu chỉ mất tổng cộng 133ms.
-> *   Độ chính xác của hệ thống đạt chỉ số ấn tượng: Phát hiện biển số đạt 98.2% mAP, OCR đạt 94.5% và tỷ lệ chặn xe gian lận/biển số giả đạt tới **98.7%**."
+> *   Định vị biển số (YOLOv8-n) mất khoảng 75ms.
+> *   Nhận diện ký tự bằng **PaddleOCR** là mô-đun nặng nhất khi đo cộng dồn tuần tự (có cold-start vài giây ở lệnh gọi đầu do nạp model); EasyOCR chỉ chạy khi cần fallback.
+> *   Phân loại màu (MobileNetV3-Small, PyTorch) mất khoảng 95ms; phân loại hãng (EfficientNet-B0, diagnostic) khoảng 180ms — không nằm trên đường quyết định chính.
+> *   Độ trễ **deploy thực tế (steady-state)** vẫn đảm bảo dưới 1 giây mỗi xe: khoảng **0.73 giây ở chế độ approach-lock** và **0.96 giây qua API**.
+> *   Về độ chính xác: phát hiện biển số đạt **mAP50 99%** (0.9896); OCR đạt **81% exact-match** trên Benchmark C (vượt xa EasyOCR 0%); cơ chế chống tráo biển (gate 0.40, sau khi siết bởi WS-2) phát hiện **69%** ở tỷ lệ báo động giả chỉ **2.5%**, và biển chưa đăng ký bị chặn **100%**."
 
 ### 🇬🇧 English Script
-> "In terms of performance, we are proud that the integrated system runs smoothly on standard laptop CPUs with a total end-to-end latency of only **398 milliseconds**—well below our 1-second budget:
+> "For performance, we measured each module individually on a macOS CPU, then clearly separated that from the **actual deployed latency**:
 >
-> *   License plate detection takes just 45ms.
-> *   EasyOCR text recognition, the heaviest component, takes 220ms.
-> *   Brand and color classifiers combine for just 133ms.
-> *   System accuracy is outstanding: plate detection mAP is 98.2%, OCR accuracy is 94.5%, and the fake plate detection rate is **98.7%**."
+> *   License plate localization (YOLOv8-n) takes about 75ms.
+> *   Character recognition via **PaddleOCR** is the heaviest module when timed sequentially (with a multi-second cold-start on the first call while the model loads); EasyOCR only runs as a fallback.
+> *   Color classification (MobileNetV3-Small, PyTorch) takes about 95ms; brand classification (EfficientNet-B0, diagnostic) takes about 180ms — it is not on the primary decision path.
+> *   The **actual deployed steady-state latency** still stays under 1 second per vehicle: about **0.73s in approach-lock mode** and **0.96s via the API**.
+> *   On accuracy: plate detection reaches **mAP50 99%** (0.9896); OCR reaches **81% exact-match** on Benchmark C (versus EasyOCR's 0%); the anti-plate-swap gate (threshold 0.40, tightened after WS-2) detects **69%** of swaps at a low **2.5%** false-alarm rate, while unregistered plates are blocked **100%** of the time."
 
 ---
 
@@ -182,16 +184,16 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Trong quá trình xây dựng đồ án, nhóm đã giải quyết được ba thử thách lớn:
 >
-> 1.  **Xung đột OpenMP trên macOS:** Khi import song song PyTorch và TensorFlow gây crash luồng. Nhóm đã cấu hình biến môi trường `KMP_DUPLICATE_LIB_OK=TRUE` để giải quyết triệt để lỗi này.
+> 1.  **Xung đột OpenMP trên macOS:** TensorFlow (dùng huấn luyện/đánh giá phân loại) và PaddleOCR không thể chạy chung một tiến trình do xung đột OpenMP/protobuf, gây crash. Nhóm đã chuyển bộ phân loại màu sang chạy nền **PyTorch** — cùng tồn tại bình thường với PaddleOCR trong cùng tiến trình — và cấu hình biến môi trường `KMP_DUPLICATE_LIB_OK=TRUE` cho các tác vụ TensorFlow cô lập còn lại.
 > 2.  **Tối ưu hóa chạy trên CPU:** Chúng em đã giảm tối đa kích thước ảnh nạp vào các bộ phân loại và chọn các kiến trúc tối giản như MobileNetV3-Small.
-> 3.  **Lệch góc biển số xe:** Nhóm áp dụng phương pháp mở rộng 5% margin khi crop biển số để thu được trọn vẹn đường viền ký tự giúp cải thiện độ chính xác OCR."
+> 3.  **Lệch góc biển số xe:** Nhóm áp dụng phương pháp mở rộng margin khi crop biển số để thu được trọn vẹn đường viền ký tự giúp cải thiện độ chính xác OCR."
 
 ### 🇬🇧 English Script
 > "During development, we overcame three major technical hurdles:
 >
-> 1.  **OpenMP Conflict on macOS:** Spawning PyTorch and TensorFlow concurrently caused runtime aborts. We resolved this by overriding the `KMP_DUPLICATE_LIB_OK=TRUE` environment variable in python.
+> 1.  **OpenMP Conflict on macOS:** TensorFlow (used for classifier training/evaluation) and PaddleOCR could not run in the same process due to an OpenMP/protobuf conflict, causing crashes. We resolved this by moving the color classifier to a **PyTorch** runtime — which coexists normally with PaddleOCR in the same process — and kept `KMP_DUPLICATE_LIB_OK=TRUE` only for the remaining isolated TensorFlow tasks.
 > 2.  **CPU Optimization:** We minimized classifier input sizes to 224x224 and shifted to lightweight architectures like MobileNetV3-Small to ensure CPU compatibility.
-> 3.  **Angle Distortion:** We implemented a 5% padding margin around cropped license plate regions to prevent characters from being cut off, enhancing OCR reliability."
+> 3.  **Angle Distortion:** We implemented a padding margin around cropped license plate regions to prevent characters from being cut off, enhancing OCR reliability."
 
 ---
 
