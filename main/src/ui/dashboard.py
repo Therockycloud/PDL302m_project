@@ -33,6 +33,7 @@ from src.utils.visual import (
     get_alarm_html,
 )
 from src.utils.matching import DatabaseMatcher
+from src.utils.warmup import warmup_models
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,17 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
                 plate_ocr = PaddleOCRReader(lang=cfg["ocr"].get("languages", ["en"])[0])
             except Exception:
                 logger.exception("PaddleOCR unavailable; falling back to EasyOCR.")
+
+        # WS-1 Task 5: warm every model with one throwaway inference now, at
+        # load time, so the FIRST real vehicle frame doesn't pay cold-start
+        # latency (ONNX session warmup / first-call kernel compile). Runs
+        # right after construction, before the session ever sees a frame.
+        warmup_models(
+            vehicle_detector=vehicle_det,
+            plate_detector=plate_det,
+            color_clf=models.get("color_clf"),
+            ocr=plate_ocr,
+        )
 
         if plate_ocr is not None and models.get("color_clf") is not None and models.get("matcher") is not None:
             session = ParkingSession(
