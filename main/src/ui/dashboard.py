@@ -34,6 +34,7 @@ from src.utils.visual import (
 )
 from src.utils.matching import DatabaseMatcher
 from src.utils.warmup import warmup_models
+from src.engine.pipeline_factory import build_pipeline, infer_single_image
 
 logger = logging.getLogger(__name__)
 
@@ -99,124 +100,69 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
 
     models: dict[str, Any] = {}
 
-    # Plate detector
-    if PlateDetector is not None:
-        try:
-            det_cfg = cfg["detector"]
-            model_path = str(
-                _PROJECT_ROOT / cfg["paths"]["model_save_dir"] / det_cfg["model_name"]
-            )
-            models["detector"] = PlateDetector(
-                model_path=model_path,
-                conf_threshold=det_cfg.get("conf_threshold", 0.25),
-            )
-        except Exception:
-            logger.exception("PlateDetector load failed.")
-
-    # OCR
-    if PlateOCR is not None:
-        try:
-            ocr_cfg = cfg["ocr"]
-            models["ocr"] = PlateOCR(
-                languages=ocr_cfg.get("languages", ["en"]),
-                gpu=ocr_cfg.get("gpu", False),
-            )
-        except Exception:
-            logger.exception("PlateOCR load failed.")
-
-    # Vehicle colour classifier. Brand classification was dropped from the
-    # decision (plate + colour only). Primary = PyTorch MobileNetV3-Small
-    # (85.3% plain / 86.3% TTA on VCoR held-out test, body-crop preprocessing);
-    # fall back to the TF/Keras worker only if the PyTorch load fails.
-    _models_dir = _PROJECT_ROOT / cfg["paths"]["model_save_dir"]
-    if TorchColorClassifier is not None:
-        try:
-            models["color_clf"] = TorchColorClassifier(
-                str(_models_dir / "color_MobileNetV3Small.pt")
-            )
-            logger.info("Colour classifier: PyTorch (primary).")
-        except Exception:
-            logger.exception("TorchColorClassifier load failed; trying Keras fallback.")
-    if (
-        "color_clf" not in models
-        and KerasColorClassifier is not None
-        and (_models_dir / "color_classifier.keras").exists()
-    ):
-        try:
-            worker_py = cfg.get("color_classifier", {}).get("worker_python")
-            models["color_clf"] = KerasColorClassifier(
-                str(_models_dir / "color_classifier.keras"), worker_python=worker_py
-            )
-            logger.info("Colour classifier: TF/Keras (out-of-process worker, fallback).")
-        except Exception:
-            logger.exception("KerasColorClassifier load failed.")
-
-    # Database matcher
+    # Shared pipeline (single source of truth with the API /verify endpoint).
+    pipeline = None
     try:
-        db_path = str(_PROJECT_ROOT / cfg["paths"]["database_csv"])
-        models["matcher"] = DatabaseMatcher(db_path=db_path)
+        pipeline = build_pipeline(cfg)
+        models["pipeline"] = pipeline
     except Exception:
-        logger.exception("DatabaseMatcher load failed.")
+        logger.exception("build_pipeline failed.")
+
+    # Alias the shared pipeline's components onto the legacy keys the rest of
+    # this module (sidebar status dots, etc.) already reads.
+    if pipeline is not None:
+        models["detector"] = pipeline.get("vehicle_detector")
+        models["color_clf"] = pipeline.get("color_clf")
+        models["matcher"] = pipeline.get("matcher")
+        _plate_reader = pipeline.get("plate_reader")
+        models["ocr"] = _plate_reader.ocr_reader if _plate_reader is not None else None
 
     # Two-stage parking session (best-effort; UI still works if parts missing)
     try:
-        from src.models.vehicle_detector import VehicleDetector
-        from src.models.plate_reader import PlateReader
         from src.engine.parking_trigger import ParkingTrigger
-        from src.engine.decision_engine import DecisionEngine
         from src.engine.parking_session import ParkingSession
 
         pcfg = cfg.get("pipeline", {})
         tcfg = pcfg.get("trigger", {})
         lcfg = pcfg.get("lock", {})
-        det_model = str(_PROJECT_ROOT / cfg["paths"]["model_save_dir"] / cfg["detector"]["model_name"])
-        plate_model = str(_PROJECT_ROOT / cfg["paths"]["model_save_dir"] / cfg["plate_detector"]["model_name"])
 
-        vehicle_det = VehicleDetector(model_path=det_model, conf=cfg["detector"].get("conf_threshold", 0.3))
-        plate_det = VehicleDetector(
-            model_path=plate_model,
-            conf=cfg["plate_detector"].get("conf_threshold", 0.3),
-            vehicle_classes=None,
-        )
-        # Pick the OCR engine (PaddleOCR won Benchmark C; EasyOCR is the fallback).
-        plate_ocr = models.get("ocr")
-        if cfg.get("ocr", {}).get("engine", "easyocr") == "ppocr":
-            try:
-                from src.models.ppocr_reader import PaddleOCRReader
-                plate_ocr = PaddleOCRReader(lang=cfg["ocr"].get("languages", ["en"])[0])
-            except Exception:
-                logger.exception("PaddleOCR unavailable; falling back to EasyOCR.")
+        if pipeline is not None:
+            plate_reader = pipeline["plate_reader"]
 
-        # WS-1 Task 5: warm every model with one throwaway inference now, at
-        # load time, so the FIRST real vehicle frame doesn't pay cold-start
-        # latency (ONNX session warmup / first-call kernel compile). Runs
-        # right after construction, before the session ever sees a frame.
-        warmup_models(
-            vehicle_detector=vehicle_det,
-            plate_detector=plate_det,
-            color_clf=models.get("color_clf"),
-            ocr=plate_ocr,
-        )
-
-        if plate_ocr is not None and models.get("color_clf") is not None and models.get("matcher") is not None:
-            session = ParkingSession(
-                vehicle_detector=vehicle_det,
-                plate_reader=PlateReader(plate_det, plate_ocr),
-                color_clf=models["color_clf"],
-                decision_engine=DecisionEngine(models["matcher"]),
-                trigger=ParkingTrigger(
-                    roi=tcfg.get("roi"),
-                    min_area_ratio=tcfg.get("min_area_ratio", 0.15),
-                    stable_frames=tcfg.get("stable_frames", 5),
-                    move_eps=tcfg.get("move_eps", 0.02),
-                    min_persist_frames=tcfg.get("min_persist_frames", 3),
-                ),
-                sample_interval=pcfg.get("frame_sample_interval", 5),
-                collect_frames=pcfg.get("collect_frames", 5),
-                lock_conf=lcfg.get("lock_conf", 0.60),
-                lock_repeat=lcfg.get("lock_repeat", 2),
+            # WS-1 Task 5: warm every model with one throwaway inference now, at
+            # load time, so the FIRST real vehicle frame doesn't pay cold-start
+            # latency (ONNX session warmup / first-call kernel compile). Runs
+            # right after construction, before the session ever sees a frame.
+            warmup_models(
+                vehicle_detector=pipeline["vehicle_detector"],
+                plate_detector=plate_reader.plate_detector,
+                color_clf=pipeline["color_clf"],
+                ocr=plate_reader.ocr_reader,
             )
-            models["session"] = session
+
+            if (
+                plate_reader.ocr_reader is not None
+                and pipeline["color_clf"] is not None
+                and pipeline["matcher"] is not None
+            ):
+                session = ParkingSession(
+                    vehicle_detector=pipeline["vehicle_detector"],
+                    plate_reader=plate_reader,
+                    color_clf=pipeline["color_clf"],
+                    decision_engine=pipeline["decision_engine"],
+                    trigger=ParkingTrigger(
+                        roi=tcfg.get("roi"),
+                        min_area_ratio=tcfg.get("min_area_ratio", 0.15),
+                        stable_frames=tcfg.get("stable_frames", 5),
+                        move_eps=tcfg.get("move_eps", 0.02),
+                        min_persist_frames=tcfg.get("min_persist_frames", 3),
+                    ),
+                    sample_interval=pcfg.get("frame_sample_interval", 5),
+                    collect_frames=pcfg.get("collect_frames", 5),
+                    lock_conf=lcfg.get("lock_conf", 0.60),
+                    lock_repeat=lcfg.get("lock_repeat", 2),
+                )
+                models["session"] = session
     except Exception:
         logger.exception("ParkingSession construction failed.")
 
@@ -231,103 +177,53 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
 def _run_pipeline(
     image: np.ndarray,
     models: dict[str, Any],
-    conf_threshold: float,
+    conf_threshold: float,  # noqa: ARG001 — kept for call-site compat; infer_single_image uses cfg-fixed confidence, not a runtime slider (known trade-off, see plan WS-4)
 ) -> tuple[list[dict[str, Any]], float]:
-    """Execute the full detection → OCR → classify → verify pipeline.
+    """Execute the shared 2-stage vehicle->plate->OCR + colour-gated verify
+    pipeline via ``infer_single_image`` (same function the API /verify
+    endpoint uses), so Upload-Image and the API always agree on a verdict.
 
     Args:
         image: BGR input image.
-        models: Loaded model dict.
-        conf_threshold: Minimum detection confidence.
+        models: Loaded model dict (must contain ``"pipeline"`` from
+            ``build_pipeline``).
+        conf_threshold: Unused — ``infer_single_image`` reads a fixed
+            confidence from config.yaml at pipeline-build time, not at
+            call time. Kept in the signature so the existing call site
+            does not need to change.
 
     Returns:
-        A tuple of (list of result dicts, latency in ms).
+        A tuple of (list with 0 or 1 result dict, latency in ms).
     """
-    t0 = time.perf_counter()
+    pipeline = models.get("pipeline")
+    if pipeline is None:
+        return [], 0.0
 
-    detector = models.get("detector")
-    if detector is None:
-        return [], round((time.perf_counter() - t0) * 1000, 2)
+    cfg = _load_config()
+    result = infer_single_image(image, pipeline, cfg)
 
-    try:
-        detections = detector.detect(image, conf_threshold=conf_threshold)
-    except Exception:
-        logger.exception("Detection error.")
-        return [], round((time.perf_counter() - t0) * 1000, 2)
+    brand_diagnostic = result.get("brand_diagnostic")
+    if brand_diagnostic is not None:
+        brand, brand_conf = brand_diagnostic
+        brand_confidence = round(float(brand_conf) * 100, 2)
+    else:
+        brand, brand_confidence = "UNKNOWN", 0.0
 
-    if not detections:
-        return [], round((time.perf_counter() - t0) * 1000, 2)
+    color_conf = result.get("color_conf")
+    color_confidence = round(float(color_conf) * 100, 2) if color_conf is not None else 0.0
 
-    ocr_reader = models.get("ocr")
-    brand_clf = models.get("brand_clf")
-    color_clf = models.get("color_clf")
-    matcher: Optional[DatabaseMatcher] = models.get("matcher")
-
-    results: list[dict[str, Any]] = []
-    for det in detections:
-        plate_crop = det.get("cropped_plate")
-
-        # OCR
-        plate_text = ""
-        if ocr_reader is not None and plate_crop is not None:
-            try:
-                plate_text = ocr_reader.read_plate(plate_crop)
-            except Exception:
-                logger.exception("OCR error.")
-
-        # Brand
-        brand, brand_conf = "UNKNOWN", 0.0
-        if brand_clf is not None:
-            try:
-                brand, brand_conf = brand_clf.predict(image)
-            except Exception:
-                logger.exception("Brand clf error.")
-
-        # Colour. ``cropped_plate`` is the *plate* region (see PlateDetector.
-        # detect()), not the vehicle, so it cannot stand in for a vehicle
-        # crop here. This path only has PlateDetector (no vehicle bbox), so
-        # crop the full frame to this detection's bbox instead of feeding
-        # the whole scene — closer to the body-crop the classifier expects.
-        color, color_conf = "UNKNOWN", 0.0
-        if color_clf is not None:
-            try:
-                bbox = det.get("bbox", det.get("box"))
-                vehicle_crop = image
-                if bbox is not None:
-                    x1, y1, x2, y2 = bbox
-                    crop = image[y1:y2, x1:x2]
-                    if crop.size > 0 and crop.shape[0] >= 2 and crop.shape[1] >= 2:
-                        vehicle_crop = crop
-                color, color_conf = color_clf.predict(vehicle_crop)
-            except Exception:
-                logger.exception("Colour clf error.")
-
-        # Verify
-        verification: dict[str, Any] = {
-            "status": "NO_PLATE_DETECTED",
-            "action": "LOG",
-            "message": "Matcher unavailable.",
-        }
-        if matcher is not None and plate_text:
-            try:
-                verification = matcher.verify_vehicle(plate_text, color)
-            except Exception:
-                logger.exception("Matcher error.")
-
-        results.append(
-            {
-                "plate_text": plate_text,
-                "brand": brand,
-                "brand_confidence": round(float(brand_conf) * 100, 2),
-                "color": color,
-                "color_confidence": round(float(color_conf) * 100, 2),
-                "bbox": det.get("bbox", det.get("box")),
-                **verification,
-            }
-        )
-
-    latency = round((time.perf_counter() - t0) * 1000, 2)
-    return results, latency
+    mapped = {
+        "plate_text": result["plate_text"],
+        "brand": brand,
+        "brand_confidence": brand_confidence,
+        "color": result["color"],
+        "color_confidence": color_confidence,
+        "bbox": None,
+        "status": result["status"],
+        "action": result["action"],
+        "message": result.get("message", ""),
+    }
+    return [mapped], result.get("latency_ms", 0.0)
 
 
 # ---------------------------------------------------------------------------
