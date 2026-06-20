@@ -103,3 +103,15 @@ pipeline:
 plate_detector:
   model_name: "plate_yolov8n.onnx"
   conf_threshold: 0.15
+
+# WS-2: verify_vehicle colour cross-check tuning (cuts false-alarm rate from
+# the measured 14.5% baseline -- see docs/benchmarks/security_eval.md).
+# neutral_colors: colours treated as equivalent to each other (the colour
+#   classifier's known confusable cluster, Report 3 §5.1) so a mismatch
+#   between them does not raise a colour warning.
+# color_warn_conf: minimum colour-classification confidence required before
+#   a genuine cross-cluster colour mismatch raises a warning; below this the
+#   mismatch is too likely to be classifier noise to flag.
+decision:
+  color_warn_conf: 0.60
+  neutral_colors: [Black, Grey, Silver, White]

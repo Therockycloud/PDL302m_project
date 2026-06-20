@@ -91,7 +91,11 @@ class DecisionEngine:
         ]
         color_conf = sum(color_confs) / len(color_confs) if color_confs else 0.0
 
-        verdict = self.matcher.verify_vehicle(plate, color)
+        # WS-2: thread the colour confidence we just computed (mean conf of
+        # the locked frames' winning colour) into verify_vehicle, so the
+        # cross-cluster colour-mismatch warning is gated by how trustworthy
+        # this particular colour read actually was.
+        verdict = self.matcher.verify_vehicle(plate, color, color_conf)
         return {
             "plate": plate,
             "color": color,

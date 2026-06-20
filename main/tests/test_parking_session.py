@@ -19,7 +19,10 @@ class FakeColorClf:
 
 
 class FakeMatcher:
-    def verify_vehicle(self, plate, color):
+    def verify_vehicle(self, plate, color, color_conf=None):
+        # WS-2: DecisionEngine._aggregate_lock_aware now passes color_conf as
+        # a 3rd positional arg; accept it (default None) to match the real
+        # DatabaseMatcher.verify_vehicle signature.
         return {"status": "AUTHORIZED", "action": "ALLOW", "message": "ok"}
 
 
@@ -108,7 +111,8 @@ class WhiteColorClf:
 
 
 class LockMatcher:
-    def verify_vehicle(self, plate, color):
+    def verify_vehicle(self, plate, color, color_conf=None):
+        # WS-2: see FakeMatcher comment above re: the 3rd positional arg.
         if plate == "30M71854":
             return {"status": "AUTHORIZED", "action": "ALLOW", "message": "ok"}
         return {"status": "UNREGISTERED", "action": "DENY_ALERT", "message": "no"}
