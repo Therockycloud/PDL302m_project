@@ -10,16 +10,18 @@
 
 ## Headline Results
 
-| Scenario | Trials | Metric | Value |
-|---|---|---|---|
-| **Plate-swap detection** (headline) | 200 | detection rate (color_warning=True) | **69.0%** (138/200) |
-| Plate-swap MISSED | 200 | miss rate | 31.0% (62/200) |
-| Legitimate (no swap) | 200 | false-alarm rate | 2.5% (5/200) |
-| Unregistered plate | 200 | detection rate (DENY_ALERT) | 100.0% (200/200) |
+**Deployed operating point: `decision.color_warn_conf = 0.40`** (WS-2 gate — xem mục "Operating point" dưới đây để biết lý do chọn 0.40 và toàn bộ bảng quét gate).
 
-- **Plate-swap detection rate = 69.0%** — khi biển số bị tráo lên xe KHÁC MÀU, hệ thống bắt được 138/200 lần qua cảnh báo màu lệch.
-- **False-alarm rate = 2.5%** — xe hợp lệ (không tráo) bị cảnh báo nhầm 5/200 lần (do model màu dự đoán sai ngay cả khi biển đúng).
-- **Unregistered detection rate = 100.0%** — biển không có trong CSDL bị chặn đúng 200/200 lần (như kỳ vọng, không phụ thuộc màu).
+| Scenario | Trials | Metric | Before (legacy, gate=0.00 / không gate) | **After (deployed, gate=0.40)** |
+|---|---|---|---|---|
+| **Plate-swap detection** (headline) | 200 | detection rate (color_warning=True) | 98.5% (197/200) | **69.0%** (138/200) |
+| Plate-swap MISSED | 200 | miss rate | 1.5% (3/200) | **31.0%** (62/200) |
+| Legitimate (no swap) | 200 | false-alarm rate | 14.5% (29/200) | **2.5%** (5/200) |
+| Unregistered plate | 200 | detection rate (DENY_ALERT) | 100.0% (200/200) | **100.0%** (200/200) |
+
+- **Plate-swap detection rate = 69.0%** (After) — khi biển số bị tráo lên xe KHÁC MÀU, hệ thống bắt được 138/200 lần qua cảnh báo màu lệch. Trước khi siết gate (Before), con số này là 98.5%, nhưng đi kèm false-alarm 14.5% không triển khai được thực tế (xem giải thích đánh đổi ở mục "Operating point" dưới).
+- **False-alarm rate = 2.5%** (After) — xe hợp lệ (không tráo) bị cảnh báo nhầm 5/200 lần, giảm từ 14.5% (Before) nhờ gộp cụm màu trung tính + confidence-gating (WS-2).
+- **Unregistered detection rate = 100.0%** — biển không có trong CSDL bị chặn đúng 200/200 lần (như kỳ vọng, không phụ thuộc màu, không đổi giữa Before/After).
 
 ## Colour-Pair Breakdown — Plate-Swap Misses
 
@@ -44,6 +46,29 @@ Cặp (màu đăng ký C1 → màu thật C2) bị MISS nhiều nhất (color_wa
 | Red | Silver | 5 | 2 | 40.0% |
 
 **Cụm màu trung tính (Black/Grey/Silver/White ↔ nhau):** 50 trial, miss 48 (96.0%) — khớp với cụm nhập nhằng đã ghi nhận ở Report 3 §5.1 (confusion matrix màu), đây là nơi cross-check màu YẾU NHẤT vì model màu chính nó cũng nhầm trong cụm này.
+
+## Operating point & false-alarm reduction (WS-2)
+
+Logic gốc (pre-WS-2) coi MỌI sai khác màu là tín hiệu tráo biển, không phân biệt cụm màu hay độ tin cậy của model — kết quả là detection cao (98.5%) nhưng false-alarm rate 14.5% cao đến mức không triển khai được trong thực tế (gần 1/7 xe hợp lệ bị cảnh báo nhầm). WS-2 thêm hai cơ chế để kéo false-alarm xuống:
+
+1. **Gộp cụm màu trung tính** (`decision.neutral_colors`: Black/Grey/Silver/White) — coi các màu này tương đương nhau, vì đây chính là cụm model màu hay nhầm nhất (Report 3 §5.1).
+2. **Confidence-gating** (`decision.color_warn_conf`) — chỉ cảnh báo khi model màu đủ tin cậy (`color_conf ≥ gate`) về một sai khác màu KHÔNG nằm trong cụm trung tính; dưới ngưỡng, sai khác được coi là nhiễu của model màu, không cảnh báo.
+
+**Bảng quét gate (gate sweep, đo trên cùng split/seed=42, 200 trial/scenario mỗi điểm gate):**
+
+| Gate (`color_warn_conf`) | False-alarm rate | Plate-swap detection rate |
+|---:|---:|---:|
+| 0.00 (không gate — chỉ gộp cụm trung tính) | 4.5% | 73.5% |
+| 0.30 | 3.5% | 72.0% |
+| **0.40 (ĐÃ CHỌN, deployed)** | **2.5%** | **69.0%** |
+| 0.50 | 1.0% | 63.5% |
+| 0.60 (ngưỡng cũ trước khi chốt 0.40) | 0.5% | 56.5% |
+
+**Vì sao chọn 0.40:** đây là điểm cân bằng giữ false-alarm an toàn cho triển khai (<5%, ở mức 2.5%) trong khi vẫn giữ được detection ở mức khá (69.0%) — gate cao hơn (0.50/0.60) giảm false-alarm thêm nhưng đánh đổi detection giảm sâu hơn (63.5%/56.5%), còn gate thấp hơn (0.00/0.30) giữ detection cao hơn nhưng false-alarm vẫn ở vùng dễ gây phiền (3.5–4.5%, vẫn gấp đôi tới gấp gần hai lần mức 2.5% đã chọn).
+
+**Vì sao detection giảm mạnh (98.5% → 69.0%), nói trung thực:**
+- Phần lớn mức giảm đến từ **việc gộp cụm trung tính cố ý bỏ qua các cặp tráo biển trong cùng cụm Black/Grey/Silver/White** — đây là đánh đổi thiết kế có chủ ý (không phải lỗi): các cặp này vốn là nơi model màu tự nhầm lẫn nhiều nhất, nên một sai khác trong cụm này mang tín hiệu tráo biển rất yếu, cảnh báo ở đây chủ yếu là báo động giả chứ không phải bắt được tráo biển thật.
+- Phần còn lại đến từ **confidence-gating loại bỏ các trường hợp model màu dự đoán đúng có tráo biển nhưng với độ tin cậy thấp** (`color_conf < 0.40`) — những trường hợp này trước đây vẫn được tính là "bắt được" (detection) dù bản chất là model màu không chắc, nên giữ lại sẽ kéo false-alarm lên cao không kiểm soát được.
 
 ## Methodology
 

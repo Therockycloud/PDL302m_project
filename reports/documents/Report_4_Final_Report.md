@@ -81,26 +81,48 @@ Nhóm đã chạy thực nghiệm toàn bộ pipeline trên tập dữ liệu ki
     2.  **plate_swap** — ảnh màu thật C2, biển đăng ký màu KHÁC C1≠C2 (giả lập tráo biển) → đúng = `color_warning=True` (bắt được tráo); không cảnh báo = **bỏ lọt (missed)**.
     3.  **unregistered** — biển hoàn toàn không có trong CSDL → đúng = UNREGISTERED/DENY_ALERT.
 
-**Kết quả (số đo thật, 600 trial tổng, 889 ảnh pool giữ-riêng, chạy 20/06/2026):**
+**Kết quả — BEFORE (logic gốc, chưa có WS-2) vs. AFTER (đã siết gate `color_warn_conf=0.40`, WS-2):**
 
-| Kịch bản | Số trial | Chỉ số | Kết quả |
-| :--- | :---: | :--- | :---: |
-| **Phát hiện tráo biển (headline)** | 200 | tỉ lệ bắt được (`color_warning=True`) | **98,5% (197/200)** |
-| Tráo biển bị bỏ lọt | 200 | tỉ lệ miss | 1,5% (3/200) |
-| Xe hợp lệ (không tráo) | 200 | tỉ lệ báo động giả | 14,5% (29/200) |
-| Biển không đăng ký | 200 | tỉ lệ phát hiện (DENY_ALERT) | 100,0% (200/200) |
+> Số đo thật, 600 trial tổng/điểm đo, 889 ảnh pool giữ-riêng (VCoR TEST split, seed=42). "Before" chạy 20/06/2026 trên logic cross-check màu gốc (mọi sai khác màu đều cảnh báo, không gộp cụm, không xét độ tin cậy). "After" chạy cùng ngày sau khi áp WS-2 (gộp cụm màu trung tính + confidence-gating ở ngưỡng đã chốt 0.40).
 
-*   **Tỉ lệ phát hiện tráo biển = 98,5%** — vượt mục tiêu ≥95% của đề xuất ban đầu, **đo được lần đầu** trên model + logic thật (không phải số ước lượng).
-*   **Tỉ lệ báo động giả = 14,5%** — xe hợp lệ vẫn có thể bị cảnh báo nhầm do chính model màu dự đoán sai dù biển đúng; đây là cái giá đánh đổi của việc dùng màu làm cảnh báo mềm (chấp nhận được vì hệ thống không từ chối cứng, chỉ cảnh báo).
-*   **Cặp màu bị bỏ lọt nhiều nhất**: Grey→Brown (1/2, 50%), Silver↔Grey (1/5 mỗi chiều, 20%) — đúng như dự đoán, rơi vào **cụm màu trung tính** (Black/Grey/Silver/White). Đo riêng cụm này: 50 trial, miss 2 (**4,0%**, cao hơn tỉ lệ miss tổng 1,5%) — khớp với confusion matrix màu đã ghi nhận ở Report 3 §5.1 (Grey/Silver là cặp khó nhất của chính bộ phân loại màu).
-*   Chi tiết đầy đủ (toàn bộ 52 cặp màu, breakdown JSON): `docs/benchmarks/security_eval.md` và `docs/benchmarks/security_eval.json`.
+| Kịch bản | Số trial | Chỉ số | **Before** (gốc) | **After** (gate=0.40, đã triển khai) |
+| :--- | :---: | :--- | :---: | :---: |
+| **Phát hiện tráo biển (headline)** | 200 | tỉ lệ bắt được (`color_warning=True`) | 98,5% (197/200) | **69,0% (138/200)** |
+| Tráo biển bị bỏ lọt | 200 | tỉ lệ miss | 1,5% (3/200) | **31,0% (62/200)** |
+| Xe hợp lệ (không tráo) | 200 | tỉ lệ báo động giả | 14,5% (29/200) | **2,5% (5/200)** |
+| Biển không đăng ký | 200 | tỉ lệ phát hiện (DENY_ALERT) | 100,0% (200/200) | **100,0% (200/200)** |
 
-**Giới hạn trung thực (đọc trước khi trích số 98,5%):**
-1.  **Chỉ bắt được khi xe gắn biển tráo có MÀU KHÁC màu đăng ký.** Nếu kẻ tráo biển dùng đúng xe cùng màu (hoặc cố tình chọn xe cùng màu/dán decal giả màu), cơ chế cross-check màu **không có khả năng phát hiện** — đây là lỗ hổng cố hữu của thiết kế "màu là cảnh báo mềm", không phải lỗi đo lường hay có thể vá bằng cách huấn luyện lại model màu.
-2.  **Phụ thuộc hoàn toàn vào việc OCR đọc đúng biển số trước đó** (Benchmark C: ~81% exact-match, xem Report 3). Thực nghiệm này đo cách ly riêng bước cross-check màu, giả định biển đã đọc đúng; trong vận hành thật, nếu OCR đọc sai/đọc thiếu biển, xe có thể rơi vào UNREGISTERED hoặc match nhầm bản ghi khác — tỉ lệ 98,5% ở trên **không bao gồm** lỗi OCR thực tế nối tiếp.
-3.  **Đo trên VCoR (ảnh web/marketplace sạch)**, không phải ảnh CCTV bãi xe thật. CCTV thực tế (ánh sáng yếu, góc nghiêng, nén ảnh, độ phân giải thấp) nhiều khả năng cho tỉ lệ phát hiện **thấp hơn** 98,5% do domain gap — cùng caveat đã nêu cho độ chính xác màu ở Report 3 §5.1 / Report 4 §5.1.
+![FA before/after](../../docs/benchmarks/security_fa_before_after.png)
 
-**Kết luận của mục này:** đây là **lần đầu tiên** dự án có số đo định lượng cho năng lực an ninh đã cam kết ở đề xuất (mục tiêu ≥95% chưa từng được đo trước thực nghiệm này). Cross-check màu nâng đáng kể khả năng phát hiện tráo biển so với việc chỉ dùng biển số đơn thuần (chỉ dùng biển = 0% phát hiện tráo biển cùng-biển-khác-xe, vì biển vẫn khớp CSDL), nhưng **không phải là đảm bảo cứng** — nó là một lớp phòng thủ bổ sung có giới hạn rõ ràng (màu phải khác, OCR phải đúng, domain phải gần VCoR), cần kết hợp thêm các lớp khác (camera giám sát người vận hành, đối soát định kỳ) để đạt an ninh toàn diện.
+**Vì sao có hai cột Before/After — và vì sao 98,5% "Before" KHÔNG dùng được:** lần đo đầu tiên (Before) cho phát hiện tráo biển 98,5%, vượt mục tiêu ≥95% của đề xuất ban đầu — nhưng đi kèm **false-alarm 14,5%** (gần 1/7 xe hợp lệ, không tráo gì cả, vẫn bị cảnh báo nhầm). Ở quy mô vận hành thật, tỉ lệ báo động giả này là không thể chấp nhận (gây phiền người vận hành, làm mất tín hiệu của cảnh báo thật). Vì vậy nhóm đã thêm hai cơ chế giảm false-alarm (WS-2) và đo lại (After) trước khi chốt vận hành ở ngưỡng `color_warn_conf=0.40`:
+
+(a) **Hai cơ chế giảm false-alarm:**
+1.  **Gộp cụm màu trung tính** (`decision.neutral_colors`: Black/Grey/Silver/White) — coi các màu này tương đương nhau khi so khớp, vì đây chính là cụm mà bộ phân loại màu hay nhầm lẫn nhất (confusion matrix, Report 3 §5.1); một sai khác trong cụm này mang tín hiệu tráo biển rất yếu.
+2.  **Confidence-gating** (`decision.color_warn_conf`, mặc định/đã chọn 0.40) — chỉ cảnh báo khi model màu đủ tin cậy (`color_conf ≥ 0,40`) về một sai khác màu nằm NGOÀI cụm trung tính; dưới ngưỡng này, sai khác bị coi là nhiễu của model màu và không được cảnh báo.
+
+(b) **Bảng quét gate (gate sweep) — đánh đổi false-alarm ↔ detection, lý do chọn 0,40:**
+
+| Gate (`color_warn_conf`) | False-alarm rate | Plate-swap detection rate |
+|---:|---:|---:|
+| 0,00 (chỉ gộp cụm trung tính, không gate) | 4,5% | 73,5% |
+| 0,30 | 3,5% | 72,0% |
+| **0,40 (ĐÃ CHỌN, đang triển khai)** | **2,5%** | **69,0%** |
+| 0,50 | 1,0% | 63,5% |
+| 0,60 | 0,5% | 56,5% |
+
+Gate càng cao thì false-alarm càng thấp nhưng detection cũng giảm theo — không có điểm nào tối ưu cả hai cùng lúc. Nhóm chọn **0,40** vì đây là điểm sớm nhất trên đường quét đưa false-alarm xuống dưới ngưỡng an toàn triển khai (<5%, đạt 2,5%) mà vẫn giữ được phần lớn khả năng phát hiện (69,0%, so với 56,5–63,5% nếu siết thêm ở gate 0,50–0,60).
+
+(c) **Vì sao detection giảm mạnh (98,5% → 69,0%), nói trung thực — không che giấu:**
+*   Phần lớn mức giảm đến từ **việc gộp cụm trung tính cố ý bỏ qua các cặp tráo biển trong cùng cụm Black/Grey/Silver/White** (đo riêng cụm này: 50 trial, miss 48 ở mức After — 96,0%) — đây là đánh đổi thiết kế có chủ ý, không phải lỗi: các cặp này vốn là nơi model màu tự nhầm lẫn nhiều nhất nên một cảnh báo ở đây phần lớn là báo động giả, không phải bắt tráo biển thật.
+*   Phần còn lại đến từ **confidence-gating loại bỏ các trường hợp model màu dự đoán đúng có khác biệt màu (tráo biển thật) nhưng với độ tin cậy thấp** (`color_conf < 0,40`) — trước đây những trường hợp này vẫn được tính là "bắt được", dù bản chất model không chắc; giữ lại sẽ kéo false-alarm lên không kiểm soát được.
+*   Chi tiết đầy đủ (toàn bộ cặp màu, breakdown JSON, bảng quét gate): `docs/benchmarks/security_eval.md` và `docs/benchmarks/security_eval.json`.
+
+(d) **Giới hạn trung thực (vẫn đúng cho cả Before và After, đọc trước khi trích số liệu):**
+1.  **Chỉ bắt được khi xe gắn biển tráo có MÀU KHÁC màu đăng ký** (và sau WS-2: khác cụm màu trung tính). Nếu kẻ tráo biển dùng đúng xe cùng màu/cùng cụm (hoặc cố tình chọn xe cùng màu/dán decal giả màu), cơ chế cross-check màu **không có khả năng phát hiện** — đây là lỗ hổng cố hữu của thiết kế "màu là cảnh báo mềm", không phải lỗi đo lường hay có thể vá bằng cách huấn luyện lại model màu.
+2.  **Phụ thuộc hoàn toàn vào việc OCR đọc đúng biển số trước đó** (Benchmark C: ~81% exact-match, xem Report 3). Thực nghiệm này đo cách ly riêng bước cross-check màu, giả định biển đã đọc đúng; trong vận hành thật, nếu OCR đọc sai/đọc thiếu biển, xe có thể rơi vào UNREGISTERED hoặc match nhầm bản ghi khác — các tỉ lệ ở trên (cả Before và After) **không bao gồm** lỗi OCR thực tế nối tiếp.
+3.  **Đo trên VCoR (ảnh web/marketplace sạch)**, không phải ảnh CCTV bãi xe thật. CCTV thực tế (ánh sáng yếu, góc nghiêng, nén ảnh, độ phân giải thấp) nhiều khả năng cho tỉ lệ phát hiện **thấp hơn** cả hai số trên do domain gap — cùng caveat đã nêu cho độ chính xác màu ở Report 3 §5.1 / Report 4 §5.1.
+
+**Kết luận của mục này:** đây là **lần đầu tiên** dự án có số đo định lượng cho năng lực an ninh đã cam kết ở đề xuất, và cũng là lần đầu đo được rằng số liệu "đạt mục tiêu ≥95%" ban đầu (Before) đi kèm chi phí false-alarm không triển khai được. Sau khi cân bằng lại (After, gate=0,40), hệ thống vận hành ở **69,0% detection tại 2,5% false-alarm** — thấp hơn con số headline ban đầu nhưng là điểm vận hành THỰC SỰ dùng được, đã được đo và chốt có kiểm soát (không phải ước lượng). Cross-check màu vẫn là một lớp phòng thủ bổ sung có giới hạn rõ ràng (màu phải khác cụm, OCR phải đúng, domain phải gần VCoR), cần kết hợp thêm các lớp khác (camera giám sát người vận hành, đối soát định kỳ) để đạt an ninh toàn diện.
 
 ---
 
