@@ -48,22 +48,31 @@ Quy trình tích hợp được hiện thực hóa trong mã nguồn [run_evalua
 Nhóm đã chạy thực nghiệm toàn bộ pipeline trên tập dữ liệu kiểm thử gồm 5 hình ảnh thực tế lưu trữ cục bộ. Kết quả đo lường chi tiết được ghi nhận như sau:
 
 ### 4.1. Bảng nhật ký xử lý chi tiết (Detailed Inference Logs)
-| Tên tệp ảnh | Biển số nhận diện | Hãng xe dự đoán (Conf) | Màu xe dự đoán (Conf) | Trạng thái đối chiếu | Thời gian xử lý |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **clip3_new_0.jpg** | '706131' | Mitsubishi (0.2670) | Silver (0.1806) | **AUTHORIZED** | 4,488.55 ms |
-| **clip3_new_1.jpg** | '3KR3312*56' | Mitsubishi (0.2672) | Silver (0.1792) | **MISMATCH** | 1,714.26 ms |
-| **clip3_new_2.jpg** | '5IDS133112*56' | Honda (0.2472) | Silver (0.1794) | **UNREGISTERED** | 1,632.75 ms |
-| **clip3_new_3.jpg** | '' (Không đọc được) | Mitsubishi (0.1828) | Silver (0.1816) | **UNREGISTERED** | 1,347.41 ms |
-| **clip3_new_4.jpg** | '66P189575' | Honda (0.2910) | Silver (0.1753) | **AUTHORIZED** | 1,771.46 ms |
 
-> **Lưu ý (cột Màu xe đã lỗi thời):** Bảng E2E trên được chạy bằng phiên bản **cũ** của model phân loại màu (~55% accuracy, dự đoán gần ngẫu nhiên — toàn bộ 5 ảnh đều ra "Silver" với confidence thấp ~0.18, đúng với hành vi của model yếu thời điểm đó). Model màu hiện tại đã được nâng cấp lên **86% (TTA)** trên VCoR (xem Report 3 §5.1). Cột "Hãng xe"/"Màu xe dự đoán (Conf)" ở bảng này **cần được chạy lại** với model màu mới để cập nhật số liệu đối chiếu E2E — chưa có số đo lại nên không bịa số mới ở đây.
+> **Phiên bản số liệu:** bảng dưới đây là kết quả chạy lại (20/06/2026) qua **đường hợp nhất** `build_pipeline` + `infer_single_image` (`main/src/engine/pipeline_factory.py`) — cùng pipeline mà API `/verify` và Dashboard đang dùng sau WS-3/WS-4: 2 tầng PaddleOCR (vehicle → plate) + classifier màu PyTorch 86% (TTA) + logic cross-check màu đã siết gate (WS-2). Bảng này **thay thế** bảng cũ chạy bằng model màu lỗi thời (~55%, ra toàn "Silver 0.18").
+
+| Tên tệp ảnh | Biển số nhận diện | Màu xe dự đoán (Conf) | Trạng thái đối chiếu | Thời gian xử lý |
+| :--- | :---: | :---: | :---: | :---: |
+| **clip3_new_0.jpg** | 75H135792 | Black (0.47) | **UNREGISTERED** | 6,110.4 ms *(cold-start ảnh đầu)* |
+| **clip3_new_1.jpg** | 66P189575 | Black (0.60) | **UNREGISTERED** | 989.7 ms |
+| **clip3_new_2.jpg** | 66P18957 | Black (0.60) | **UNREGISTERED** | 931.6 ms |
+| **clip3_new_3.jpg** | 66P189575 | Black (0.92) | **UNREGISTERED** | 932.8 ms |
+| **clip3_new_4.jpg** | 66P189575 | Black (0.61) | **UNREGISTERED** | 988.1 ms |
+
+> **Ghi chú trung thực (đọc trước khi trích số liệu):**
+> 1.  **Biển đọc hợp lý hơn hẳn** so với phiên OCR cũ (1 tầng, EasyOCR) — bảng cũ ra chuỗi rác như `'3KR3312*56'`, `'5IDS133112*56'`, hoặc rỗng; bảng mới (2 tầng PaddleOCR) ra các chuỗi có cấu trúc biển số Việt Nam hợp lệ (`66P189575`, `75H135792`).
+> 2.  File nhãn `.txt` đi kèm 5 ảnh này **chỉ là bounding-box YOLO của biển số, KHÔNG có plate-text ground-truth** → bảng này **không** dùng để claim exact-match OCR. Độ chính xác đọc ký tự đã đo riêng và đầy đủ ở Benchmark C (Report 3 §5.4): PaddleOCR 81% exact-match trên 16 crop biển có nhãn tay.
+> 3.  **`clip3_new_2.jpg` đọc thiếu 1 ký tự** (`66P18957` so với biển thật `66P189575`) — minh chứng cụ thể rằng OCR không hoàn hảo, khớp với tỉ lệ lỗi đã biết ở Benchmark C.
+> 4.  **Cả 5 ảnh đều ra UNREGISTERED** vì các biển số này không có trong CSDL demo (`main/data/database.csv`) — 5 ảnh test E2E này được chọn để minh hoạ nhánh phát hiện-biển-lạ, không phải nhánh AUTHORIZED. Đường happy-path AUTHORIZED (biển `30M71854` có trong CSDL) được minh hoạ ở video mặc định của Dashboard — xem §3 (kiến trúc) và §4.3 (đo an ninh trên model thật).
+> 5.  **Màu xe nay đến từ model PyTorch MobileNetV3-Small 86% (TTA)** (thay cho "Silver 0.18" gần-ngẫu-nhiên của model cũ ~55%) — cột Màu ở bảng này phản ánh đúng năng lực model đang triển khai.
+> 6.  Cột "Hãng xe" đã được **bỏ khỏi bảng** vì hãng là *diagnostic phụ*, không vào quyết định AUTHORIZED/MISMATCH/UNREGISTERED (xem §3, §6).
 
 ### 4.2. Thống kê số liệu tổng hợp (Aggregate Metrics)
 *   **Tổng số lượng mẫu kiểm thử**: 5 xe
-*   **Xe Hợp lệ (AUTHORIZED)**: 2 xe (barrier mở tự động)
-*   **Xe Lệch thông tin hãng/màu (MISMATCH)**: 1 xe (khóa barrier, báo động đỏ)
-*   **Xe Không đăng ký (UNREGISTERED)**: 2 xe (khóa barrier, báo động đỏ)
-*   **Thời gian phản hồi trung bình (Average Latency)**: **2,190.89 ms / xe** trên 5 ảnh test — con số này gồm *cold-start* (~4.49 s ở ảnh đầu do nạp model lần đầu). Từ ảnh thứ hai trở đi, độ trễ ổn định ở mức **~1.6 s / xe** (xem §5.1). Mục tiêu <1.0 s ở đề xuất chưa đạt do chạy thuần CPU + tải PaddleOCR.
+*   **Xe Hợp lệ (AUTHORIZED)**: 0 xe
+*   **Xe Lệch thông tin (MISMATCH)**: 0 xe
+*   **Xe Không đăng ký (UNREGISTERED)**: 5 xe (khóa barrier, báo động đỏ — biển không có trong CSDL demo, xem ghi chú (4) ở §4.1)
+*   **Thời gian phản hồi trung bình (Average Latency)**: **~1.99 s / xe** trên 5 ảnh test — con số này gồm *cold-start* (~6.11 s ở ảnh đầu do nạp PaddleOCR lần đầu). Từ ảnh thứ hai trở đi (steady-state, đã warmup), độ trễ ổn định ở mức **~0.96 s / xe (dưới 1 giây)** — xem §5.1. Mục tiêu <1.0 s ở đề xuất nay **đã đạt** ở chế độ steady-state.
 
 ### 4.3. Đánh giá năng lực chống tráo biển (Plate-swap Detection)
 
@@ -134,7 +143,13 @@ Trong quá trình tích hợp, hệ thống đã gặp hai thách thức lớn �
 
 *   **Vấn đề ban đầu**: TensorFlow/Keras và PaddleOCR **không thể sống chung một tiến trình** trên macOS — runtime OpenMP tranh chấp luồng gây treo cứng / tự sập (`mutex lock failed`), và protobuf của hai bên xung khắc phiên bản.
 *   **Giải pháp delivered — chuyển sang PyTorch cho runtime**: Bộ phân loại màu runtime sử dụng **PyTorch MobileNetV3-Small** (`main/src/models/torch_color.py`, trọng số `main/data/models/color_MobileNetV3Small.pt`). PyTorch đồng tồn bình thường với PaddleOCR trong cùng tiến trình mà không xung đột. TF/Keras chỉ được dùng trong môi trường training/eval cô lập (`dpl-train`). Nhờ vậy không còn cần cơ chế out-of-process phức tạp cho inference.
-*   **Bổ trợ**: giữ `KMP_DUPLICATE_LIB_OK=TRUE` (chống abort OpenMP của EasyOCR) và đặt số luồng thấp khi cần; độ trễ suy luận ổn định **~1.6 giây / xe** từ ảnh thứ hai trở đi (cold-start ~4.5 s do nạp PaddleOCR lần đầu). **Mục tiêu <1.0 s chưa đạt** do chạy thuần CPU.
+*   **Bổ trợ**: giữ `KMP_DUPLICATE_LIB_OK=TRUE` (chống abort OpenMP của EasyOCR) và đặt số luồng thấp khi cần.
+*   **Cập nhật độ trễ (sau WS-1 — đã đạt mục tiêu <1.0 s):** mục tiêu KPI ban đầu (<1.0 s/xe) đặt ra ở §4.2 từng **chưa đạt** ở các lần đo trước (~1.6 s/xe). Sau khi tối ưu cơ chế bắt-biển (WS-1), hệ thống nay **đạt <1 giây** ở cả hai đường vận hành chính:
+    *   **Đường bãi đỗ (approach-lock, video/CCTV)**: đọc biển trong **pha xe đang lùi vào chỗ đỗ** (trước khi đỗ hẳn) bằng cơ chế approach-lock, đo được **0.73 s** từ lúc mở cổng phát hiện xe tới lúc chốt biển số.
+    *   **Đường ảnh đơn (API `/verify`, đường hợp nhất `build_pipeline`+`infer_single_image`)**: **~0.96 s/ảnh ở chế độ steady-state** (sau warmup, từ ảnh thứ hai trở đi — xem Report 4 §4.1/§4.2).
+    *   **Cơ chế đạt được**: (i) đọc biển ngay trong pha xe lùi vào thay vì chờ xe đỗ hẳn mới xử lý; (ii) chỉ chạy OCR **một lần** trên crop biển có confidence cao nhất (tránh lặp OCR nhiều khung hình); (iii) **warmup model lúc khởi động** tiến trình (API/Dashboard) để loại cold-start khỏi đường vận hành thật.
+    *   **Vẫn ghi trung thực**: **lệnh gọi đầu tiên sau khi khởi động tiến trình** (chưa kịp warmup, hoặc môi trường test gọi trực tiếp `infer_single_image` không qua warmup) vẫn còn **cold-start ~vài giây** do nạp PaddleOCR lần đầu (đo thực tế: 6.1 s ở ảnh đầu, xem §4.1) — đây không phải hiệu năng ổn định của hệ thống mà là chi phí nạp model một lần, không tái diễn ở các lượt xử lý sau.
+*   Caveat domain vẫn giữ nguyên: số đo trên vẫn nằm trong cùng giới hạn CCTV thực tế (ánh sáng yếu, góc nghiêng, nén ảnh) đã nêu ở Report 3 §5.1 — độ trễ có thể dao động theo điều kiện camera thật, không chỉ theo phần cứng CPU.
 
 ### 5.2. Tối ưu hóa chế độ chạy ngoại tuyến 100% (Offline-First Deployment)
 *   **Chặn EasyOCR kiểm tra phiên bản trực tuyến**: Cấu hình khởi tạo `easyocr.Reader(..., download_enabled=False)` để ngăn chặn tiến trình gửi yêu cầu HTTP kiểm tra phiên bản mô hình từ JaidedAI gây nghẽn luồng khi thiết bị biên không kết nối Internet.
@@ -144,4 +159,4 @@ Trong quá trình tích hợp, hệ thống đã gặp hai thách thức lớn �
 ---
 
 ## 6. Kết luận
-Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (runtime: **PyTorch MobileNetV3-Small**, `color_MobileNetV3Small.pt`) đã được nâng cấp đáng kể: từ baseline lịch sử ~55% (frozen-backbone, data cũ) lên **86,3% TTA (85,3% plain)** trên tập test giữ-riêng VCoR sau full fine-tune + class-weight + label-smoothing + TTA (chi tiết: Report 3 §5.1). Màu xe nay là một **thành phần mạnh** của hệ thống (~86%), nhưng **vẫn giữ vai trò "cảnh báo mềm"** thay vì khoá chính — không phải vì model yếu, mà vì số 86% đo trên ảnh VCoR sạch (web/marketplace), **chưa được kiểm chứng trên domain CCTV bãi xe thật** (ánh sáng yếu, nhiễu, góc nghiêng — xem caveat Report 3 §5.1); phân loại **hãng** (TF/Keras EfficientNet-B0, ~**35%** — *diagnostic only — đã loại khỏi quyết định*) bị loại khỏi quyết định do còn yếu. Classifier màu phục vụ runtime qua `torch_color.py` để đồng tồn với PaddleOCR mà không cần cách ly tiến trình TF. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU (~1.6 s/xe sau cold-start), giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain CCTV để xác nhận màu giữ được ~86% ngoài VCoR + fine-tuning sâu hơn để nâng hãng (xem Report 3 §6).
+Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match) hoạt động tốt và là lớp quyết định chính. Phân loại **màu** (runtime: **PyTorch MobileNetV3-Small**, `color_MobileNetV3Small.pt`) đã được nâng cấp đáng kể: từ baseline lịch sử ~55% (frozen-backbone, data cũ) lên **86,3% TTA (85,3% plain)** trên tập test giữ-riêng VCoR sau full fine-tune + class-weight + label-smoothing + TTA (chi tiết: Report 3 §5.1). Màu xe nay là một **thành phần mạnh** của hệ thống (~86%), nhưng **vẫn giữ vai trò "cảnh báo mềm"** thay vì khoá chính — không phải vì model yếu, mà vì số 86% đo trên ảnh VCoR sạch (web/marketplace), **chưa được kiểm chứng trên domain CCTV bãi xe thật** (ánh sáng yếu, nhiễu, góc nghiêng — xem caveat Report 3 §5.1); phân loại **hãng** (TF/Keras EfficientNet-B0, ~**35%** — *diagnostic only — đã loại khỏi quyết định*) bị loại khỏi quyết định do còn yếu. Classifier màu phục vụ runtime qua `torch_color.py` để đồng tồn với PaddleOCR mà không cần cách ly tiến trình TF. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU, đạt độ trễ **<1 giây/xe ở chế độ steady-state** sau WS-1 (đường bãi đỗ approach-lock: 0.73 s; đường ảnh đơn API: ~0.96 s — xem §5.1), chỉ còn cold-start vài giây ở lệnh gọi đầu tiên do nạp PaddleOCR; giao diện Streamlit cảnh báo trực quan khi biển không khớp hoặc màu lệch. Hướng cải thiện: thu dữ liệu in-domain CCTV để xác nhận màu giữ được ~86% ngoài VCoR + fine-tuning sâu hơn để nâng hãng (xem Report 3 §6).
