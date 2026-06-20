@@ -364,8 +364,8 @@
                     <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">OCR exact-match</div>
                 </div>
                 <div>
-                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--text-color);">~1.6s</span>
-                    <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">mỗi xe (CPU)</div>
+                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--text-color);">&lt;1s</span>
+                    <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">mỗi xe (CPU, steady-state)</div>
                 </div>
             </div>
             <div class="hero-meta">
@@ -688,7 +688,7 @@ def sort_vietnamese_plate(ocr_results):
                 <div>
                     <h3>So sánh Độ trễ (Mục tiêu vs. CPU thực tế)</h3>
                     <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.85rem;">
-                        Thời gian suy luận E2E đầu cuối trên môi trường CPU macOS MiniForge (Cold start 4.48s do nạp mô hình vào RAM):
+                        Đo từng mô-đun riêng lẻ trên CPU macOS, cộng dồn tuần tự (Cold start vài giây ở lệnh gọi đầu do nạp PaddleOCR; brand chỉ chạy diagnostic, không nằm trên đường quyết định chính). Dòng tổng dưới là số <strong>deploy thực tế</strong> sau approach-lock, không phải tổng cộng dồn của 4 dòng module:
                     </p>
                     <table style="font-size: 0.8rem;">
                         <thead>
@@ -710,19 +710,19 @@ def sort_vietnamese_plate(ocr_results):
                                 <td>~1,250 ms</td>
                             </tr>
                             <tr>
-                                <td>Phân loại hãng (EfficientNet-B0)</td>
+                                <td>Phân loại hãng (EfficientNet-B0, diagnostic)</td>
                                 <td>95 ms</td>
                                 <td>~180 ms</td>
                             </tr>
                             <tr>
-                                <td>Phân loại màu (MobileNetV3-S)</td>
+                                <td>Phân loại màu (PyTorch MobileNetV3-S)</td>
                                 <td>38 ms</td>
                                 <td>~95 ms</td>
                             </tr>
                             <tr style="font-weight: bold; background: #eaeaea;">
-                                <td>Tổng thời gian suy luận (E2E)</td>
+                                <td>Độ trễ deploy thực tế (steady-state)</td>
                                 <td>398 ms</td>
-                                <td>~1,600 ms (Ổn định)</td>
+                                <td>&lt;1s: 0.73s approach-lock / 0.96s API</td>
                             </tr>
                         </tbody>
                     </table>
@@ -733,8 +733,8 @@ def sort_vietnamese_plate(ocr_results):
                         <li><strong>Định vị biển số (YOLOv8):</strong> mAP@0.5 đạt **98.2%**.</li>
                         <li><strong>OCR biển số:</strong> Độ chính xác ký tự đạt **94.5%** nhờ giải thuật sắp xếp dòng.</li>
                         <li><strong>Hãng xe (EfficientNet-B0, TF/Keras):</strong> test ~**35.3%** sau fine-tune — vẫn yếu → bỏ khỏi quyết định.</li>
-                        <li><strong>Màu xe (MobileNetV3-Small, TF/Keras):</strong> test **54.2%** sau fine-tune (macro-F1 0.54) — dùng làm cảnh báo mềm.</li>
-                        <li><strong>Chặn xe gian / lệch nhãn:</strong> Hệ thống đối chiếu 3 yếu tố đảm bảo ngăn chặn thành công **98.7%** trường hợp tráo đổi biển số.</li>
+                        <li><strong>Màu xe (MobileNetV3-Small, runtime PyTorch):</strong> **86.3%** TTA trên VCoR held-out (macro-F1 0.84) — dùng làm cảnh báo mềm (chưa kiểm chứng domain CCTV thật).</li>
+                        <li><strong>Chặn tráo biển (gate 0.40, WS-2):</strong> Phát hiện **69%** @ tỉ lệ báo động giả **2.5%**; biển chưa đăng ký chặn **100%**.</li>
                     </ul>
                 </div>
             </div>
@@ -824,7 +824,7 @@ def sort_vietnamese_plate(ocr_results):
                     <tr>
                         <td><strong>CLO7 - Ứng dụng công cụ AI tiên tiến</strong></td>
                         <td>Sử dụng Git quản lý phiên bản, FastAPI REST API, Streamlit Dashboard và Pytest cho kiểm thử tự động.</td>
-                        <td><span class="badge success">Đã Đạt</span> 15/15 unit tests Passed</td>
+                        <td><span class="badge success">Đã Đạt</span> 76 passed, 7 skipped</td>
                     </tr>
                 </tbody>
             </table>
@@ -877,8 +877,8 @@ def sort_vietnamese_plate(ocr_results):
                 <tbody>
                     <tr><td><strong>Phát hiện biển</strong></td><td>YOLOv8n COCO</td><td>YOLOv8n <strong>train riêng</strong> (biển VN)</td><td>COCO không biết biển; mAP50 <strong>0.99</strong>.</td></tr>
                     <tr><td><strong>OCR</strong></td><td>EasyOCR</td><td><strong>PaddleOCR</strong></td><td>0% → <strong>81%</strong> đọc đúng (Benchmark C).</td></tr>
-                    <tr><td><strong>Nền tảng</strong></td><td>TF/Keras (in-process)</td><td><strong>TF/Keras tách tiến trình + ONNX</strong></td><td>TF chạy process riêng để đồng tồn PaddleOCR.</td></tr>
-                    <tr><td><strong>Màu</strong></td><td>MobileNet (TF, lỗi dựng)</td><td>MobileNetV3 (TF/Keras) <strong>sửa bug + fine-tune</strong></td><td>Bỏ double-preprocessing & BatchNorm-train → 54.2% test.</td></tr>
+                    <tr><td><strong>Nền tảng màu</strong></td><td>TF/Keras (in-process)</td><td><strong>PyTorch (`torch_color.py`, in-process)</strong></td><td>PyTorch đồng tồn bình thường với PaddleOCR cùng tiến trình; TF/Keras chỉ còn dùng cho training/eval cô lập.</td></tr>
+                    <tr><td><strong>Màu</strong></td><td>MobileNet (TF, lỗi dựng)</td><td>MobileNetV3 (PyTorch) <strong>sửa bug + fine-tune + VCoR + TTA</strong></td><td>Bỏ double-preprocessing & BatchNorm-train, mở rộng VCoR → 86.3% test.</td></tr>
                     <tr><td><strong>Hãng xe</strong></td><td>EfficientNet brand</td><td><strong>Bỏ</strong> khỏi quyết định</td><td>Yếu, gây MISMATCH giả, không cần.</td></tr>
                     <tr><td><strong>Quyết định</strong></td><td>Đối chiếu cứng 3 thuộc tính</td><td><strong>Plate-primary</strong> (màu = cảnh báo)</td><td>Tránh từ chối nhầm do màu yếu.</td></tr>
                     <tr><td><strong>Xử lý video</strong></td><td>Mỗi frame 1 quyết định</td><td><strong>Lấy mẫu + gate "đã đỗ"</strong> + vote</td><td>Nhẹ CPU (1 lần/xe), ổn định.</td></tr>

@@ -344,8 +344,8 @@
                     <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">OCR exact-match</div>
                 </div>
                 <div>
-                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--text-color);">54.2%</span>
-                    <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Colour acc</div>
+                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--text-color);">86.3%</span>
+                    <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Colour acc (TTA, deployed)</div>
                 </div>
             </div>
             <div class="hero-meta">
@@ -697,8 +697,8 @@
                         Mô hình MobileNetV3-Small siêu nhẹ được huấn luyện 10 epochs với bộ tối ưu Adam, LR = 1e-4.
                     </p>
                     <ul>
-                        <li><strong>Test Accuracy (màu, sau fine-tune):</strong> **54.2%** (macro-F1 0.54).</li>
-                        <li><strong>Thử thách Cân bằng trắng:</strong> Màu sắc ngoại thất xe chịu ảnh hưởng lớn từ điều kiện ánh sáng xung quanh (ánh sáng đèn vàng hầm, ánh nắng ngoài trời). Các màu sắc trung tính (White, Silver, Grey) có sự chồng chéo lớn về phân bố pixel khiến mô hình dễ dự báo sai lệch.</li>
+                        <li><strong>Test Accuracy (màu, sau fix BatchNorm — bước đầu):</strong> 54.2%. Sau khi mở rộng dữ liệu sang tập VCoR đầy đủ, thêm class-weight, label-smoothing và test-time augmentation (TTA), runtime deploy (PyTorch) đạt **86.3%** (macro-F1 0.84).</li>
+                        <li><strong>Thử thách Cân bằng trắng:</strong> Màu sắc ngoại thất xe chịu ảnh hưởng lớn từ điều kiện ánh sáng xung quanh (ánh sáng đèn vàng hầm, ánh nắng ngoài trời). Các màu sắc trung tính (White, Silver, Grey) có sự chồng chéo lớn về phân bố pixel — 86.3% đo trên ảnh VCoR sạch, chưa kiểm chứng trên domain CCTV bãi xe thật.</li>
                     </ul>
                 </div>
             </div>
@@ -774,10 +774,10 @@
                     </p>
                 </div>
                 <div class="card" style="text-align: center;">
-                    <span class="badge">CHẶN XE GIAN (BLOCK RATE)</span>
-                    <h3 style="margin-top: 10px;">98.7% Thành công</h3>
+                    <span class="badge">CHẶN TRÁO BIỂN (WS-2, gate 0.40)</span>
+                    <h3 style="margin-top: 10px;">69% @ 2.5% FA</h3>
                     <p class="card-body" style="font-size: 0.82rem;">
-                        Khả năng ngăn chặn các tình huống hoán đổi biển số xe cùng loại khác hãng hoặc khác màu sắc.
+                        Phát hiện tráo biển đạt 69% tại tỉ lệ báo động giả 2.5% (đã siết gate từ ngưỡng cũ 98.5%/14.5% FA vì FA quá cao không dùng được). Biển chưa đăng ký chặn 100%.
                     </p>
                 </div>
             </div>
@@ -831,9 +831,9 @@
                 <tbody>
                     <tr><td><strong>OCR</strong></td><td>EasyOCR</td><td><strong>PaddleOCR</strong></td><td>0% → <strong>81%</strong> đọc đúng, CER 0.28 → 0.03.</td></tr>
                     <tr><td><strong>Phát hiện biển</strong></td><td>YOLOv8n COCO</td><td>YOLOv8n train riêng</td><td>mAP50 <strong>0.99</strong> (fine-tune &gt; scratch).</td></tr>
-                    <tr><td><strong>CNN màu</strong></td><td>MobileNet (TF, lỗi dựng)</td><td>MobileNetV3 (TF/Keras) sửa bug + fine-tune</td><td>Bỏ double-preprocessing & BatchNorm-train; fine-tune → 54.2%.</td></tr>
+                    <tr><td><strong>CNN màu</strong></td><td>MobileNet (TF, lỗi dựng)</td><td>MobileNetV3 (PyTorch) sửa bug + fine-tune + VCoR + TTA</td><td>Bỏ double-preprocessing & BatchNorm-train; mở rộng VCoR → 86.3% (deployed, macro-F1 0.84).</td></tr>
                     <tr><td><strong>Hãng xe</strong></td><td>EfficientNet brand</td><td>Bỏ khỏi quyết định</td><td>Yếu, gây MISMATCH giả.</td></tr>
-                    <tr><td><strong>Nền tảng</strong></td><td>TF/Keras (in-process)</td><td>TF/Keras tách tiến trình + ONNX</td><td>TF chạy process riêng để đồng tồn PaddleOCR.</td></tr>
+                    <tr><td><strong>Nền tảng màu</strong></td><td>TF/Keras (in-process)</td><td>PyTorch (`torch_color.py`, in-process)</td><td>PyTorch đồng tồn bình thường với PaddleOCR cùng tiến trình; TF/Keras chỉ còn dùng cho training/eval cô lập.</td></tr>
                     <tr><td><strong>Quyết định</strong></td><td>Đối chiếu cứng biển+hãng+màu</td><td><strong>Plate-primary</strong></td><td>Màu = cảnh báo phụ, tránh từ chối nhầm.</td></tr>
                 </tbody>
             </table>
