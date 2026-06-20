@@ -113,5 +113,5 @@ plate_detector:
 #   a genuine cross-cluster colour mismatch raises a warning; below this the
 #   mismatch is too likely to be classifier noise to flag.
 decision:
-  color_warn_conf: 0.60
+  color_warn_conf: 0.40
   neutral_colors: [Black, Grey, Silver, White]

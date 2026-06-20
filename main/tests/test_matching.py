@@ -80,7 +80,11 @@ class TestNeutralClusterAndConfidenceGating(unittest.TestCase):
         self.assertEqual(r["action"], "ALLOW_WARN")
 
     def test_low_conf_no_warning(self):
-        r = self.matcher.verify_vehicle("51A-001", "BLUE", 0.40)  # mismatch but conf<0.60
+        # WS-2 gate lowered 0.60 -> 0.40 (docs/benchmarks/security_eval.md):
+        # use 0.20, safely below the deployed 0.40 threshold, so this still
+        # exercises "mismatch but low confidence -> no warning" regardless of
+        # the exact gate value configured.
+        r = self.matcher.verify_vehicle("51A-001", "BLUE", 0.20)  # mismatch but conf<0.40
         self.assertFalse(r["color_warning"])
         self.assertEqual(r["action"], "ALLOW")
 
