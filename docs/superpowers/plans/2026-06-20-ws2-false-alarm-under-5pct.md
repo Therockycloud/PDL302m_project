@@ -125,9 +125,12 @@ git commit -m "docs(security): FA before/after chart + Report 4 honest tradeoff 
 
 ---
 
-## Verify cuối (Opus)
-- [ ] `... -m pytest -q` ≥ 61 passed, 0 failed.
-- [ ] Tự chạy `eval_security.py` → **FA < 5%** (đọc số thật); detection mới ghi nhận trung thực.
-- [ ] Mở `security_fa_before_after.png` xác nhận chart đúng số.
-- [ ] Đọc §4.3 Report 4: có before/after + chart + đoạn đánh đổi trung thực. Tick plan + Progress log.
+## Verify cuối (Opus) — ✅ ĐẠT (2026-06-20)
+- [x] `... -m pytest -q` → **68 passed, 7 skipped, 0 failed**.
+- [x] Tự chạy `eval_security.py` (gate 0.40) → **FA 2.5% (5/200) < 5%** ✓; detection 69.0% (138/200), unreg 100%; cụm trung tính 50 trial/miss 48/96% — tất cả khớp.
+- [x] Mở `security_fa_before_after.png` (Opus đọc ảnh): grouped bar FA 14.5%→2.5%, detection 98.5%→69.0%, nhãn rõ, không đè.
+- [x] §4.3 Report 4: bảng Before/After + chart nhúng + bảng quét gate + giải thích trung thực (98.5% cũ không dùng được vì FA 14.5%; detection giảm do neutral-merge cố ý + gating) + giữ đủ caveat.
+
+## Progress log
+- **2026-06-20 — WS-2 XONG.** Tasks 1–3 (Sonnet, commits `5725e0c`/`28a0d3c`/`62ae4ad`): neutral-cluster equivalence + confidence-gating trong `verify_vehicle`, config `decision:` block, luồng `color_conf` qua decision_engine, eval_security truyền conf. **Opus quét gate** (script tạm, model chạy 1 lần re-score nhiều ngưỡng): FA/detection theo gate 0.0→0.6; phát hiện gate 0.60 (Sonnet đặt) siết quá → FA 0.5%/det 56.5%. **User chốt gate 0.40** (cân bằng). Việc gate-0.40 + Task 4 (Sonnet, commits `5e4e94f`/`a916e84`/`7101e14`): set gate 0.40, eval tái sinh **FA 2.5%/det 69.0%**, chart before/after PNG, Report 4 §4.3 honest. Opus verify: pytest 68/7/0 + tự chạy eval khớp số + đọc chart + đọc §4.3. **Kết quả: FA 14.5%→2.5% (<5% ✓), detection 98.5%→69.0% (đánh đổi trung thực).** **Còn nợ:** Report 4 §5.1 vẫn ghi latency 1.6s/<1s-chưa-đạt (stale sau WS-1 đã đạt 0.73s) + §4.1 E2E chạy lại — gộp vào pass "reports finalization". WS-3 (API), WS-4 (dashboard upload) chưa làm.
 ```
