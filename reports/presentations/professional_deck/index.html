@@ -1782,7 +1782,7 @@
           <ul class="col-list" style="color:rgba(255,255,255,.9)">
             <li>Khóa cứng BatchNorm của backbone ở chế độ suy luận</li>
             <li>Đồng bộ dải đầu vào [0, 255] khớp với tiền xử lý MobileNetV3</li>
-            <li>Loss giảm ổn định, độ chính xác kiểm thử màu đạt 54.2%</li>
+            <li>Loss giảm ổn định; từ mốc fix BatchNorm 54.2%, tiếp tục thêm VCoR + TTA đạt 86.3%</li>
           </ul>
         </div>
       </div>
@@ -1813,8 +1813,8 @@
         <span class="row-val">81.0<span class="unit">%</span></span>
 
         <span class="row-lbl">Vehicle Color Accuracy</span>
-        <div class="row-track"><div class="row-fill" style="width:54.2%"></div></div>
-        <span class="row-val">54.2<span class="unit">%</span></span>
+        <div class="row-track"><div class="row-fill" style="width:86.3%"></div></div>
+        <span class="row-val">86.3<span class="unit">%</span></span>
 
         <span class="row-lbl">Vehicle Brand Accuracy</span>
         <div class="row-track"><div class="row-fill grey" style="width:35.3%"></div></div>
@@ -1841,8 +1841,8 @@
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:4vh">
       <div data-anim="line" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">Out-of-Process Serving via IPC Pipes to Avoid OpenMP Deadlocks (CLO3)</div>
-        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Tích hợp hệ thống &amp;<br/>Cô lập tiến trình</h2>
+        <div class="t-meta">In-Process PyTorch Color Runtime Alongside PaddleOCR to Avoid OpenMP Deadlocks (CLO3)</div>
+        <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Tích hợp hệ thống &amp;<br/>Đồng tiến trình PyTorch</h2>
       </div>
 
       <div style="display:grid;grid-template-columns:8fr 8fr;gap:4vw;align-items:center;flex:1" data-anim="up">
@@ -1865,8 +1865,8 @@
           <div style="display:flex;gap:1.5vw;align-items:start">
             <span style="font-family:var(--sans);font-weight:200;font-size:min(3vw,5vh);line-height:1;color:var(--text-primary)">03</span>
             <div>
-              <h4 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);color:var(--text-primary);margin-bottom:.5vh">Cô lập tiến trình (IPC)</h4>
-              <p style="font-size:15px;line-height:1.4;color:var(--text-secondary)">Cô lập bộ phân loại Keras sang tiến trình độc lập `keras_color_worker.py`, giao tiếp qua đường ống IPC Pipes.</p>
+              <h4 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);color:var(--text-primary);margin-bottom:.5vh">Chuyển màu sang PyTorch (đồng tiến trình)</h4>
+              <p style="font-size:15px;line-height:1.4;color:var(--text-secondary)">Thay bộ phân loại màu TF/Keras bằng PyTorch (`torch_color.py`), chạy chung tiến trình với PaddleOCR — hết deadlock mà không cần IPC/cách ly tiến trình.</p>
             </div>
           </div>
           <div style="display:flex;gap:1.5vw;align-items:start">
@@ -1904,8 +1904,8 @@
             </defs>
           </svg>
           <div style="position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <span style="font-family:var(--sans);font-size:max(16px,1.2vw);font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.05em">PROCESS</span>
-            <span style="font-family:var(--sans);font-size:max(14px,0.9vw);font-weight:300;color:var(--text-secondary);letter-spacing:0.05em">ISOLATION</span>
+            <span style="font-family:var(--sans);font-size:max(16px,1.2vw);font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.05em">PYTORCH</span>
+            <span style="font-family:var(--sans);font-size:max(14px,0.9vw);font-weight:300;color:var(--text-secondary);letter-spacing:0.05em">IN-PROCESS</span>
           </div>
         </div>
       </div>
@@ -1927,8 +1927,8 @@
       </div>
       <div data-anim="ledger" style="display:flex;flex-direction:column;justify-content:center">
         <div style="display:grid;grid-template-columns:minmax(0,1.2fr) 2fr auto;gap:2vw;align-items:baseline;padding:1.6vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--accent)">~1.6<span style="font-size:.3em;font-weight:300;vertical-align:.5em">s</span></div>
-          <div class="t-body" style="color:var(--paper)">Độ trễ trung bình mỗi xe (YOLOv8: ~75ms, PaddleOCR: ~1250ms, MobileNetV3: ~95ms).</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--accent)">&lt;1<span style="font-size:.3em;font-weight:300;vertical-align:.5em">s</span></div>
+          <div class="t-body" style="color:var(--paper)">Độ trễ steady-state mỗi xe (0.73s approach-lock bãi đỗ / 0.96s API ảnh đơn; cold-start vài giây lần gọi đầu).</div>
           <i data-lucide="timer" style="width:2vw;height:2vw"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1.2fr) 2fr auto;gap:2vw;align-items:baseline;padding:1.6vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
@@ -1994,14 +1994,14 @@
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--text-primary)">02</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--text-primary);margin-bottom:1vh">Thực chứng thực tế</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Tối ưu luồng CPU tránh xung đột OpenMP, kiểm thử E2E trên 5 ảnh CCTV thật đạt độ trễ ~1.6 giây.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Tối ưu luồng CPU tránh xung đột OpenMP, đạt độ trễ &lt;1 giây (0.73s approach-lock / 0.96s API steady-state; cold-start lần đầu).</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;align-items:start;padding:2.6vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)">
             <div style="font-family:var(--sans);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:.9;color:var(--accent)">03</div>
             <div>
               <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(18px,1.8vw);line-height:1.2;letter-spacing:-.015em;color:var(--accent);margin-bottom:1vh">Định hướng tương lai</h3>
-              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Thu thập dữ liệu in-domain hầm xe nội địa và lượng tử hóa mô hình (ONNX Quantization) đạt độ trễ &lt;1s.</p>
+              <p style="font-family:var(--sans),var(--sans-zh);font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary);font-weight:400">Thu thập dữ liệu in-domain CCTV bãi xe để xác nhận màu giữ được ~86% ngoài VCoR, và rút ngắn cold-start nạp PaddleOCR.</p>
             </div>
           </div>
         </div>
