@@ -36,13 +36,65 @@ class TestDatabaseMatcher(unittest.TestCase):
         self.assertEqual(result['action'], 'DENY_ALERT')
 
     def test_color_warning_is_authorized_not_denied(self):
-        # Plate-primary: a correct plate with a differing colour is AUTHORIZED
-        # but flagged (soft warning), not hard-denied.
+        # WS-2: White and Black are BOTH in the neutral cluster, so under the
+        # new neutral-cluster-equivalence logic this is no longer a warning
+        # (previously this asserted color_warning=True; the cluster merge is
+        # the whole point of WS-2 — see test_cross_cluster_high_conf_warns
+        # below for a genuine cross-cluster case, which DOES still warn).
         result = self.matcher.verify_vehicle("30F-12345", "Black")
         self.assertEqual(result['status'], 'AUTHORIZED')
-        self.assertEqual(result['action'], 'ALLOW_WARN')
-        self.assertTrue(result['color_warning'])
-        self.assertIn("colour", result['message'].lower())
+        self.assertEqual(result['action'], 'ALLOW')
+        self.assertFalse(result['color_warning'])
+
+
+class TestNeutralClusterAndConfidenceGating(unittest.TestCase):
+    """WS-2: neutral-cluster colour equivalence + colour-confidence gating
+    to cut the false-alarm rate (Report 4 §4.3 measured 14.5% before this)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp_db_path = "tests_temp_database_ws2.csv"
+        db_data = {
+            'license_plate': ['51A-001', '51A-002'],
+            'car_brand': ['Honda Civic', 'Kia Morning'],
+            'car_color': ['Red', 'Grey'],
+        }
+        pd.DataFrame(db_data).to_csv(cls.temp_db_path, index=False)
+        cls.matcher = DatabaseMatcher(cls.temp_db_path)
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls.temp_db_path):
+            os.remove(cls.temp_db_path)
+
+    def test_neutral_cluster_no_warning(self):
+        # registered GREY, detected SILVER (both neutral) -> NO warning even
+        # at high confidence: the clusters are treated as equivalent.
+        r = self.matcher.verify_vehicle("51A-002", "SILVER", 0.95)
+        self.assertEqual(r["status"], "AUTHORIZED")
+        self.assertFalse(r["color_warning"])
+
+    def test_cross_cluster_high_conf_warns(self):
+        r = self.matcher.verify_vehicle("51A-001", "BLUE", 0.95)  # RED reg, BLUE det
+        self.assertTrue(r["color_warning"])
+        self.assertEqual(r["action"], "ALLOW_WARN")
+
+    def test_low_conf_no_warning(self):
+        r = self.matcher.verify_vehicle("51A-001", "BLUE", 0.40)  # mismatch but conf<0.60
+        self.assertFalse(r["color_warning"])
+        self.assertEqual(r["action"], "ALLOW")
+
+    def test_exact_match_no_warning(self):
+        r = self.matcher.verify_vehicle("51A-001", "RED", 0.95)
+        self.assertFalse(r["color_warning"])
+
+    def test_color_conf_none_defaults_to_warn_like_legacy_caller(self):
+        # Legacy 2-arg callers (color_conf=None) must keep warning behaviour
+        # for cross-cluster mismatches -- None means "no confidence info
+        # available", which is treated the same as "trust it" so old callers
+        # don't silently lose their warning.
+        r = self.matcher.verify_vehicle("51A-001", "BLUE")
+        self.assertTrue(r["color_warning"])
 
 
 class TestRealDatabaseDemoPlate(unittest.TestCase):
