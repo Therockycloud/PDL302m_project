@@ -230,9 +230,12 @@ git commit -m "feat(data): register demo plate 30M-718.54 + expand DB to ~18 veh
 
 ---
 
-## Verify cuối (Opus, không phải Sonnet)
+## Verify cuối (Opus, không phải Sonnet) — ✅ ĐẠT (2026-06-20)
 
-- [ ] `cd main && KMP_DUPLICATE_LIB_OK=TRUE <py> -m pytest -q` → ≥44 passed, 0 failed.
-- [ ] **E2E headless** trên `sample_parking.mp4`: chạy `ParkingSession` thật → `decision["plate"]=="30M71854"`, **frame quyết định < 666** (đỗ-đỉnh), latency tới chốt <1s (đo & in). Loại được box xe khác.
-- [ ] Đối chiếu G1–G3 của spec. Tick plan + ghi Progress log.
+- [x] `cd main && KMP_DUPLICATE_LIB_OK=TRUE <py> -m pytest -q` → **61 passed, 7 skipped, 0 failed** (baseline 44/7; +17 test mới).
+- [x] **E2E headless** trên `sample_parking.mp4` (ParkingSession thật + color model thật): gate mở frame 505, **LOCK frame 510 < 666** (đỗ-đỉnh), `plate=="30M71854"`, **status=AUTHORIZED action=ALLOW** (màu Yellow khớp DB), latency gate→lock **0.731s < 1s**. Lock trên 2 read trùng conf cao.
+- [x] G1 (đọc trong pha lùi) ✅ · G2 (<1s) ✅ · G3 (chỉ xe ROI: trigger ROI-first + `_collect` dùng `trigger.target`) ✅.
+
+## Progress log
+- **2026-06-20 — WS-1 XONG.** Tasks 1–4 (Sonnet, commits `7d0bbf2`/`fe65c58`/`ef50669`/`9db5975`): ROI-first gating, approach-window trigger (persist thay stillness), plate-lock lock-aware trên repeated high-conf reads, config (plate conf 0.15, ROI, lock constants). Việc 1 G3-fix + Task 5 + Task 6 (Sonnet, commits `8df1c95`/`28b5229`/`f55017f`): `_collect` đọc `trigger.target` (không phải global-largest), warmup `src/utils/warmup.py`, đăng ký `30M-718.54→VinFast Fadil/Yellow` + DB 6→20 xe. Opus verify: pytest 61/7/0 + E2E thật (lock 30M71854 @frame510<666, AUTHORIZED, 0.731s). **Còn nợ ngoài WS-1:** bug double-`main/` path trong `calibrate_roi.py` (đã flag `task_8a92fda8`); `approach_min_area` config key hiện không được wire (trigger dùng `min_area_ratio`, cùng giá trị 0.15 — vô hại, dọn sau). **Tiếp theo:** WS-2 (FA<5% + bằng chứng), WS-3 (API), WS-4 (dashboard upload).
 ```
