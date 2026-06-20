@@ -52,6 +52,7 @@ def _load_config(config_path: Path) -> dict[str, Any]:
 
 
 from src.engine.pipeline_factory import build_pipeline, infer_single_image
+from src.utils.warmup import warmup_models
 
 # ---------------------------------------------------------------------------
 # Application state – populated during the lifespan startup phase.
@@ -67,7 +68,24 @@ async def _lifespan(app: FastAPI):  # noqa: ARG001
     """
     cfg = _load_config(_CONFIG_PATH)
     if "pipeline" not in _models:  # allow tests to inject a fake pipeline beforehand
-        _models["pipeline"] = build_pipeline(cfg)
+        pipeline = build_pipeline(cfg)
+        _models["pipeline"] = pipeline
+
+        # WS-3 Task: warm every model with one throwaway inference now, at
+        # startup, so the FIRST real /verify request doesn't pay cold-start
+        # latency (PaddleOCR session init, first-call kernel compile, etc.).
+        # Only runs for a freshly-built real pipeline; tests that inject a
+        # fake pipeline before lifespan runs skip this branch entirely.
+        try:
+            plate_reader = pipeline.get("plate_reader")
+            warmup_models(
+                vehicle_detector=pipeline.get("vehicle_detector"),
+                plate_detector=getattr(plate_reader, "plate_detector", None),
+                color_clf=pipeline.get("color_clf"),
+                ocr=getattr(plate_reader, "ocr_reader", None),
+            )
+        except Exception:
+            logger.exception("Pipeline warmup failed.")
     _models["config"] = cfg
     logger.info("Pipeline initialised. Ready to serve requests.")
 
