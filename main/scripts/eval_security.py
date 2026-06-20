@@ -276,7 +276,11 @@ def run_trials(
         pred_colour, pred_conf = classifier.predict(img)
         t["predicted_colour"] = pred_colour
         t["predicted_conf"] = pred_conf
-        t["result"] = matcher.verify_vehicle(t["plate"], pred_colour)
+        # WS-2: pass the real colour-classification confidence through so
+        # this eval measures the SAME gated logic running in production
+        # (verify_vehicle no longer warns on a cross-cluster colour mismatch
+        # when the model wasn't confident in its colour read).
+        t["result"] = matcher.verify_vehicle(t["plate"], pred_colour, pred_conf)
     return trials
 
 

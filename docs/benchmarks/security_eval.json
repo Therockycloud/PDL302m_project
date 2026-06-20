@@ -1,73 +1,262 @@
 {
   "weights_path": "/Users/konalyn/Documents/FPT Materials/DPL302m/PDL302m_project/main/data/models/color_MobileNetV3Small.pt",
-  "temp_db_path": "/var/folders/k8/ycp28skx4b97ns1_lxdgr1540000gn/T/dpl302m_security_eval_oe4imq4d/temp_registration.csv",
+  "temp_db_path": "/var/folders/k8/ycp28skx4b97ns1_lxdgr1540000gn/T/dpl302m_security_eval_nb9gcjv9/temp_registration.csv",
   "data_dir": "/Users/konalyn/Downloads/archive",
   "data_layout": "vcor",
   "used_fallback_data_dir": false,
   "seed": 42,
   "n_test_pool": 889,
   "n_total_trials": 600,
-  "elapsed_seconds": 8.78,
+  "elapsed_seconds": 8.26,
   "legitimate": {
     "n_trials": 200,
-    "correct_no_warning": 171,
-    "false_alarm_rate": 0.145,
-    "false_alarm_count": 29,
+    "correct_no_warning": 199,
+    "false_alarm_rate": 0.005,
+    "false_alarm_count": 1,
     "unexpected_status_count": 0
   },
   "plate_swap": {
     "n_trials": 200,
-    "caught": 197,
-    "missed": 3,
-    "detection_rate": 0.985,
-    "miss_rate": 0.015,
+    "caught": 113,
+    "missed": 87,
+    "detection_rate": 0.565,
+    "miss_rate": 0.435,
     "colour_pair_breakdown": [
       {
-        "registered_colour": "Grey",
-        "true_colour": "Brown",
-        "n_trials": 2,
-        "n_missed": 1,
-        "miss_rate": 0.5
+        "registered_colour": "White",
+        "true_colour": "Black",
+        "n_trials": 7,
+        "n_missed": 7,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Grey",
+        "n_trials": 6,
+        "n_missed": 6,
+        "miss_rate": 1.0
       },
       {
         "registered_colour": "Silver",
         "true_colour": "Grey",
         "n_trials": 5,
-        "n_missed": 1,
-        "miss_rate": 0.2
+        "n_missed": 5,
+        "miss_rate": 1.0
       },
       {
         "registered_colour": "Grey",
         "true_colour": "Silver",
         "n_trials": 5,
-        "n_missed": 1,
-        "miss_rate": 0.2
+        "n_missed": 5,
+        "miss_rate": 1.0
       },
       {
-        "registered_colour": "Brown",
-        "true_colour": "Black",
+        "registered_colour": "Red",
+        "true_colour": "Grey",
+        "n_trials": 6,
+        "n_missed": 5,
+        "miss_rate": 0.8333
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "White",
         "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
+        "n_missed": 4,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "White",
+        "n_trials": 4,
+        "n_missed": 4,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Silver",
+        "n_trials": 4,
+        "n_missed": 4,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Grey",
+        "n_trials": 5,
+        "n_missed": 4,
+        "miss_rate": 0.8
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Black",
+        "n_trials": 3,
+        "n_missed": 3,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Black",
+        "n_trials": 3,
+        "n_missed": 3,
+        "miss_rate": 1.0
       },
       {
         "registered_colour": "Brown",
         "true_colour": "Silver",
         "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
+        "n_missed": 3,
+        "miss_rate": 0.75
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Silver",
+        "n_trials": 5,
+        "n_missed": 3,
+        "miss_rate": 0.6
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Brown",
+        "n_trials": 6,
+        "n_missed": 3,
+        "miss_rate": 0.5
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Grey",
+        "n_trials": 2,
+        "n_missed": 2,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Silver",
+        "n_trials": 2,
+        "n_missed": 2,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Grey",
+        "true_colour": "Brown",
+        "n_trials": 2,
+        "n_missed": 2,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "White",
+        "n_trials": 2,
+        "n_missed": 2,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Brown",
+        "n_trials": 3,
+        "n_missed": 2,
+        "miss_rate": 0.6667
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Brown",
+        "n_trials": 3,
+        "n_missed": 2,
+        "miss_rate": 0.6667
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "Black",
+        "n_trials": 3,
+        "n_missed": 2,
+        "miss_rate": 0.6667
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Black",
+        "n_trials": 4,
+        "n_missed": 2,
+        "miss_rate": 0.5
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Silver",
+        "n_trials": 4,
+        "n_missed": 2,
+        "miss_rate": 0.5
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Grey",
+        "n_trials": 1,
+        "n_missed": 1,
+        "miss_rate": 1.0
+      },
+      {
+        "registered_colour": "Silver",
+        "true_colour": "Blue",
+        "n_trials": 2,
+        "n_missed": 1,
+        "miss_rate": 0.5
+      },
+      {
+        "registered_colour": "White",
+        "true_colour": "Blue",
+        "n_trials": 2,
+        "n_missed": 1,
+        "miss_rate": 0.5
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "Red",
+        "n_trials": 3,
+        "n_missed": 1,
+        "miss_rate": 0.3333
+      },
+      {
+        "registered_colour": "Black",
+        "true_colour": "Brown",
+        "n_trials": 3,
+        "n_missed": 1,
+        "miss_rate": 0.3333
       },
       {
         "registered_colour": "Brown",
-        "true_colour": "Yellow",
-        "n_trials": 7,
-        "n_missed": 0,
-        "miss_rate": 0.0
+        "true_colour": "Black",
+        "n_trials": 4,
+        "n_missed": 1,
+        "miss_rate": 0.25
+      },
+      {
+        "registered_colour": "Blue",
+        "true_colour": "Brown",
+        "n_trials": 4,
+        "n_missed": 1,
+        "miss_rate": 0.25
+      },
+      {
+        "registered_colour": "Red",
+        "true_colour": "White",
+        "n_trials": 4,
+        "n_missed": 1,
+        "miss_rate": 0.25
       },
       {
         "registered_colour": "Brown",
         "true_colour": "Blue",
         "n_trials": 5,
+        "n_missed": 1,
+        "miss_rate": 0.2
+      },
+      {
+        "registered_colour": "Yellow",
+        "true_colour": "White",
+        "n_trials": 5,
+        "n_missed": 1,
+        "miss_rate": 0.2
+      },
+      {
+        "registered_colour": "Brown",
+        "true_colour": "Yellow",
+        "n_trials": 7,
         "n_missed": 0,
         "miss_rate": 0.0
       },
@@ -82,34 +271,6 @@
         "registered_colour": "Brown",
         "true_colour": "Red",
         "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Silver",
-        "true_colour": "Blue",
-        "n_trials": 2,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Silver",
-        "true_colour": "Brown",
-        "n_trials": 6,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Silver",
-        "true_colour": "White",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Silver",
-        "true_colour": "Black",
-        "n_trials": 3,
         "n_missed": 0,
         "miss_rate": 0.0
       },
@@ -136,27 +297,6 @@
       },
       {
         "registered_colour": "Blue",
-        "true_colour": "Black",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Blue",
-        "true_colour": "Grey",
-        "n_trials": 2,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Blue",
-        "true_colour": "Brown",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Blue",
         "true_colour": "Yellow",
         "n_trials": 4,
         "n_missed": 0,
@@ -164,21 +304,7 @@
       },
       {
         "registered_colour": "Blue",
-        "true_colour": "Silver",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Blue",
         "true_colour": "White",
-        "n_trials": 2,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "White",
-        "true_colour": "Silver",
         "n_trials": 2,
         "n_missed": 0,
         "miss_rate": 0.0
@@ -192,43 +318,8 @@
       },
       {
         "registered_colour": "White",
-        "true_colour": "Black",
-        "n_trials": 7,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "White",
-        "true_colour": "Grey",
-        "n_trials": 5,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "White",
-        "true_colour": "Blue",
-        "n_trials": 2,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "White",
         "true_colour": "Red",
         "n_trials": 2,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "White",
-        "true_colour": "Brown",
-        "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Yellow",
-        "true_colour": "White",
-        "n_trials": 5,
         "n_missed": 0,
         "miss_rate": 0.0
       },
@@ -236,20 +327,6 @@
         "registered_colour": "Yellow",
         "true_colour": "Brown",
         "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Yellow",
-        "true_colour": "Red",
-        "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Yellow",
-        "true_colour": "Grey",
-        "n_trials": 1,
         "n_missed": 0,
         "miss_rate": 0.0
       },
@@ -289,44 +366,9 @@
         "miss_rate": 0.0
       },
       {
-        "registered_colour": "Grey",
-        "true_colour": "White",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Grey",
-        "true_colour": "Black",
-        "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
         "registered_colour": "Red",
         "true_colour": "Blue",
         "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Red",
-        "true_colour": "Brown",
-        "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Red",
-        "true_colour": "White",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Red",
-        "true_colour": "Silver",
-        "n_trials": 5,
         "n_missed": 0,
         "miss_rate": 0.0
       },
@@ -338,27 +380,6 @@
         "miss_rate": 0.0
       },
       {
-        "registered_colour": "Red",
-        "true_colour": "Black",
-        "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Red",
-        "true_colour": "Grey",
-        "n_trials": 6,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Black",
-        "true_colour": "Brown",
-        "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
         "registered_colour": "Black",
         "true_colour": "Blue",
         "n_trials": 3,
@@ -369,27 +390,6 @@
         "registered_colour": "Black",
         "true_colour": "Red",
         "n_trials": 3,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Black",
-        "true_colour": "Silver",
-        "n_trials": 4,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Black",
-        "true_colour": "Grey",
-        "n_trials": 6,
-        "n_missed": 0,
-        "miss_rate": 0.0
-      },
-      {
-        "registered_colour": "Black",
-        "true_colour": "White",
-        "n_trials": 2,
         "n_missed": 0,
         "miss_rate": 0.0
       },
@@ -404,8 +404,8 @@
     "neutral_cluster_pairs": {
       "definition": "registered AND true colour both in {Black, Grey, Silver, White}",
       "n_trials": 50,
-      "n_missed": 2,
-      "miss_rate": 0.04
+      "n_missed": 49,
+      "miss_rate": 0.98
     }
   },
   "unregistered": {
