@@ -9,7 +9,10 @@ conflicts with PaddleOCR in-process, so it stays unloaded on the main path).
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
+
+import numpy as np
 
 from src.models.vehicle_detector import VehicleDetector
 from src.models.plate_reader import PlateReader
@@ -80,3 +83,69 @@ def _build_ocr_reader(cfg: dict):
             logger.exception("PaddleOCR unavailable; falling back to EasyOCR.")
     from src.models.ocr import PlateOCR
     return PlateOCR(languages=cfg.get("ocr", {}).get("languages", ["en"]), gpu=cfg.get("ocr", {}).get("gpu", False))
+
+
+def infer_single_image(image: np.ndarray, pipeline: dict, cfg: dict) -> dict:
+    """Run the 2-stage vehicle->plate->OCR pipeline + colour-gated verify on
+    one image. Used by BOTH the API /verify endpoint and the dashboard
+    Upload-Image path, so the two surfaces always agree on a verdict.
+
+    Brand is diagnostic-only (raw (name, confidence) tuple, or None if no
+    brand_clf is configured) and is NEVER passed into verify_vehicle.
+    """
+    t0 = time.perf_counter()
+
+    dets = pipeline["vehicle_detector"].detect(image)
+    if not dets:
+        vehicle_crop = image
+    else:
+        chosen = max(dets, key=lambda d: (d["bbox"][2] - d["bbox"][0]) * (d["bbox"][3] - d["bbox"][1]))
+        vehicle_crop = chosen["crop"]
+
+    plate = pipeline["plate_reader"].read(vehicle_crop)
+    plate_text = plate["text"]
+    plate_conf = plate.get("conf", 0.0)
+
+    # Colour is computed before the no-plate short-circuit so the UI always
+    # has a colour to show even when no plate was read.
+    color_clf = pipeline.get("color_clf")
+    if color_clf is not None:
+        color, color_conf = color_clf.predict(vehicle_crop)
+    else:
+        color, color_conf = "UNKNOWN", 0.0
+
+    if not plate_text.strip():
+        return {
+            "plate_text": "",
+            "color": color,
+            "color_conf": color_conf,
+            "status": "NO_PLATE",
+            "action": "LOG",
+            "message": "No readable plate.",
+            "color_warning": False,
+            "brand_diagnostic": None,
+            "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+        }
+
+    brand_clf = pipeline.get("brand_clf")
+    brand_diagnostic = None
+    if brand_clf is not None:
+        try:
+            brand_diagnostic = brand_clf.predict(vehicle_crop)
+        except Exception:
+            logger.exception("Brand diagnostic prediction failed; ignoring (diagnostic-only).")
+            brand_diagnostic = None
+
+    verdict = pipeline["matcher"].verify_vehicle(plate_text, color, color_conf)
+
+    return {
+        "plate_text": plate_text,
+        "color": color,
+        "color_conf": color_conf,
+        "status": verdict["status"],
+        "action": verdict["action"],
+        "message": verdict.get("message", ""),
+        "color_warning": verdict.get("color_warning", False),
+        "brand_diagnostic": brand_diagnostic,
+        "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+    }
