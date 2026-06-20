@@ -6,9 +6,9 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31.0-FF4B4B.svg?style=flat&logo=Streamlit)](https://streamlit.io/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://github.com/ultralytics/ultralytics)
 
-Hệ thống giám sát an ninh bãi đỗ xe thông minh ứng dụng Học Sâu để phòng chống tráo đổi biển số. Pipeline 2 tầng **YOLOv8n (xe → biển số) → PaddleOCR**, kèm phân loại **màu xe (MobileNetV3)** làm lớp xác thực phụ, và một **cơ chế gate "xe đã đỗ"** chỉ chạy suy luận nặng một lần mỗi xe.
+Hệ thống giám sát an ninh bãi đỗ xe thông minh ứng dụng Học Sâu để phòng chống tráo đổi biển số. Pipeline 2 tầng **YOLOv8n (xe → biển số) → PaddleOCR** (engine OCR chính; EasyOCR chỉ là fallback khi PaddlePaddle không khả dụng), kèm phân loại **màu xe (MobileNetV3, PyTorch, 86% TTA)** làm lớp xác thực phụ — **cảnh báo mềm** (gating đã siết, WS-2), và một **cơ chế gate "xe đã đỗ"** (approach-lock) chỉ chạy suy luận nặng một lần mỗi xe, đọc biển ngay trong pha xe lùi vào để đạt độ trễ <1 giây (xem §"Tối ưu hóa suy luận").
 
-> **Quyết định theo biển số (plate-primary):** biển số là khoá chính — biển khớp ⇒ AUTHORIZED; màu lệch chỉ là **cảnh báo mềm** (không từ chối cứng); biển không có trong CSDL ⇒ UNREGISTERED. Xem quá trình & lý do thay đổi so với thiết kế ban đầu trong các slide (`presentations/`), số liệu benchmark trong `docs/benchmarks/`, và đối chiếu công nghệ thế giới trong [`docs/related_work.md`](docs/related_work.md).
+> **Quyết định theo biển số (plate-primary):** biển số là khoá chính — biển khớp ⇒ AUTHORIZED; màu lệch chỉ là **cảnh báo mềm** (không từ chối cứng); biển không có trong CSDL ⇒ UNREGISTERED; **hãng xe là diagnostic phụ, không vào quyết định**. API `/verify` và Dashboard Streamlit nay **dùng chung một pipeline hợp nhất** (`main/src/engine/pipeline_factory.py`: `build_pipeline` + `infer_single_image`) — không còn lệch logic/engine giữa hai đường vận hành. Xem quá trình & lý do thay đổi so với thiết kế ban đầu trong các slide (`presentations/`), số liệu benchmark trong `docs/benchmarks/`, và đối chiếu công nghệ thế giới trong [`docs/related_work.md`](docs/related_work.md).
 
 ---
 
@@ -91,7 +91,7 @@ Chạy lệnh sau từ thư mục gốc của dự án:
 ```bash
 docker compose up --build
 ```
-*Lệnh này sẽ tự động tải các dependencies, tải trước các mô hình YOLOv8 và PaddleOCR (EasyOCR fallback) để chạy ngoại tuyến, khởi động Backend FastAPI (cổng 8000) và Dashboard Streamlit (cổng 8501) song song.*
+*Lệnh này sẽ tự động tải các dependencies, tải trước các mô hình YOLOv8 và PaddleOCR (engine OCR chính; EasyOCR chỉ fallback) để chạy ngoại tuyến, khởi động Backend FastAPI (cổng 8000) và Dashboard Streamlit (cổng 8501) song song — cả hai dùng chung pipeline hợp nhất (`build_pipeline`/`infer_single_image`).*
 
 *   **API Documentation (Swagger UI)**: Truy cập tại `http://localhost:8000/docs`
 *   **Vận hành Dashboard UI**: Truy cập tại `http://localhost:8501`
@@ -133,7 +133,7 @@ Dashboard mở tại `http://localhost:8501`. Chọn **Upload Video → “Play 
 
 ### 🧪 Chạy test
 ```bash
-cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 44 passed, 7 skipped
+cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 76 passed, 7 skipped
 ```
 
 ### 🛠️ Khắc phục sự cố (Troubleshooting)
@@ -150,7 +150,7 @@ cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 44 passed, 7 skip
 
 ## 🏃 Kiểm thử hệ thống (Running Tests inside Container)
 
-Để thực thi bộ unit test tự động (hiện **44 passed, 7 skipped** — kiểm tra OCR, so khớp CSDL, logic tiền xử lý) bên trong môi trường Docker đang chạy:
+Để thực thi bộ unit test tự động (hiện **76 passed, 7 skipped** — kiểm tra OCR, so khớp CSDL, logic tiền xử lý, đồng nhất pipeline API/Dashboard) bên trong môi trường Docker đang chạy:
 
 ```bash
 docker compose exec backend pytest main/tests/
@@ -170,7 +170,7 @@ Khi TensorFlow và PyTorch chạy song song, việc tranh chấp luồng tính t
     *   `OPENBLAS_NUM_THREADS=1`
     *   `VECLIB_MAXIMUM_THREADS=1`
     *   `NUMEXPR_NUM_THREADS=1`
-*   *Giải pháp này giúp hệ thống chạy ổn định ở mức **~1.6 giây / xe** (từ ảnh thứ hai trở đi; cold-start ảnh đầu ~4.5 s). Lưu ý: mục tiêu KPI ban đầu đặt ra là <1.0 giây — chưa đạt được do chạy thuần CPU và overhead khởi động PaddleOCR.*
+*   *Giải pháp giới hạn luồng trên kết hợp với cơ chế bắt-biển tối ưu (đọc biển trong pha xe lùi vào + OCR một lần/xe + warmup model lúc khởi động) giúp hệ thống **đạt mục tiêu KPI <1.0 giây/xe** ở chế độ steady-state: đường bãi đỗ (approach-lock, video/CCTV) đo **0.73 s** từ lúc mở cổng tới lúc chốt biển; đường ảnh đơn (API `/verify`) đo **~0.96 s/ảnh** sau warmup (xem Report 4 §5.1, §4.1–4.2). Lưu ý trung thực: lệnh gọi đầu tiên sau khi khởi động tiến trình vẫn còn **cold-start ~vài giây** (đo thực tế 6.1 s) do nạp PaddleOCR lần đầu — chi phí một lần, không tái diễn ở các lượt xử lý sau.*
 
 ### 2. Cấu hình chạy ngoại tuyến hoàn toàn (100% Offline Mode)
 *   **EasyOCR**: Tắt tính năng tự động tải hoặc kiểm tra mô hình qua mạng bằng cách khởi tạo: `easyocr.Reader(..., download_enabled=False)`.
