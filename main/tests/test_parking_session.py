@@ -165,3 +165,69 @@ def test_single_then_empty_read_never_locks():
         out = sess.process_frame(frame)
     assert out["decision"] is None
     assert sess.trigger.state != "DECIDED"
+
+
+# -- WS-1 G3: _collect must read the ROI-selected target, not the global
+# largest box (spec requires "only the vehicle in its own slot"). -----------
+
+class TwoVehicleDetector:
+    """Always returns a BIG box centered OUTSIDE the roi and a SMALL box
+    centered INSIDE the roi. The big box is larger in area, so picking
+    ``max(detections, key=area)`` (the old, buggy behaviour) would grab the
+    outside-roi vehicle every frame.
+    """
+
+    def detect(self, frame):
+        big_outside = {
+            "bbox": (0, 0, 250, 460),  # center x=125/640≈0.20 -> outside roi
+            "conf": 0.9,
+            "crop": np.full((10, 10, 3), 7, dtype=np.uint8),  # marker: OUTSIDE
+        }
+        small_inside = {
+            "bbox": (300, 260, 430, 470),  # center x≈0.57, y≈0.76 -> inside roi
+            "conf": 0.9,
+            "crop": np.full((10, 10, 3), 200, dtype=np.uint8),  # marker: INSIDE
+        }
+        return [big_outside, small_inside]
+
+
+class CropDistinguishingPlateReader:
+    """Returns a different plate depending on which crop (marker pixel value)
+    it was handed, so the test can prove WHICH vehicle was actually read.
+    """
+
+    def read(self, crop):
+        marker = int(crop[0, 0, 0])
+        if marker == 200:  # the in-ROI, small vehicle
+            return {"text": "30M71854", "conf": 0.85, "plate_bbox": (0, 0, 5, 5)}
+        return {"text": "99X99999", "conf": 0.85, "plate_bbox": (0, 0, 5, 5)}  # outside-roi vehicle
+
+
+def test_collect_reads_roi_selected_target_not_global_largest():
+    from src.engine.decision_engine import DecisionEngine
+    from src.engine.parking_trigger import ParkingTrigger
+
+    sess = ParkingSession(
+        vehicle_detector=TwoVehicleDetector(),
+        plate_reader=CropDistinguishingPlateReader(),
+        color_clf=WhiteColorClf(),
+        decision_engine=DecisionEngine(LockMatcher()),
+        # Narrow ROI: only the "small_inside" box (center x≈0.57, y≈0.76)
+        # qualifies; the "big_outside" box (center x≈0.20) is filtered out
+        # by ParkingTrigger._largest_in_roi before "largest" is ever chosen.
+        trigger=ParkingTrigger(roi=(0.35, 0.30, 0.65, 1.0), min_area_ratio=0.05, min_persist_frames=2),
+        sample_interval=1,
+        collect_frames=2,
+        lock_conf=0.60,
+        lock_repeat=2,
+    )
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    decision = None
+    for _ in range(10):
+        out = sess.process_frame(frame)
+        if out["decision"] is not None:
+            decision = out["decision"]
+            break
+    assert decision is not None
+    # Must lock onto the IN-ROI vehicle's plate, never the bigger outside-roi one.
+    assert decision["plate"] == "30M71854"

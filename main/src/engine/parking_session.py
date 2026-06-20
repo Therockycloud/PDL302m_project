@@ -82,12 +82,15 @@ class ParkingSession:
         return self._output()
 
     def _collect(self, detections: list[dict[str, Any]]) -> None:
-        if not detections:
+        # WS-1 G3: read the plate from the SAME vehicle the trigger gated on
+        # (its ROI-filtered ``self.target``), not the largest box in the
+        # whole frame. ``process_frame`` always calls ``trigger.update()``
+        # before ``_collect`` in the same frame, so ``self.trigger.target``
+        # already reflects this frame's ROI-selected vehicle. A bigger
+        # vehicle passing by outside the ROI must never be picked instead.
+        veh = self.trigger.target
+        if veh is None:
             return
-        veh = max(
-            detections,
-            key=lambda d: (d["bbox"][2] - d["bbox"][0]) * (d["bbox"][3] - d["bbox"][1]),
-        )
         crop = veh.get("crop")
         # Guard against degenerate boxes (zero/tiny crops) that would crash the
         # downstream OCR / colour resize. A bad frame contributes no vote rather

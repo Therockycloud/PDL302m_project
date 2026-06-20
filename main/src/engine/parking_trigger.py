@@ -11,6 +11,14 @@ reverse-approach motion, not after the vehicle stops moving. The gate now
 opens once a vehicle has *persisted* inside the ROI for ``min_persist_frames``
 consecutive frames, regardless of whether its center is jittering/drifting
 frame-to-frame.
+
+WS-1 G3: ``update()`` is the single source of truth for *which* detection is
+"the vehicle in our own slot" (it already filters by ROI via
+``_largest_in_roi``). The chosen box is cached on ``self.target`` so
+downstream consumers (``ParkingSession._collect``) read the plate from the
+SAME vehicle the gate is tracking, instead of independently re-picking the
+largest box in the whole frame (which could be an unrelated, bigger vehicle
+driving past outside the ROI).
 """
 
 from __future__ import annotations
@@ -51,10 +59,12 @@ class ParkingTrigger:
         self.min_persist_frames = min_persist_frames
         self.state: str = IDLE
         self._persist = 0
+        self.target: dict[str, Any] | None = None
 
     def reset(self) -> None:
         self.state = IDLE
         self._persist = 0
+        self.target = None
 
     def mark_decided(self) -> None:
         self.state = DECIDED
@@ -64,6 +74,8 @@ class ParkingTrigger:
         if veh is None:
             self.reset()
             return self.state
+
+        self.target = veh
 
         if self.state == DECIDED:
             return self.state  # latch until the car leaves
