@@ -336,7 +336,7 @@
             </p>
             <div style="display:flex; gap:50px; border-top:1px solid var(--border-color); padding-top:18px; margin:6px 0 28px 0;">
                 <div>
-                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--accent-green);">98.4%</span>
+                    <span style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--accent-green);">99.0%</span>
                     <div style="font-size:0.72rem; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Plate mAP@0.5</div>
                 </div>
                 <div>
@@ -414,18 +414,18 @@
                         <li><strong>Input resolution:</strong> 640x640 pixels.</li>
                         <li><strong>Optimizer:</strong> SGD với Momentum = 0.937, Learning Rate ban đầu = 0.01.</li>
                         <li><strong>Hàm Loss:</strong> CIoU loss cho bounding box regression, DFL (Distribution Focal Loss) và BCE (Binary Cross Entropy) cho classification.</li>
-                        <li><strong>Thời gian huấn luyện:</strong> 100 epochs, dừng sớm (Early Stopping) sau 15 epochs không cải thiện độ chính xác validation.</li>
+                        <li><strong>Thời gian huấn luyện:</strong> 80 epochs (chạy hết, không early-stop), mAP50 hội tụ sớm ở mức ≈0.97 từ epoch 9.</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>Thông số huấn luyện chính</h3>
+                    <h3>Thông số huấn luyện chính (epoch 80, plate_finetune)</h3>
                     <div style="font-family: monospace; font-size: 0.82rem; padding-top: 10px; line-height: 1.6;">
-                        Epochs: 100 (Early stopped at epoch 84)<br>
+                        Epochs: 80 (full run)<br>
                         Batch Size: 16<br>
-                        Box Loss: 0.421 (Train) / 0.453 (Val)<br>
-                        Cls Loss: 0.312 (Train) / 0.339 (Val)<br>
-                        DFL Loss: 0.812 (Train) / 0.842 (Val)<br>
-                        Weights File: yolov8n_plate.pt (~6.2 MB)
+                        Box Loss: 0.922 (Train) / 1.054 (Val)<br>
+                        Cls Loss: 0.328 (Train) / 0.363 (Val)<br>
+                        DFL Loss: 0.988 (Train) / 1.017 (Val)<br>
+                        Weights File: yolov8n_plate.pt (~6.24 MB)
                     </div>
                 </div>
             </div>
@@ -447,37 +447,37 @@
                     <thead>
                         <tr>
                             <th>Chỉ số đánh giá</th>
-                            <th>Tập Validation</th>
-                            <th>Tập Test Set</th>
+                            <th>plate_finetune (COCO, chọn)</th>
+                            <th>plate_scratch</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><strong>mAP@0.5</strong></td>
-                            <td>98.4%</td>
-                            <td>98.2%</td>
+                            <td>98.96%</td>
+                            <td>97.90%</td>
                         </tr>
                         <tr>
                             <td><strong>mAP@0.5:0.95</strong></td>
-                            <td>76.5%</td>
-                            <td>75.8%</td>
+                            <td>70.40%</td>
+                            <td>69.72%</td>
                         </tr>
                         <tr>
-                            <td><strong>Precision (Độ chính xác)</strong></td>
-                            <td>97.8%</td>
-                            <td>97.5%</td>
+                            <td><strong>Latency (CPU, ms/ảnh)</strong></td>
+                            <td>110.3 ms</td>
+                            <td>110.4 ms</td>
                         </tr>
                         <tr>
-                            <td><strong>Recall (Độ phủ)</strong></td>
-                            <td>96.9%</td>
-                            <td>96.5%</td>
+                            <td><strong>Kích thước model</strong></td>
+                            <td>6.24 MB</td>
+                            <td>6.24 MB</td>
                         </tr>
                     </tbody>
                 </table>
                 <div>
                     <h3 style="margin-bottom: 12px; color: var(--accent-green);">Phân tích khả năng định vị</h3>
                     <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
-                        Mô hình YOLOv8-nano đạt độ tin cậy vượt mong đợi khi định vị biển số xe. Việc định vị chuẩn xác vùng chứa biển số giúp cắt bỏ 90% các chi tiết hậu cảnh rác xung quanh, giảm thiểu tải điện toán và lỗi đọc sai ký tự của OCR xuống mức thấp nhất.
+                        Đo trên tập validation 1.765 ảnh (HuggingFace `keremberke/license-plate-object-detection`), <strong>transfer learning từ COCO thắng scratch ở mọi chỉ số</strong> chính xác (mAP50 +1.06 điểm, mAP50-95 +0.68 điểm) tại cùng latency và kích thước model. Việc định vị chuẩn xác vùng chứa biển số giúp cắt bỏ phần lớn chi tiết hậu cảnh rác xung quanh, giảm thiểu tải điện toán và lỗi đọc sai ký tự của OCR ở bước tiếp theo.
                     </p>
                 </div>
             </div>
@@ -534,39 +534,41 @@
         <div class="slide-body">
             <div class="grid-2">
                 <div>
-                    <h3 style="margin-bottom: 12px; color: var(--accent-green);">Chỉ số độ chính xác ký tự (Character Accuracy)</h3>
+                    <h3 style="margin-bottom: 12px; color: var(--accent-green);">Chỉ số độ chính xác (Benchmark C, 16 biển CCTV thật)</h3>
                     <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.95rem;">
-                        Chúng em kiểm thử trên tập dữ liệu biển số xe thực tế dưới nhiều điều kiện ánh sáng khác nhau:
+                        Chúng em kiểm thử trên 16 ảnh crop biển số CCTV thật gán nhãn tay, so sánh trực tiếp hai engine:
                     </p>
                     <ul>
-                        <li><strong>Độ chính xác ký tự đơn lẻ (Character-level):</strong> Đạt **98.2%**.</li>
-                        <li><strong>Độ chính xác toàn bộ chuỗi biển số (Word-level):</strong> Đạt **94.5%**.</li>
+                        <li><strong>Exact-match toàn chuỗi (Word-level):</strong> PaddleOCR đạt **81.2%** vs EasyOCR **0%**.</li>
+                        <li><strong>Mean CER (Character Error Rate):</strong> PaddleOCR **0.031** vs EasyOCR 0.278 — suy ra <strong>~97% ký tự đúng</strong> (1 − CER) cho PaddleOCR.</li>
                         <li><strong>Lỗi phổ biến:</strong> Nhầm lẫn ký tự có hình học tương tự dưới điều kiện thiếu sáng hoặc biển số bị bụi bẩn che khuất (ví dụ: `8` thành `B`, `0` thành `D`, `5` thành `S`).</li>
                     </ul>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Điều kiện ánh sáng</th>
-                            <th>Thời gian xử lý</th>
-                            <th>Độ chính xác</th>
+                            <th>Engine</th>
+                            <th>Exact-match</th>
+                            <th>Mean CER</th>
+                            <th>Latency (ms/biển)</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Ban ngày / Ngoài trời sáng</td>
-                            <td>195 ms</td>
-                            <td>97.8%</td>
+                            <td>EasyOCR</td>
+                            <td>0%</td>
+                            <td>0.278</td>
+                            <td>31.7 ms</td>
                         </tr>
                         <tr>
-                            <td>Trong hầm tối / Thiếu sáng</td>
-                            <td>240 ms</td>
-                            <td>92.1%</td>
+                            <td><strong>PaddleOCR (PP-OCRv4)</strong></td>
+                            <td><strong>81.2%</strong></td>
+                            <td><strong>0.031</strong></td>
+                            <td>423.2 ms</td>
                         </tr>
                         <tr>
-                            <td>Độ trễ trung bình E2E OCR</td>
-                            <td>220 ms</td>
-                            <td>94.5%</td>
+                            <td>Tiền xử lý (deskew/CLAHE)</td>
+                            <td colspan="3">Không giúp ích — gây hại PaddleOCR (0.81→0.44), đã loại</td>
                         </tr>
                     </tbody>
                 </table>
@@ -659,18 +661,18 @@
                     </p>
                     <ul>
                         <li><strong>MobileNetV3-Small:</strong> Ứng dụng cấu trúc Mobile Bottleneck blocks, Hard-swish activations và các kênh Squeeze-and-Excitation (SE) giúp tăng cường sự chú ý vào các kênh màu sắc nổi bật.</li>
-                        <li><strong>Kích thước file weights cực nhẹ:</strong> Chỉ **6.5 MB**, nạp vào bộ nhớ RAM CPU gần như tức thời.</li>
-                        <li><strong>Tốc độ suy luận vượt trội:</strong> Chỉ tốn 38 ms trên CPU thường.</li>
+                        <li><strong>Kích thước file weights cực nhẹ:</strong> Chỉ **6.24 MB**, nạp vào bộ nhớ RAM CPU gần như tức thời.</li>
+                        <li><strong>Tốc độ suy luận:</strong> ~100 ms/ảnh trên CPU thường (single-image inference, không batch).</li>
                     </ul>
                 </div>
                 <div class="card">
                     <h3>Thông số kiến trúc MobileNetV3</h3>
                     <div style="font-family: monospace; font-size: 0.8rem; padding-top: 10px; line-height: 1.5;">
                         Input Image size: (224, 224, 3)<br>
-                        Total Parameters: 2.54 Million<br>
-                        Trainable Parameters: 1.12 Million<br>
+                        Total Parameters: ~1.53 Million<br>
+                        Model size: 6.24 MB<br>
                         Dropout regularizer rate: 0.3<br>
-                        Output Classes: 8 (Red, Blue, White, Black, Grey, Silver, Yellow, Green)
+                        Output Classes: 8 (Black, Blue, Brown, Grey, Red, Silver, White, Yellow)
                     </div>
                 </div>
             </div>
@@ -720,28 +722,29 @@
                 <div>
                     <h3>Kiểm nghiệm các cấu hình tối ưu</h3>
                     <p style="color: var(--text-muted); margin-bottom: 15px;">
-                        Nhóm tiến hành thực nghiệm thay đổi các siêu tham số chính để tìm ra cấu hình cân bằng nhất giữa độ trễ (latency) và độ chính xác (accuracy).
+                        Nhóm theo dõi accuracy qua từng bước nâng cấp cấu hình (head-frozen → fine-tune → mở rộng dữ liệu/lever) cho cả hai classifier để chọn cấu hình cuối.
                     </p>
                     <ul>
-                        <li><strong>Thử nghiệm 1 (Optimizer):</strong> Adam vs SGD. Kết quả Adam hội tụ nhanh hơn gấp 2 lần và đạt accuracy cao hơn 1.8% trên tập Classifiers.</li>
-                        <li><strong>Thử nghiệm 2 (Dropout Rate):</strong> So sánh dải `[0.2, 0.3, 0.4, 0.5]`. Tỷ lệ 0.4 giúp giảm thiểu tối đa hiện tượng Overfitting mà không làm mất đặc trưng.</li>
-                        <li><strong>Thử nghiệm 3 (Learning Rate):</strong> LR `1e-4` ổn định nhất, tránh hiện tượng dao động loss mạnh của LR `1e-3`.</li>
+                        <li><strong>Color (MobileNetV3-Small):</strong> Head đông cứng 48.3% → fine-tune nửa backbone 55.1% → full fine-tune + VCoR 600/lớp 77.6% → full VCoR + class-weight + label-smoothing 85.3% (plain) → **86.3%** với test-time augmentation (TTA, deployed).</li>
+                        <li><strong>Brand (EfficientNet-B0):</strong> Head đông cứng 32.8% → fine-tuning 35.3% — vẫn yếu, bị loại khỏi quyết định (diagnostic only).</li>
+                        <li><strong>Learning Rate:</strong> Pha head-frozen dùng Adam lr 1e-3; pha fine-tune dùng Adam lr 1e-4 — lr 1e-4 cho cả hai pha từng khiến EarlyStopping dừng quá sớm.</li>
                     </ul>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Thử nghiệm</th>
+                            <th>Cấu hình</th>
                             <th>Mô hình</th>
-                            <th>Optimizer</th>
-                            <th>Dropout</th>
                             <th>Accuracy</th>
+                            <th>Macro-F1</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>Cấu hình A</td><td>EfficientNet</td><td>SGD</td><td>0.3</td><td>88.5%</td></tr>
-                        <tr><td>Cấu hình B</td><td>EfficientNet</td><td>Adam</td><td>0.3</td><td>91.2%</td></tr>
-                        <td style="font-weight: bold;">Cấu hình C (Chọn)</td><td style="font-weight: bold;">EfficientNet</td><td style="font-weight: bold;">Adam</td><td style="font-weight: bold;">0.4</td><td style="font-weight: bold; color: var(--accent-green);">92.8%</td></tr>
+                        <tr><td>Head đông cứng</td><td>Color (MobileNetV3-Small)</td><td>48.3%</td><td>0.48</td></tr>
+                        <tr><td>Full fine-tune + VCoR 600/lớp</td><td>Color (MobileNetV3-Small)</td><td>77.6%</td><td>0.776</td></tr>
+                        <tr><td style="font-weight: bold;">Full VCoR + class-weight + TTA (Chọn)</td><td style="font-weight: bold;">Color (MobileNetV3-Small)</td><td style="font-weight: bold; color: var(--accent-green);">86.3%</td><td style="font-weight: bold;">0.841</td></tr>
+                        <tr><td>Head đông cứng</td><td>Brand (EfficientNet-B0)</td><td>32.8%</td><td>0.32</td></tr>
+                        <tr><td>+ Fine-tuning (vẫn loại)</td><td>Brand (EfficientNet-B0)</td><td>35.3%</td><td>0.34</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -760,17 +763,17 @@
         <div class="slide-body">
             <div class="grid-3">
                 <div class="card" style="text-align: center;">
-                    <span class="badge success">LƯU LƯỢNG (THROUGHPUT)</span>
-                    <h3 style="margin-top: 10px;">~150 xe / phút</h3>
+                    <span class="badge success">ĐỘ TRỄ — ĐƯỜNG BÃI ĐỖ</span>
+                    <h3 style="margin-top: 10px;">0.73 s / xe</h3>
                     <p class="card-body" style="font-size: 0.82rem;">
-                        Tốc độ xử lý của cổng đáp ứng hoàn toàn lưu lượng xe ra vào giờ cao điểm của tòa nhà văn phòng.
+                        Approach-lock (video/CCTV): từ lúc phát hiện xe tới lúc chốt biển số, đo trong pha xe đang lùi vào chỗ đỗ.
                     </p>
                 </div>
                 <div class="card" style="text-align: center;">
-                    <span class="badge success">ĐỘ TRỄ (LATENCY)</span>
-                    <h3 style="margin-top: 10px;">398 ms / xe</h3>
+                    <span class="badge success">ĐỘ TRỄ — API STEADY-STATE</span>
+                    <h3 style="margin-top: 10px;">0.96 s / xe</h3>
                     <p class="card-body" style="font-size: 0.82rem;">
-                        Thời gian suy luận toàn hệ thống trên CPU thường, bảo chứng phản hồi ngay lập tức dưới nửa giây.
+                        Đường ảnh đơn API `/verify`, sau warmup (từ ảnh thứ hai trở đi) — mục tiêu &lt;1s đã đạt ở steady-state. Cold-start lần gọi đầu ~6.1s do nạp PaddleOCR.
                     </p>
                 </div>
                 <div class="card" style="text-align: center;">
