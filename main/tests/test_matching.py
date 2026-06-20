@@ -45,5 +45,33 @@ class TestDatabaseMatcher(unittest.TestCase):
         self.assertIn("colour", result['message'].lower())
 
 
+class TestRealDatabaseDemoPlate(unittest.TestCase):
+    """WS-1 Task 6: the live demo plate (30M71854, locked at frame 510 of
+    sample_parking.mp4) must be registered AUTHORIZED with no colour
+    warning against the REAL main/data/database.csv (not a temp fixture).
+    Colour ground truth: TorchColorClassifier (color_MobileNetV3Small.pt)
+    predicted Yellow at conf 0.82-0.95 across 8/9 sampled frames
+    (492-534) of the vehicle's own crop.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        db_path = os.path.join(
+            os.path.dirname(__file__), "..", "data", "database.csv"
+        )
+        cls.matcher = DatabaseMatcher(db_path)
+
+    def test_demo_plate_is_authorized_with_correct_color(self):
+        result = self.matcher.verify_vehicle("30M71854", "Yellow")
+        self.assertEqual(result['status'], 'AUTHORIZED')
+        self.assertFalse(result['color_warning'])
+
+    def test_demo_plate_matches_with_dashes_and_dots(self):
+        # Matcher strips space/dash/dot, so the CSV's dashed form must
+        # round-trip with the OCR's bare-digits form.
+        result = self.matcher.verify_vehicle("30M-718.54", "Yellow")
+        self.assertEqual(result['status'], 'AUTHORIZED')
+
+
 if __name__ == '__main__':
     unittest.main()
