@@ -22,18 +22,26 @@ def test_idle_when_vehicle_too_small_or_outside_roi():
 
 
 def test_tracking_then_ready_when_large_low_and_stable():
-    t = ParkingTrigger(min_area_ratio=0.15, stable_frames=3, move_eps=0.02)
+    # Renamed in spirit for WS-1: readiness now comes from persisting in ROI
+    # for min_persist_frames, not from standing still (_is_stable removed
+    # from the gate). A vehicle that stays in-ROI for 3 frames goes READY
+    # even though nothing here proves it is motionless.
+    t = ParkingTrigger(min_area_ratio=0.15, min_persist_frames=3)
     box = _det(220, 240, 420, 480)
     states = [t.update(box, FRAME) for _ in range(3)]
     assert states[0] == TRACKING
     assert states[-1] == READY_TO_DECIDE
 
 
-def test_jitter_keeps_tracking_not_ready():
-    t = ParkingTrigger(min_area_ratio=0.15, stable_frames=3, move_eps=0.01)
-    boxes = [_det(220, 240, 420, 480), _det(120, 140, 320, 380), _det(260, 260, 460, 500)]
-    states = [t.update(b, FRAME) for b in boxes]
-    assert states[-1] == TRACKING
+def test_leaving_roi_resets_to_idle():
+    # Formerly "jitter_keeps_tracking_not_ready": jitter while reversing must
+    # NOT block READY anymore (we want to read the plate while still moving).
+    # What DOES still reset the gate is the vehicle leaving the ROI/min-area
+    # window entirely (e.g. a car passing through, not parking here).
+    t = ParkingTrigger(min_area_ratio=0.15, min_persist_frames=3)
+    t.update(_det(220, 240, 420, 480), FRAME)
+    t.update(_det(230, 245, 430, 485), FRAME)  # still in-ROI, jittering
+    assert t.update([], FRAME) == IDLE  # vehicle disappears/leaves -> reset
 
 
 def test_picks_in_roi_vehicle_over_larger_outside_roi():
@@ -51,8 +59,23 @@ def test_all_vehicles_outside_roi_is_idle():
     assert t.update([_box(0, 0, 120, 200)], FRAME) == IDLE
 
 
+def test_ready_after_persist_even_while_moving():
+    # In reverse approach the car is MOVING (center drifts) but must still open
+    # the decision window once it has persisted in ROI for min_persist_frames.
+    t = ParkingTrigger(roi=(0.35, 0.30, 0.65, 1.0), min_area_ratio=0.10, min_persist_frames=3)
+    boxes = [_box(290, 240, 440, 480), _box(295, 248, 448, 488), _box(288, 252, 442, 482)]  # in-ROI, jittering
+    states = [t.update([b], FRAME) for b in boxes]
+    assert states[-1] == READY_TO_DECIDE   # motion does NOT block readiness
+
+
+def test_tracking_before_persist_threshold():
+    t = ParkingTrigger(roi=(0.35, 0.30, 0.65, 1.0), min_area_ratio=0.10, min_persist_frames=3)
+    s1 = t.update([_box(290, 240, 440, 480)], FRAME)
+    assert s1 == TRACKING  # only 1 frame persisted < 3
+
+
 def test_mark_decided_and_reset_on_leave():
-    t = ParkingTrigger(min_area_ratio=0.15, stable_frames=2, move_eps=0.05)
+    t = ParkingTrigger(min_area_ratio=0.15, min_persist_frames=2)
     box = _det(220, 240, 420, 480)
     t.update(box, FRAME)
     t.update(box, FRAME)

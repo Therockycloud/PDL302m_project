@@ -1,9 +1,16 @@
 """Parking-gate state machine.
 
 Pure NumPy heuristic that decides when a vehicle has reversed into the
-parking ROI and stands still, so the heavy plate/OCR/colour pipeline only
-runs at the right moment. No model dependency — unit-testable with fake
-bounding boxes.
+parking ROI, so the heavy plate/OCR/colour pipeline only runs at the right
+moment. No model dependency — unit-testable with fake bounding boxes.
+
+WS-1 finding: the plate is only legible while the vehicle is APPROACHING
+(area ratio ~0.16-0.8) — once fully parked (area >0.9) the plate is too
+close/occluded and OCR goes blind. So readiness must open during the
+reverse-approach motion, not after the vehicle stops moving. The gate now
+opens once a vehicle has *persisted* inside the ROI for ``min_persist_frames``
+consecutive frames, regardless of whether its center is jittering/drifting
+frame-to-frame.
 """
 
 from __future__ import annotations
@@ -36,40 +43,33 @@ class ParkingTrigger:
     ) -> None:
         self.roi = roi if roi is not None else _DEFAULT_ROI
         self.min_area_ratio = min_area_ratio
+        # stable_frames/move_eps are kept as accepted kwargs for backward
+        # compatibility with existing callers/tests, but no longer gate
+        # readiness (see module docstring) — persistence replaced stillness.
         self.stable_frames = stable_frames
         self.move_eps = move_eps
         self.min_persist_frames = min_persist_frames
         self.state: str = IDLE
-        self._centers: list[tuple[float, float]] = []
         self._persist = 0
 
     def reset(self) -> None:
         self.state = IDLE
-        self._centers = []
         self._persist = 0
 
     def mark_decided(self) -> None:
         self.state = DECIDED
 
     def update(self, detections: list[dict[str, Any]], frame_shape) -> str:
-        h, w = frame_shape[0], frame_shape[1]
         veh = self._largest_in_roi(detections, frame_shape)
         if veh is None:
             self.reset()
             return self.state
 
-        x1, y1, x2, y2 = veh["bbox"]
-        cx = (x1 + x2) / 2.0 / w
-        cy = (y1 + y2) / 2.0 / h
-
         if self.state == DECIDED:
             return self.state  # latch until the car leaves
 
-        self._centers.append((cx, cy))
-        if len(self._centers) > self.stable_frames:
-            self._centers.pop(0)
-
-        if len(self._centers) >= self.stable_frames and self._is_stable():
+        self._persist += 1
+        if self._persist >= self.min_persist_frames:
             self.state = READY_TO_DECIDE
         else:
             self.state = TRACKING
@@ -104,12 +104,3 @@ class ParkingTrigger:
     def _in_roi(self, cx: float, cy: float) -> bool:
         x0, y0, x1, y1 = self.roi
         return x0 <= cx <= x1 and y0 <= cy <= y1
-
-    def _is_stable(self) -> bool:
-        xs = [c[0] for c in self._centers]
-        ys = [c[1] for c in self._centers]
-        mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
-        return all(
-            abs(x - mx) <= self.move_eps and abs(y - my) <= self.move_eps
-            for x, y in self._centers
-        )
