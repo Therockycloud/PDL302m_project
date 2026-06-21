@@ -1216,7 +1216,7 @@
     <canvas class="ascii-bg" aria-hidden="true"></canvas>
     <div class="chrome-min">
       <div class="l">DPL302m · Báo cáo 4 · Bảo vệ cuối kỳ</div>
-      <div class="r">GV: Lương Trung Kiên · 01 / 17</div>
+      <div class="r">GV: Lương Trung Kiên · 01 / 18</div>
     </div>
 
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr auto;gap:2.6vh">
@@ -1242,7 +1242,7 @@
       <div class="half b-ink" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between">
         <div class="chrome-min" style="margin-bottom:0">
           <div class="l">§1 · Động lực nghiên cứu</div>
-          <div class="r">02 / 17</div>
+          <div class="r">02 / 18</div>
         </div>
         <div data-anim="left" style="display:flex;flex-direction:column;gap:2vh">
           <div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">Bối cảnh thực tế</div>
@@ -1280,7 +1280,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§2 · Khung giải pháp đề xuất</div>
-      <div class="r">03 / 17</div>
+      <div class="r">03 / 18</div>
     </div>
     
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:6vh">
@@ -1334,7 +1334,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§2.2 · Cơ sở khoa học</div>
-      <div class="r">04 / 17</div>
+      <div class="r">04 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto auto 1fr;gap:3.4vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1346,22 +1346,22 @@
         <div class="kpi-cell">
           <div class="lbl">Plate Detection · YOLOv8n</div>
           <div class="nb" style="color:var(--accent)">Jocher<span class="unit">2023</span></div>
-          <div class="note">Ultralytics, 3.2M Params, mAP 0.99, định vị vùng biển số chỉ trong ~75ms.</div>
+          <div class="note">Ultralytics, 6.24MB weight, mAP50 0.99, định vị vùng biển số trong 110ms/ảnh CPU.</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">Plate OCR · PP-OCRv4</div>
           <div class="nb">BiLSTM<span class="unit">Shi15</span></div>
-          <div class="note">CRNN + BiLSTM + CTC sequence modeling, đọc ký tự chính xác 81%.</div>
+          <div class="note">CRNN + BiLSTM + CTC sequence modeling, đọc ký tự chính xác 81.2% (CER 0.031).</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">Vehicle Color · MobileNetV3</div>
           <div class="nb">Howard<span class="unit">2019</span></div>
-          <div class="note">MobileNetV3-Small, 1.5M Params, CPU-optimized, phân loại 8 nhóm màu.</div>
+          <div class="note">MobileNetV3-Small, 1.53M Params, CPU-optimized, phân loại 8 nhóm màu.</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">Vehicle Brand · EfficientNet</div>
           <div class="nb">Tan<span class="unit">2019</span></div>
-          <div class="note">EfficientNet-B0, 4.0M Params, Compound Scaling. (Đã loại khỏi quyết định mở cổng).</div>
+          <div class="note">EfficientNet-B0, 4.02M Params, Compound Scaling. (Đã loại khỏi quyết định mở cổng).</div>
         </div>
       </div>
 
@@ -1378,7 +1378,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§3 · Kiến trúc hệ thống</div>
-      <div class="r">05 / 17</div>
+      <div class="r">05 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr auto;gap:4vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1423,7 +1423,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§4 · Thu thập dữ liệu</div>
-      <div class="r">06 / 17</div>
+      <div class="r">06 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:5vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1435,14 +1435,14 @@
         <div class="span-4 card-fill" style="padding:2.6vh 1.6vw;display:flex;flex-direction:column;justify-content:space-between;height:22vh">
           <div style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);line-height:1.3">Stanford Cars Dataset</div>
           <div style="display:flex;justify-content:space-between;align-items:end;margin-top:auto">
-            <span style="font-size:14px;color:var(--text-secondary)">8,144 ảnh · 196 dòng xe</span>
+            <span style="font-size:14px;color:var(--text-secondary)">16,185 ảnh · 196 dòng xe (Krause 2013)</span>
             <span class="t-meta" style="color:var(--text-helper)">PRE-TRAIN</span>
           </div>
         </div>
         <div class="span-4 card-fill" style="padding:2.6vh 1.6vw;display:flex;flex-direction:column;justify-content:space-between;height:22vh">
           <div style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);line-height:1.3">Kaggle VN Plates</div>
           <div style="display:flex;justify-content:space-between;align-items:end;margin-top:auto">
-            <span style="font-size:14px;color:var(--text-secondary)">3,500+ ảnh biển số Việt Nam</span>
+            <span style="font-size:14px;color:var(--text-secondary)">6,176 train / 1,765 val ảnh biển số</span>
             <span class="t-meta" style="color:var(--text-helper)">YOLOv8 DETECTOR</span>
           </div>
         </div>
@@ -1453,11 +1453,11 @@
             <span class="t-meta" style="color:var(--text-helper)">LOCAL BRAND</span>
           </div>
         </div>
-        
+
         <div class="span-4 card-fill" style="padding:2.6vh 1.6vw;display:flex;flex-direction:column;justify-content:space-between;height:22vh">
-          <div style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);line-height:1.3">Thu thập bổ sung (Cào bù)</div>
+          <div style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);line-height:1.3">Mở rộng dữ liệu màu (VCoR)</div>
           <div style="display:flex;justify-content:space-between;align-items:end;margin-top:auto">
-            <span style="font-size:14px;color:var(--text-secondary)">Bổ sung ~100 ảnh cho màu hiếm</span>
+            <span style="font-size:14px;color:var(--text-secondary)">5,881 ảnh VCoR cho bản deploy 86.3%</span>
             <span class="t-meta" style="color:var(--text-helper)">BALANCING</span>
           </div>
         </div>
@@ -1471,7 +1471,7 @@
         <div class="span-4 card-accent" style="padding:2.6vh 1.6vw;display:flex;flex-direction:column;justify-content:space-between;height:22vh">
           <div style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:max(16px,1.2vw);line-height:1.3;color:var(--accent-on)">Tổng tập dữ liệu phân loại</div>
           <div style="display:flex;justify-content:space-between;align-items:end;margin-top:auto">
-            <span style="font-size:14px;color:rgba(255,255,255,.9)">1,575 ảnh làm sạch & cân bằng</span>
+            <span style="font-size:14px;color:rgba(255,255,255,.9)">Màu VCoR 5,881 ảnh · Hãng 792 ảnh</span>
             <span class="t-meta" style="color:rgba(255,255,255,.8)">DELIVERED SIZE</span>
           </div>
         </div>
@@ -1485,7 +1485,7 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§5 · Đường ống làm sạch</div>
-      <div class="r">07 / 17</div>
+      <div class="r">07 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:2vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
@@ -1521,56 +1521,56 @@
   <div class="canvas-card">
     <div class="chrome-min">
       <div class="l">§6 · Thống kê dữ liệu (EDA)</div>
-      <div class="r">08 / 17</div>
+      <div class="r">08 / 18</div>
     </div>
     <div style="flex:1;padding:0;display:flex;flex-direction:column;justify-content:space-between">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh;margin-bottom:3vh">
-        <div class="t-meta">Class Distribution after Targeted Web Crawling (Cào Bù)</div>
+        <div class="t-meta">Per-Class Support on VCoR Held-out Test Split (889 Images)</div>
         <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5vw,9vh);line-height:1;letter-spacing:-.03em">Phân tích thống kê &amp;<br/>Cân bằng tập dữ liệu</h2>
       </div>
 
       <div class="grid-12" data-anim="up" style="grid-template-columns:repeat(4,1fr);gap:1.8vh 1.2vw;margin-bottom:auto">
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--text-helper)">COLOR · BLACK</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">254 <span style="font-size:14px;color:var(--text-secondary)">ảnh</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">88 <span style="font-size:14px;color:var(--text-secondary)">ảnh test</span></div>
         </div>
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--text-helper)">COLOR · WHITE</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">260 <span style="font-size:14px;color:var(--text-secondary)">ảnh</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">87 <span style="font-size:14px;color:var(--text-secondary)">ảnh test</span></div>
         </div>
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--text-helper)">COLOR · RED</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">210 <span style="font-size:14px;color:var(--text-secondary)">ảnh</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">137 <span style="font-size:14px;color:var(--text-secondary)">ảnh test</span></div>
         </div>
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--text-helper)">COLOR · BLUE</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">205 <span style="font-size:14px;color:var(--text-secondary)">ảnh</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">159 <span style="font-size:14px;color:var(--text-secondary)">ảnh test</span></div>
         </div>
         
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--text-helper)">COLOR · SILVER</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">198 <span style="font-size:14px;color:var(--text-secondary)">ảnh</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">78 <span style="font-size:14px;color:var(--text-secondary)">ảnh · F1 yếu nhất</span></div>
         </div>
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--text-helper)">COLOR · GREY</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">195 <span style="font-size:14px;color:var(--text-secondary)">ảnh</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--text-primary)">93 <span style="font-size:14px;color:var(--text-secondary)">ảnh · F1 yếu nhất</span></div>
         </div>
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--accent)">COLOR · BROWN</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--accent)">125 <span style="font-size:14px;color:var(--text-secondary)">cào bù</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--accent)">122 <span style="font-size:14px;color:var(--text-secondary)">ảnh · F1≥0.88</span></div>
         </div>
         <div class="card-fill" style="padding:2vh 1.4vw;height:11vh;display:flex;flex-direction:column;justify-content:space-between">
           <div class="t-meta" style="color:var(--accent)">COLOR · YELLOW</div>
-          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--accent)">128 <span style="font-size:14px;color:var(--text-secondary)">cào bù</span></div>
+          <div style="font-family:var(--sans);font-weight:400;font-size:1.8vw;line-height:1;color:var(--accent)">125 <span style="font-size:14px;color:var(--text-secondary)">ảnh · F1≥0.88</span></div>
         </div>
       </div>
 
       <div class="hero-stat-bottom" style="margin-top:auto;display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--border-subtle);padding-top:2vh">
         <div style="display:flex;flex-direction:column">
-          <span class="t-meta" style="color:var(--text-helper)">Tổng số ảnh phân loại thuộc tính</span>
-          <span style="font-family:var(--sans);font-weight:200;font-size:min(7vw,11.2vh);line-height:1;letter-spacing:-.04em;color:var(--accent)">1,575 <span style="font-size:min(2.4vw,4vh);font-weight:400;color:var(--text-secondary)">ảnh sạch</span></span>
+          <span class="t-meta" style="color:var(--text-helper)">Tổng pool ảnh VCoR (8 lớp màu)</span>
+          <span style="font-family:var(--sans);font-weight:200;font-size:min(7vw,11.2vh);line-height:1;letter-spacing:-.04em;color:var(--accent)">5,881 <span style="font-size:min(2.4vw,4vh);font-weight:400;color:var(--text-secondary)">ảnh · 889 test held-out</span></span>
         </div>
-        <div class="t-helper" style="max-width:54ch;text-align:right">Việc thu thập bổ sung (cào bù) các mẫu màu hiếm (nâu, vàng) trực tuyến giúp giải quyết triệt để tình trạng lệch lớp dữ liệu (class imbalance) mà không cần dùng phương pháp sinh mẫu nhân tạo.</div>
+        <div class="t-helper" style="max-width:54ch;text-align:right">Mở rộng từ dữ liệu cào ban đầu (783 ảnh, 8 lớp) sang full VCoR 5,881 ảnh giúp giải quyết lệch lớp; Red/Blue/Yellow/Brown đạt F1≥0.88, Grey/Silver vẫn yếu nhất do dễ nhầm lẫn lẫn nhau.</div>
       </div>
     </div>
   </div>
@@ -1585,7 +1585,7 @@
            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%">
       <div class="chrome-min" style="position:absolute;top:0;left:0;right:0;color:var(--text-on-color);padding:5.6vh 5vw 0">
         <div class="l">§7 · Bộ phát hiện biển số (Detector)</div>
-        <div class="r">09 / 17</div>
+        <div class="r">09 / 18</div>
       </div>
       <div data-anim="title-block" style="position:absolute;left:5vw;top:11vh;background:var(--paper);padding:2.8vh 2.6vw;max-width:44vw">
         <div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(4.4vw,7.8vh);line-height:1;letter-spacing:-.03em;color:var(--text-primary)">YOLOv8-nano<br/><span style="font-style:italic;font-weight:300">mAP@0.5: 0.99</span></div>
@@ -1597,7 +1597,7 @@
       </div>
       <div class="image-hero-stats" style="gap:4vw">
         <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Độ chính xác</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em;color:var(--accent)">0.99 <span style="font-size:16px;font-weight:400">mAP</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">Cải thiện từ 0.979 khi train scratch</p></div>
-        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Độ trễ suy luận</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">~75 <span style="font-size:16px;font-weight:400">ms</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">Độ trễ xử lý vùng biển trên CPU</p></div>
+        <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Độ trễ suy luận</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">110 <span style="font-size:16px;font-weight:400">ms</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">Độ trễ xử lý vùng biển trên CPU</p></div>
         <div style="display:flex;flex-direction:column;gap:.6vh"><div style="height:1px;background:var(--ink)"></div><div class="t-meta">Kích thước weight</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.6vw,7.6vh);line-height:.95;letter-spacing:-.04em">6.2 <span style="font-size:16px;font-weight:400">MB</span></div><div style="height:1px;background:var(--border-subtle);margin-top:auto"></div><p class="body-sm">Dung lượng cực kỳ nhỏ gọn</p></div>
       </div>
     </div>
@@ -1714,7 +1714,7 @@
           <i data-lucide="cpu" class="lucide"></i>
           <span class="nb-corner">01</span>
           <div class="ttl">Kiến trúc Backbone</div>
-          <div class="desc">MobileNetV3-Small (màu xe, 1.5M params) và EfficientNet-B0 (hãng xe, 4.0M params).</div>
+          <div class="desc">MobileNetV3-Small (màu xe, 1.53M params) và EfficientNet-B0 (hãng xe, 4.02M params).</div>
         </div>
         <div class="sub-card" style="border-radius:0">
           <i data-lucide="lock" class="lucide"></i>
@@ -1782,7 +1782,7 @@
           <ul class="col-list" style="color:rgba(255,255,255,.9)">
             <li>Khóa cứng BatchNorm của backbone ở chế độ suy luận</li>
             <li>Đồng bộ dải đầu vào [0, 255] khớp với tiền xử lý MobileNetV3</li>
-            <li>Loss giảm ổn định; từ mốc fix BatchNorm 54.2%, tiếp tục thêm VCoR + TTA đạt 86.3%</li>
+            <li>Loss giảm ổn định; từ mốc fix BatchNorm 55.1%, tiếp tục thêm VCoR + TTA đạt 86.3%</li>
           </ul>
         </div>
       </div>
@@ -1932,18 +1932,18 @@
           <i data-lucide="timer" style="width:2vw;height:2vw"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1.2fr) 2fr auto;gap:2vw;align-items:baseline;padding:1.6vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">2 / 5 <span style="font-size:14px;color:rgba(255,255,255,.6)">xe</span></div>
-          <div class="t-body" style="color:var(--paper)"><strong>AUTHORIZED</strong> — Biển số và màu xe trùng khớp hoàn toàn với CSDL lúc vào. Mở barrier.</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">69.0<span style="font-size:14px;color:rgba(255,255,255,.6)">%</span></div>
+          <div class="t-body" style="color:var(--paper)"><strong>AUTHORIZED + tráo biển bắt được</strong> — Mở barrier khi biển/màu khớp; phát hiện tráo biển khác màu 138/200 trial @ 2.5% false-alarm (WS-2 gate 0.40).</div>
           <i data-lucide="circle-check" style="width:2vw;height:2vw;color:var(--accent-bright)"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1.2fr) 2fr auto;gap:2vw;align-items:baseline;padding:1.6vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">1 / 5 <span style="font-size:14px;color:rgba(255,255,255,.6)">xe</span></div>
-          <div class="t-body" style="color:var(--paper)"><strong>MISMATCH</strong> — Biển số khớp nhưng lệch màu xe. Vẫn cho qua + phát còi cảnh báo mềm.</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">2.5<span style="font-size:14px;color:rgba(255,255,255,.6)">%</span></div>
+          <div class="t-body" style="color:var(--paper)"><strong>MISMATCH (false-alarm)</strong> — Biển số khớp nhưng lệch màu xe; vẫn cho qua + còi cảnh báo mềm. Tỉ lệ báo nhầm trên xe hợp lệ: 5/200 trial.</div>
           <i data-lucide="triangle-alert" style="width:2vw;height:2vw;color:var(--accent)"></i>
         </div>
         <div style="display:grid;grid-template-columns:minmax(0,1.2fr) 2fr auto;gap:2vw;align-items:baseline;padding:1.6vh 0;border-bottom:1px solid rgba(255,255,255,.18)">
-          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">2 / 5 <span style="font-size:14px;color:rgba(255,255,255,.6)">xe</span></div>
-          <div class="t-body" style="color:var(--paper)"><strong>UNREGISTERED</strong> — Biển số không có trong CSDL (biển giả/chưa đăng ký). Khóa barrier cứng.</div>
+          <div style="font-family:var(--sans);font-weight:200;font-size:min(5.2vw,8.5vh);line-height:.9;letter-spacing:-.04em;color:var(--paper)">100<span style="font-size:14px;color:rgba(255,255,255,.6)">%</span></div>
+          <div class="t-body" style="color:var(--paper)"><strong>UNREGISTERED</strong> — Biển số không có trong CSDL bị khóa barrier cứng 200/200 trial; minh hoạ E2E thật: 5/5 ảnh test khoá đúng UNREGISTERED.</div>
           <i data-lucide="ban" style="width:2vw;height:2vw;color:rgba(255,255,255,.5)"></i>
         </div>
       </div>
