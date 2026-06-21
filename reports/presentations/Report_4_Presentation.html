@@ -610,8 +610,8 @@ def sort_vietnamese_plate(ocr_results):
                     </p>
                     <ul>
                         <li style="font-size: 0.85rem;"><strong>Mục tiêu:</strong> Đạt tốc độ suy luận tối đa khi triển khai trên CPU.</li>
-                        <li style="font-size: 0.85rem;"><strong>Đầu ra:</strong> 8 nhóm màu đặc trưng (Đỏ, Xanh dương, Trắng, Đen, Xám, Bạc, Vàng, Xanh lá).</li>
-                        <li style="font-size: 0.85rem;"><strong>Hiệu năng:</strong> Dung lượng mô hình chỉ vỏn vẹn ~6.5MB.</li>
+                        <li style="font-size: 0.85rem;"><strong>Đầu ra:</strong> 8 nhóm màu đặc trưng (Đỏ, Xanh dương, Trắng, Đen, Xám, Bạc, Vàng, Nâu).</li>
+                        <li style="font-size: 0.85rem;"><strong>Hiệu năng:</strong> Dung lượng mô hình chỉ vỏn vẹn 6.24MB (1.53M tham số, ~100ms/ảnh CPU).</li>
                     </ul>
                 </div>
             </div>
@@ -686,43 +686,37 @@ def sort_vietnamese_plate(ocr_results):
         <div class="slide-body">
             <div class="grid-2">
                 <div>
-                    <h3>So sánh Độ trễ (Mục tiêu vs. CPU thực tế)</h3>
+                    <h3>So sánh Độ trễ (Benchmark riêng lẻ vs. Deploy thực tế)</h3>
                     <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.85rem;">
-                        Đo từng mô-đun riêng lẻ trên CPU macOS, cộng dồn tuần tự (Cold start vài giây ở lệnh gọi đầu do nạp PaddleOCR; brand chỉ chạy diagnostic, không nằm trên đường quyết định chính). Dòng tổng dưới là số <strong>deploy thực tế</strong> sau approach-lock, không phải tổng cộng dồn của 4 dòng module:
+                        Đo từng mô-đun riêng lẻ trên CPU macOS theo benchmark gốc (A/B/C — không phải tổng cộng dồn; brand chỉ chạy diagnostic, không nằm trên đường quyết định chính). Dòng tổng dưới là số <strong>deploy thực tế</strong> đo end-to-end sau WS-1 (approach-lock / API), không phải tổng các dòng module phía trên:
                     </p>
                     <table style="font-size: 0.8rem;">
                         <thead>
                             <tr>
                                 <th>Mô-đun xử lý</th>
-                                <th>Mục tiêu (ms)</th>
-                                <th>CPU Thực tế (ms)</th>
+                                <th>Latency CPU (benchmark riêng lẻ)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Định vị biển số (YOLOv8-n)</td>
-                                <td>45 ms</td>
-                                <td>~75 ms</td>
+                                <td>Định vị biển số (YOLOv8-n, Benchmark B)</td>
+                                <td>110 ms/ảnh</td>
                             </tr>
                             <tr>
-                                <td>Nhận diện ký tự (PaddleOCR)</td>
-                                <td>220 ms</td>
-                                <td>~1,250 ms</td>
+                                <td>Nhận diện ký tự (PaddleOCR, Benchmark C)</td>
+                                <td>423 ms/biển</td>
                             </tr>
                             <tr>
                                 <td>Phân loại hãng (EfficientNet-B0, diagnostic)</td>
-                                <td>95 ms</td>
-                                <td>~180 ms</td>
+                                <td>không đo riêng — không trên đường quyết định</td>
                             </tr>
                             <tr>
                                 <td>Phân loại màu (PyTorch MobileNetV3-S)</td>
-                                <td>38 ms</td>
-                                <td>~95 ms</td>
+                                <td>~100 ms</td>
                             </tr>
                             <tr style="font-weight: bold; background: #eaeaea;">
-                                <td>Độ trễ deploy thực tế (steady-state)</td>
-                                <td>398 ms</td>
-                                <td>&lt;1s: 0.73s approach-lock / 0.96s API</td>
+                                <td>Độ trễ deploy thực tế (steady-state, &lt;1s)</td>
+                                <td>0.73s approach-lock / 0.96s API (cold-start lần đầu ~6.1s)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -814,12 +808,12 @@ def sort_vietnamese_plate(ocr_results):
                     <tr>
                         <td><strong>CLO4 - Mạng CNN nhận diện ảnh</strong></td>
                         <td>Sử dụng tích chập (YOLOv8-nano) định vị biển số và trích xuất đặc trưng hình ảnh bằng EfficientNet.</td>
-                        <td><span class="badge success">Đã Đạt</span> Độ chính xác >91%</td>
+                        <td><span class="badge success">Đã Đạt</span> Định vị biển mAP50 99.0%</td>
                     </tr>
                     <tr>
                         <td><strong>CLO6 - Xây dựng Pipeline hoàn chỉnh</strong></td>
                         <td>Tích hợp liền mạch từ khâu nhận ảnh, chạy mô hình song song, truy vấn file CSV, đến giao diện Streamlit.</td>
-                        <td><span class="badge success">Đã Đạt</span> Tốc độ E2E &lt;400ms</td>
+                        <td><span class="badge success">Đã Đạt</span> Tốc độ E2E &lt;1s (steady-state)</td>
                     </tr>
                     <tr>
                         <td><strong>CLO7 - Ứng dụng công cụ AI tiên tiến</strong></td>
@@ -911,13 +905,13 @@ def sort_vietnamese_plate(ocr_results):
                         <tr><td>EasyOCR+deskew</td><td>6%</td></tr>
                         <tr><td>EasyOCR</td><td style="color:var(--accent-red)">0%</td></tr></table>
                     <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Deskew vô dụng; PP-OCR áp đảo.</p></div>
-                <div class="card"><span class="badge success">C · CNN màu</span>
+                <div class="card"><span class="badge success">C · CNN màu (chọn kiến trúc, head-only)</span>
                     <table style="font-size:0.78rem; margin-top:10px;">
                         <tr><th>Backbone</th><th>Acc</th><th>MB</th></tr>
                         <tr><td>EffNetB0</td><td>0.62</td><td>16</td></tr>
                         <tr><td>MobileNetV3</td><td>0.60</td><td><strong>6</strong></td></tr>
                         <tr><td>ResNet50</td><td>0.58</td><td>94</td></tr></table>
-                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Chọn MobileNetV3 + adapt CCTV.</p></div>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Chọn MobileNetV3 (nhẹ nhất); số trên là benchmark <strong>frozen-head ban đầu</strong> — sau full fine-tune + VCoR + TTA, model đạt <strong>86.3%</strong> (xem Slide 10).</p></div>
             </div>
             <img src="assets/chart_ocr_benchmark.png" alt="OCR engine benchmark evidence chart" style="max-width:100%; max-height:380px; border-radius:12px; display:block; margin:12px auto;" />
             <p style="font-size:0.8rem; color:var(--text-muted); font-style:italic; margin-top:16px;">

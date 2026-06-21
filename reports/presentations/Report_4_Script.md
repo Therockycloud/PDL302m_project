@@ -156,23 +156,23 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 ---
 
 ## Slide 10: Kết quả thực nghiệm (Performance Metrics & Latency)
-*   **Visual:** Bảng phân rã thời gian suy luận theo module (YOLOv8 ~75ms, PaddleOCR ~1,250ms cold-path, EfficientNet-B0 diagnostic ~180ms, MobileNetV3-S PyTorch ~95ms — đo riêng lẻ, không phải số deploy cộng dồn) và dòng tổng độ trễ deploy thực tế <1 giây, cùng các chỉ số mAP, accuracy.
+*   **Visual:** Bảng phân rã thời gian suy luận theo module (YOLOv8 110ms/ảnh — Benchmark B, PaddleOCR 423ms/biển — Benchmark C, MobileNetV3-S PyTorch ~100ms; brand không đo riêng vì chỉ diagnostic — đo riêng lẻ, không phải số deploy cộng dồn) và dòng tổng độ trễ deploy thực tế <1 giây, cùng các chỉ số mAP, accuracy.
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Về mặt hiệu năng, chúng em đo từng mô-đun riêng lẻ trên CPU macOS, sau đó tách bạch rõ với số **deploy thực tế**:
+> "Về mặt hiệu năng, chúng em đo từng mô-đun riêng lẻ trên CPU macOS theo benchmark gốc, sau đó tách bạch rõ với số **deploy thực tế**:
 >
-> *   Định vị biển số (YOLOv8-n) mất khoảng 75ms.
-> *   Nhận diện ký tự bằng **PaddleOCR** là mô-đun nặng nhất khi đo cộng dồn tuần tự (có cold-start vài giây ở lệnh gọi đầu do nạp model); EasyOCR chỉ chạy khi cần fallback.
-> *   Phân loại màu (MobileNetV3-Small, PyTorch) mất khoảng 95ms; phân loại hãng (EfficientNet-B0, diagnostic) khoảng 180ms — không nằm trên đường quyết định chính.
+> *   Định vị biển số (YOLOv8-n) mất khoảng 110ms/ảnh (Benchmark B).
+> *   Nhận diện ký tự bằng **PaddleOCR** mất khoảng 423ms/biển (Benchmark C) — là mô-đun nặng nhất, có cold-start vài giây ở lệnh gọi đầu do nạp model; EasyOCR chỉ chạy khi cần fallback.
+> *   Phân loại màu (MobileNetV3-Small, PyTorch) mất khoảng 100ms; phân loại hãng (EfficientNet-B0, diagnostic) không đo riêng vì không nằm trên đường quyết định chính.
 > *   Độ trễ **deploy thực tế (steady-state)** vẫn đảm bảo dưới 1 giây mỗi xe: khoảng **0.73 giây ở chế độ approach-lock** và **0.96 giây qua API**.
 > *   Về độ chính xác: phát hiện biển số đạt **mAP50 99%** (0.9896); OCR đạt **81% exact-match** trên Benchmark C (vượt xa EasyOCR 0%); cơ chế chống tráo biển (gate 0.40, sau khi siết bởi WS-2) phát hiện **69%** ở tỷ lệ báo động giả chỉ **2.5%**, và biển chưa đăng ký bị chặn **100%**."
 
 ### 🇬🇧 English Script
-> "For performance, we measured each module individually on a macOS CPU, then clearly separated that from the **actual deployed latency**:
+> "For performance, we measured each module individually on a macOS CPU per the original benchmarks, then clearly separated that from the **actual deployed latency**:
 >
-> *   License plate localization (YOLOv8-n) takes about 75ms.
-> *   Character recognition via **PaddleOCR** is the heaviest module when timed sequentially (with a multi-second cold-start on the first call while the model loads); EasyOCR only runs as a fallback.
-> *   Color classification (MobileNetV3-Small, PyTorch) takes about 95ms; brand classification (EfficientNet-B0, diagnostic) takes about 180ms — it is not on the primary decision path.
+> *   License plate localization (YOLOv8-n) takes about 110ms/image (Benchmark B).
+> *   Character recognition via **PaddleOCR** takes about 423ms/plate (Benchmark C) — it is the heaviest module, with a multi-second cold-start on the first call while the model loads; EasyOCR only runs as a fallback.
+> *   Color classification (MobileNetV3-Small, PyTorch) takes about 100ms; brand classification (EfficientNet-B0, diagnostic) was not benchmarked individually since it is not on the primary decision path.
 > *   The **actual deployed steady-state latency** still stays under 1 second per vehicle: about **0.73s in approach-lock mode** and **0.96s via the API**.
 > *   On accuracy: plate detection reaches **mAP50 99%** (0.9896); OCR reaches **81% exact-match** on Benchmark C (versus EasyOCR's 0%); the anti-plate-swap gate (threshold 0.40, tightened after WS-2) detects **69%** of swaps at a low **2.5%** false-alarm rate, while unregistered plates are blocked **100%** of the time."
 
@@ -227,6 +227,6 @@ Tài liệu này chứa nội dung thuyết trình chi tiết cho từng slide c
 > Sau đây, nhóm em rất mong nhận được các câu hỏi phản biện và đóng góp ý kiến từ thầy và các bạn để cải thiện hệ thống hoàn thiện hơn nữa. Nhóm em xin chân thành cảm ơn!"
 
 ### 🇬🇧 English Script
-> "This concludes our presentation. We would like to express our deepest gratitude to our instructor, Mr. Tran Duc Anh, for his guidance throughout this project.
+> "This concludes our presentation. We would like to express our deepest gratitude to our instructor, Mr. Luong Trung Kien, for his guidance throughout this project.
 >
 > We now welcome any questions, feedback, and counter-arguments from the instructor and the audience to help us refine this security system. Thank you very much!"
