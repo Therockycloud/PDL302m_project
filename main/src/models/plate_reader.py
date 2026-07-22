@@ -17,7 +17,8 @@ class PlateReader:
     Args:
         plate_detector: Object exposing ``detect(crop) -> list[dict]`` where
             each dict has ``bbox``, ``conf``, ``crop`` keys.
-        ocr_reader: Object exposing ``read_plate(img) -> str``.
+        ocr_reader: Object exposing ``read_plate(img)`` and returning either
+            legacy text or a mapping with ``text`` and ``ocr_conf``.
     """
 
     def __init__(self, plate_detector, ocr_reader) -> None:
@@ -31,8 +32,24 @@ class PlateReader:
             # reads body badges (e.g. the "VF3" trunk emblem) as a plate and
             # produces false UNREGISTERED verdicts. Report no plate; the
             # DecisionEngine then logs NO_PLATE (action LOG) instead of alerting.
-            return {"text": "", "conf": 0.0, "plate_bbox": None}
+            return {
+                "text": "",
+                "ocr_conf": 0.0,
+                "plate_det_conf": 0.0,
+                "plate_bbox": None,
+            }
 
         best = max(dets, key=lambda d: d["conf"])
-        text = self.ocr_reader.read_plate(best["crop"])
-        return {"text": text, "conf": best["conf"], "plate_bbox": best["bbox"]}
+        reading = self.ocr_reader.read_plate(best["crop"])
+        if isinstance(reading, dict):
+            text = str(reading.get("text", ""))
+            ocr_conf = float(reading.get("ocr_conf", 0.0))
+        else:
+            text = str(reading)
+            ocr_conf = 0.0
+        return {
+            "text": text,
+            "ocr_conf": ocr_conf,
+            "plate_det_conf": float(best["conf"]),
+            "plate_bbox": best["bbox"],
+        }

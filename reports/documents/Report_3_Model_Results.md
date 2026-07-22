@@ -21,8 +21,8 @@ Trong quá trình phát triển mô hình, nhóm đã dựa trên các cơ sở 
 *   **Đầu ra**: Tọa độ bounding box $[x_{min}, y_{min}, x_{max}, y_{max}]$ bao quanh biển số xe.
 
 ### 3.2. Bộ nhận diện ký tự biển số (OCR Engine: PaddleOCR)
-*   **Lựa chọn engine (Benchmark C)**: Ban đầu nhóm dùng **EasyOCR** (ResNet + LSTM + CTC). Tuy nhiên benchmark trên 16 biển CCTV thật cho thấy EasyOCR đọc đúng **0%** chuỗi (exact-match), trong khi **PaddleOCR (PP-OCRv4, CRNN+CTC)** đạt **81%** (CER 0.28 → 0.03). Vì vậy **PaddleOCR là engine chính**, EasyOCR giữ làm fallback. Chi tiết: `docs/benchmarks/ocr_benchmark.md`.
-*   **Cấu hình**: Chạy ngoại tuyến hoàn toàn; engine cấu hình ở `main/configs/config.yaml` (`ocr.engine: ppocr`, fallback `easyocr`).
+*   **Lựa chọn engine (Benchmark C)**: Ban đầu nhóm dùng **EasyOCR** (ResNet + LSTM + CTC). Tuy nhiên benchmark trên 16 biển CCTV thật cho thấy EasyOCR đọc đúng **0%** chuỗi (exact-match), trong khi **PaddleOCR (CRNN+CTC)** đạt **81%** (CER 0.28 → 0.03). Vì vậy **PaddleOCR là engine OCR duy nhất ở runtime**; nếu PaddlePaddle không khả dụng, hệ thống báo lỗi cứng thay vì âm thầm chuyển sang EasyOCR. EasyOCR chỉ còn dùng cho benchmark/đánh giá (train/eval-only). Chi tiết: `docs/benchmarks/ocr_benchmark.md`.
+*   **Cấu hình**: Chạy ngoại tuyến hoàn toàn; engine cấu hình ở `main/configs/config.yaml` (`ocr.engine: ppocr` — runtime PaddleOCR-only, không còn fallback engine).
 
 ### 3.3. Bộ phân loại hãng xe (Brand Classifier)
 *   **Backbone**: **EfficientNet-B0** (đã đóng băng các lớp trích xuất đặc trưng tiền huấn luyện trên ImageNet).
@@ -45,7 +45,7 @@ Trong quá trình phát triển mô hình, nhóm đã dựa trên các cơ sở 
 ## 4. Quá trình huấn luyện và Cấu hình siêu tham số (Training Configuration)
 Quá trình huấn luyện được thực hiện cục bộ trên hệ điều hành macOS sử dụng CPU thông qua script [train.py](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/train.py).
 
-### Chi tiết tham số cấu hình:
+### 4.0. Cấu hình cơ sở
 *   **Hai pha huấn luyện**: (1) **head đông cứng** — backbone freeze, chỉ train tầng Dense, Adam lr $=10^{-3}$; (2) **fine-tuning** — mở băng nửa trên backbone (BatchNorm vẫn freeze), Adam lr $=10^{-4}$.
 *   **Hàm mất mát**: Categorical Crossentropy (phân loại đa lớp).
 *   **Batch Size**: 32 mẫu/batch.
@@ -53,6 +53,30 @@ Quá trình huấn luyện được thực hiện cục bộ trên hệ điều 
 *   **Cơ chế giám sát nâng cao**:
     *   `EarlyStopping`: Tự động dừng huấn luyện nếu giá trị `val_loss` không cải thiện liên tiếp sau 5 epochs, đồng thời khôi phục trọng số tốt nhất trước đó.
     *   `ModelCheckpoint`: Tự động lưu mô hình có giá trị `val_loss` thấp nhất dưới dạng file `.keras`.
+
+### 4.1. Tinh chỉnh siêu tham số — quá trình và kết quả (Hyperparameter Tuning)
+
+Nhóm **không** dùng công cụ tự động hoá dạng Keras Tuner/Optuna cho các mô hình phân loại (lý do nêu ở cuối mục này), mà thực hiện **quét thủ công có hệ thống** trên từng trục siêu tham số, có đo lại kết quả sau mỗi lần đổi cấu hình. Bốn trục đã quét:
+
+**(a) Learning rate (pha head đông cứng):** lần chạy đầu dùng lr $=10^{-4}$ cho pha head — quá thấp khiến `EarlyStopping` dừng sớm trước khi mô hình hội tụ (xem §5.0). Sau khi quan sát hiện tượng này, nhóm nâng lr pha head lên $10^{-3}$; lr pha fine-tune giữ nguyên ở $10^{-4}$ (mở băng một phần backbone nên cần bước học nhỏ hơn để không phá vỡ trọng số tiền huấn luyện). Cấu hình $10^{-3}$/$10^{-4}$ được chốt làm cấu hình cơ sở (§4.0).
+
+**(b) Protocol freeze/unfreeze hai pha:** đã mô tả ở §4.0 — head đông cứng trước, sau đó mở băng nửa trên backbone (giữ BatchNorm ở chế độ inference, xem lỗi kỹ thuật #2 ở §5.0). Đây là trục có tác động lớn nhất đến model màu (xem bảng bên dưới).
+
+**(c) Các đòn bẩy của model màu (data, fine-tune scope, class-weight, label smoothing, TTA)** — quét tuần tự, mỗi bước đo lại trên tập test giữ-riêng (số liệu đối chiếu với `docs/benchmarks/color_finetune_report.md` và bảng "Hành trình cải tiến" ở §5.1):
+
+| Cấu hình thử | Test accuracy | Macro-F1 |
+| :--- | :---: | :---: |
+| Head đông cứng (frozen, data cũ, 783 ảnh) | 48.3% | 0.48 |
+| Fine-tuning nửa backbone (data cũ, 783 ảnh) | 55.1% | 0.545 |
+| Full fine-tune + bổ sung dữ liệu VCoR 600 ảnh/lớp (chưa TTA) | 77.6% | 0.776 |
+| Full fine-tune + VCoR full (5.881 ảnh) + class-weight + label-smoothing 0.1 (plain) | 85.3% | 0.829 |
+| **+ Test-time augmentation (TTA, hflip) — DEPLOYED** | **86.3%** | **0.841** |
+
+Các dòng là các bước quét **tuần tự** (mỗi bước thêm một nhóm thay đổi so với bước trước): mở rộng scope fine-tune (frozen → full backbone) cùng với đổi dữ liệu sang VCoR đóng góp mức tăng lớn nhất (48.3% → 77.6%); bước tiếp theo gộp ba thay đổi — mở rộng VCoR từ 600 ảnh/lớp lên full 5.881 ảnh + class-weight + label-smoothing — cộng thêm ~7,7 điểm (77.6% → 85.3%), do đo chung trong một bước nên không tách được đóng góp riêng của từng yếu tố; TTA cộng thêm ~1 điểm cuối (85.3% → 86.3%).
+
+**(d) Ngưỡng quyết định (decision threshold) ở tầng cross-check màu:** tách biệt với hyperparameter huấn luyện mô hình, nhóm cũng quét ngưỡng tin cậy `color_warn_conf` dùng để gate cảnh báo tráo biển — quét từ 0,00 đến 0,60 và chọn **0,40** làm điểm vận hành (đánh đổi false-alarm ↔ detection). Bảng quét đầy đủ và lý do chọn 0,40 đã trình bày ở Report 4 §4.3(b) (`docs/benchmarks/security_eval.md`), không lặp lại số liệu ở đây.
+
+**Vì sao không dùng Keras Tuner/Optuna:** hai lý do kỹ thuật/thực tế buộc nhóm chọn quét thủ công có hệ thống thay vì search tự động. Thứ nhất, môi trường training TF/Keras phải **cô lập hoàn toàn** khỏi runtime PaddleOCR (xung đột thư viện đã ghi ở §3.2/§5.0) — một vòng lặp Tuner/Optuna gọi lại pipeline training nhiều lần trong cùng process sẽ làm tăng rủi ro xung đột và độ phức tạp vận hành trên máy cục bộ. Thứ hai, ngân sách compute (CPU cục bộ cho phần lớn huấn luyện + Colab miễn phí cho phần fine-tune màu) không đủ để chạy hàng chục đến hàng trăm trial tự động như search-based tuning thường cần. Bù lại, các trục nhạy cảm nhất với kết quả cuối — learning rate, mức độ unfreeze backbone, chất lượng/khối lượng dữ liệu, class-weight/label-smoothing/TTA, và ngưỡng quyết định ở tầng cross-check — đều đã được quét thủ công **có đo lại số liệu cho từng bước**, nên dù không dùng công cụ tự động, quá trình vẫn có tính hệ thống và có thể tái lập.
 
 ---
 
@@ -124,16 +148,37 @@ Ma trận nhầm lẫn (hàng = nhãn thật, cột = nhãn dự đoán, dự đ
 | + Fine-tuning | 35.3% | 0.34 |
 
 Dù đã sửa lỗi + fine-tune, phân loại hãng vẫn yếu (~35%) — bài toán 8 hãng nhìn từ phía sau với ~70 ảnh/lớp là khó. Kết quả này **củng cố quyết định bỏ phân loại hãng** khỏi cơ chế quyết định.
+
+#### Hiệu năng theo lớp (Brand Classifier — model fine-tuned, tập test giữ-riêng 119 ảnh)
+
+Nguồn: `main/data/models/brand_classifier_test_report.json`. File này lưu accuracy tổng, macro-F1 và precision/recall/F1/support **theo từng lớp**; không lưu ma trận nhầm lẫn dạng đếm ô (cell-count) như ở mục màu §5.1, nên bảng dưới trình bày theo đúng cấu trúc có sẵn (hàng = nhãn thật, không có cột dự đoán chi tiết theo cặp).
+
+| Lớp | Precision | Recall | F1 | Support |
+| :--- | :---: | :---: | :---: | :---: |
+| Ford | 0.600 | 0.200 | 0.300 | 15 |
+| Honda | 0.238 | 0.333 | 0.278 | 15 |
+| Hyundai | 0.538 | 0.467 | 0.500 | 15 |
+| Kia | 0.333 | 0.133 | 0.190 | 15 |
+| Mazda | 0.250 | 0.133 | 0.174 | 15 |
+| Mitsubishi | 0.286 | 0.400 | 0.333 | 15 |
+| Toyota | 0.500 | 0.429 | 0.462 | 14 |
+| VinFast | 0.333 | 0.733 | 0.458 | 15 |
+| **Macro avg** | **0.385** | **0.354** | **0.337** | **119** |
+
+*Nhận xét (suy ra từ precision/recall theo lớp, không phải từ ma trận đếm ô — JSON gốc không lưu cặp nhầm cụ thể): **Kia và Mazda là hai lớp yếu nhất** (F1 chỉ 0.19 và 0.17, recall dưới 0.15 — phần lớn ảnh của hai hãng này bị model gán nhầm sang hãng khác). **VinFast có recall rất cao (0.733) nhưng precision thấp (0.333)** — model có xu hướng "đổ dồn" nhiều dự đoán về lớp VinFast, kéo theo nhiều ảnh của các hãng khác (đặc biệt Honda, Mazda — cũng có precision thấp) bị phân loại nhầm thành VinFast. Honda cùng cảnh: precision 0.238 rất thấp dù recall 0.333 tạm ổn, cho thấy nhiều ảnh của các hãng khác lại bị đoán thành Honda. Nhìn tổng thể, độ lệch lớn và không nhất quán giữa precision/recall của từng lớp (không có hãng nào đạt cả hai chỉ số cao) củng cố thêm cho quyết định đã nêu ở §5.2: bài toán phân loại 8 hãng xe chỉ từ ảnh đuôi xe với ~70 ảnh/lớp là quá khó để dùng làm căn cứ quyết định, và nhóm đã đúng khi loại brand khỏi cơ chế quyết định (giữ lại thuần thử nghiệm/chẩn đoán).*
+
 *   **Biểu đồ huấn luyện**: [brand_classifier_training_curves.png](file:///Users/konalyn/Documents/FPT%20Materials/DPL302m/PDL302m_project/main/data/models/brand_classifier_training_curves.png)
 
 ### 5.3. Bộ phát hiện biển số (Plate Detector — YOLOv8-nano, Benchmark B)
 
 Tập validation: **1.765 ảnh** (HuggingFace `keremberke/license-plate-object-detection`, một lớp `license_plate`, có chứa biển số xe Việt Nam). Hai cấu hình cùng huấn luyện 80 epoch trên Apple M1 Max (MPS), imgsz 640, batch 16; latency đo trên CPU.
 
-| Mô hình | Khởi tạo | mAP50 | mAP50-95 | Latency (ms/ảnh, CPU) | Kích thước (MB) |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **plate_finetune** | transfer từ COCO `yolov8n.pt` | **0.9896** | **0.7040** | 110.3 | 6.24 |
-| plate_scratch | random init (`yolov8n.yaml`) | 0.9790 | 0.6972 | 110.4 | 6.24 |
+| Mô hình | Khởi tạo | Precision | Recall | mAP50 | mAP50-95 | Latency (ms/ảnh, CPU) | Kích thước (MB) |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **plate_finetune** | transfer từ COCO `yolov8n.pt` | **0.9823** | **0.9674** | **0.9896** | **0.7040** | 110.3 | 6.24 |
+| plate_scratch | random init (`yolov8n.yaml`) | 0.9816 | 0.9560 | 0.9790 | 0.6972 | 110.4 | 6.24 |
+
+*Precision/Recall lấy từ dòng checkpoint tốt nhất trong `results.csv` của mỗi run — tức dòng có `metrics/mAP50(B)` khớp giá trị mAP50 báo cáo ở trên: **epoch 60/80** cho `plate_finetune` (`main/data/models/plate_runs/plate_finetune/results.csv`), **epoch 70/80** cho `plate_scratch` (`main/data/models/plate_runs/plate_scratch/results.csv`).*
 
 *Kết luận: `plate_finetune` (transfer learning từ COCO) thắng `plate_scratch` ở **mọi** chỉ số chính xác (mAP50 +1.06 điểm, mAP50-95 +0.68 điểm) với cùng latency và kích thước, đồng thời hội tụ sớm hơn nhiều (mAP50 ≈ 0.97 đã đạt từ epoch 9). Mô hình `plate_finetune` được chọn và xuất sang `plate_yolov8n.onnx` làm bộ phát hiện biển số ở giai đoạn 2 của pipeline.*
 
@@ -150,7 +195,7 @@ Tập đánh giá: **16 ảnh crop biển số CCTV thật** (gán nhãn tay, g�
 | **PaddleOCR (ppocr)** | **0,812** | **0,031** | 423,2 |
 | PaddleOCR + enhance | 0,438 | 0,092 | 423,3 |
 
-*Kết luận: **PaddleOCR thắng tuyệt đối** — exact-match từ 0% (EasyOCR) lên **81,2%**, CER giảm từ 0,278 xuống **0,031**. Tiền xử lý (deskew + CLAHE + upscale) **không giúp ích** — nhúc nhích EasyOCR (0 → 6%) nhưng lại **gây hại** PaddleOCR (0,81 → 0,44), nên bị loại. PaddleOCR chậm hơn EasyOCR ~13× (423 ms vs 32 ms/biển) nhưng vẫn chấp nhận được vì OCR chỉ chạy **một lần/xe** qua cơ chế parking-trigger, không chạy theo từng khung hình. **Lựa chọn: PaddleOCR** (`ocr.engine: ppocr`) làm engine chính; EasyOCR giữ làm fallback khi PaddlePaddle không khả dụng.*
+*Kết luận: **PaddleOCR thắng tuyệt đối** — exact-match từ 0% (EasyOCR) lên **81,2%**, CER giảm từ 0,278 xuống **0,031**. Tiền xử lý (deskew + CLAHE + upscale) **không giúp ích** — nhúc nhích EasyOCR (0 → 6%) nhưng lại **gây hại** PaddleOCR (0,81 → 0,44), nên bị loại. PaddleOCR chậm hơn EasyOCR ~13× (423 ms vs 32 ms/biển) nhưng vẫn chấp nhận được vì OCR chỉ chạy **một lần/xe** qua cơ chế parking-trigger, không chạy theo từng khung hình. **Lựa chọn: PaddleOCR** (`ocr.engine: ppocr`) là engine OCR duy nhất ở runtime; nếu PaddlePaddle không khả dụng, hệ thống báo lỗi cứng thay vì âm thầm chuyển sang EasyOCR. EasyOCR chỉ còn dùng cho benchmark/đánh giá (train/eval-only).*
 
 Chi tiết đầy đủ: `docs/benchmarks/ocr_benchmark.md`.
 

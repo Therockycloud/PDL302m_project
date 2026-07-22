@@ -1,4 +1,4 @@
-# 🚗 Smart Parking Security System via Cross-Verification
+# Smart Parking Security System via Cross-Verification
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg?logo=docker)](https://www.docker.com/)
@@ -6,32 +6,48 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31.0-FF4B4B.svg?style=flat&logo=Streamlit)](https://streamlit.io/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://github.com/ultralytics/ultralytics)
 
-Hệ thống giám sát an ninh bãi đỗ xe thông minh ứng dụng Học Sâu để phòng chống tráo đổi biển số. Pipeline 2 tầng **YOLOv8n (xe → biển số) → PaddleOCR** (engine OCR chính; EasyOCR chỉ là fallback khi PaddlePaddle không khả dụng), kèm phân loại **màu xe (MobileNetV3, PyTorch, 86% TTA)** làm lớp xác thực phụ — **cảnh báo mềm** (gating đã siết, WS-2), và một **cơ chế gate "xe đã đỗ"** (approach-lock) chỉ chạy suy luận nặng một lần mỗi xe, đọc biển ngay trong pha xe lùi vào để đạt độ trễ <1 giây (xem §"Tối ưu hóa suy luận").
+Hệ thống giám sát an ninh bãi đỗ xe thông minh (DPL302m) dùng học sâu để chống tráo biển số. Pipeline runtime: **YOLOv8n (xe → biển) → PaddleOCR → màu xe (MobileNetV3, PyTorch)** với quyết định **plate-primary** — biển khớp ⇒ `AUTHORIZED`; màu lệch chỉ **cảnh báo mềm**; biển không có trong CSDL ⇒ `UNREGISTERED`. Hãng xe chỉ diagnostic, không vào quyết định.
 
-> **Quyết định theo biển số (plate-primary):** biển số là khoá chính — biển khớp ⇒ AUTHORIZED; màu lệch chỉ là **cảnh báo mềm** (không từ chối cứng); biển không có trong CSDL ⇒ UNREGISTERED; **hãng xe là diagnostic phụ, không vào quyết định**. API `/verify` và Dashboard Streamlit nay **dùng chung một pipeline hợp nhất** (`main/src/engine/pipeline_factory.py`: `build_pipeline` + `infer_single_image`) — không còn lệch logic/engine giữa hai đường vận hành. Xem quá trình & lý do thay đổi so với thiết kế ban đầu trong các slide (`presentations/`), số liệu benchmark trong `docs/benchmarks/`, và đối chiếu công nghệ thế giới trong [`docs/related_work.md`](docs/related_work.md).
+API `/verify` và Dashboard Streamlit dùng chung pipeline hợp nhất (`main/src/engine/pipeline_factory.py`). Gate “xe đã đỗ” (approach-lock) chỉ chạy suy luận nặng một lần mỗi xe để đạt độ trễ steady-state &lt; 1 giây.
 
----
-
-## 📚 Tài liệu các giai đoạn dự án (Project Reports)
-
-Toàn bộ báo cáo kỹ thuật và hướng dẫn kiểm nghiệm chính thức được lưu trữ cấu trúc dưới thư mục `docs/`:
-
-*   **[Report 1: Đề xuất dự án & Kiến trúc (Proposal)](docs/Report_1_Proposal.md)** - Mô tả vấn đề an ninh, thiết kế kiến trúc hệ thống và phân công công việc.
-*   **[Report 2: Quy trình xử lý dữ liệu (Data Tasks)](docs/Report_2_Data_Tasks.md)** - Chi tiết thu thập dữ liệu Stanford Cars, Wikimedia VinFast crawler, EDA và tiền xử lý.
-*   **[Report 3: Kết quả thực nghiệm mô hình (Model & Results)](docs/Report_3_Model_Results.md)** - Đặc tả thiết kế mạng EfficientNet-B0, MobileNetV3-Small, lựa chọn OCR (PaddleOCR thắng EasyOCR ở Benchmark C) và đồ thị huấn luyện.
-*   **[Report 4: Tích hợp hệ thống & Đánh giá (Final Defense)](docs/Report_4_Final_Report.md)** - Kết quả đo lường độ trễ đầu cuối trên CPU, các kịch bản kiểm thử an ninh bãi xe.
-*   **[Đặc tả Mô hình & Cấu hình (Model Specs)](docs/model_specifications.md)** - File cấu hình chi tiết, dải pixel đầu vào và sơ đồ thư mục CSDL.
-*   **[Hướng dẫn báo cáo (Report Guidelines)](docs/report_guidelines.md)** - Các yêu cầu, khuôn mẫu slide presentations theo tiêu chuẩn của môn học.
+> **OCR runtime:** chỉ **PaddleOCR** (`ocr.engine: ppocr`). Thí nghiệm CTC/ONNX nhẹ **chưa đạt** ngưỡng deploy — xem mục dưới. Chi tiết pivot & benchmark: [`docs/related_work.md`](docs/related_work.md), [`docs/benchmarks/`](docs/benchmarks/).
 
 ---
 
-## 🏗️ Kiến trúc hệ thống (System Architecture)
+## Tài liệu dự án
 
-Hệ thống được thiết kế theo mô hình Microservices phân tách độc lập giữa Backend (FastAPI suy luận) và Frontend (Streamlit Dashboard):
+| Tài liệu | Mô tả |
+|----------|--------|
+| [Report 1 — Proposal](reports/documents/Report_1_Proposal.md) | Vấn đề an ninh, kiến trúc, phân công |
+| [Report 2 — Data Tasks](reports/documents/Report_2_Data_Tasks.md) | Thu thập, EDA, tiền xử lý |
+| [Report 3 — Model & Results](reports/documents/Report_3_Model_Results.md) | YOLO, PaddleOCR, màu xe, benchmark |
+| [Report 4 — Final Defense](reports/documents/Report_4_Final_Report.md) | Tích hợp E2E, latency, kịch bản an ninh ([DOCX](reports/documents/Report_4_Final_Report.docx)) |
+| [Bảng đóng góp](reports/documents/Bang_Dong_Gop_Du_An.md) | Phân công & tỷ lệ đóng góp thành viên ([DOCX](reports/documents/Bang_Dong_Gop_Du_An.docx)) |
+| [Model specs](docs/model_specifications.md) | Cấu hình, input, layout CSDL |
+| [Course DoD](docs/course_definition_of_done.md) | Checklist đóng bài + lệnh tái hiện |
+| [Slides](reports/presentations/) | HTML presentations (Swiss R4, professional deck, …) |
+| [Release artifacts](reports/release/) | PDF/DOCX nộp bài |
+
+---
+
+## Đóng góp thành viên (Nhóm 7)
+
+| Họ và tên | MSSV | Vai trò chính | Tỷ lệ |
+|-----------|------|---------------|-------|
+| Đỗ Manh Chung | HE201350 | Đề xuất / Literature / Thách thức | ~22% |
+| Đồng Minh Đức | HE201707 | Thiết kế hệ thống / E2E eval | ~22% |
+| Phạm Hoàng Hải | HE201680 | Tích hợp / An ninh / UI / Kết luận | ~34% |
+| Trần Lê Sơn | HE200407 | Hiệu năng CPU / Offline / KPI | ~22% |
+
+Chi tiết phân công theo đầu mục Report 4: [`reports/documents/Bang_Dong_Gop_Du_An.md`](reports/documents/Bang_Dong_Gop_Du_An.md).
+
+---
+
+## Kiến trúc hệ thống
 
 ```
                   ┌──────────────────────┐
-                  │   Camera giám sát    │ (Gửi ảnh xe máy/ô tô lúc ra)
+                  │   Camera giám sát    │
                   └──────────┬───────────┘
                              │ POST /verify
                              ▼
@@ -39,140 +55,123 @@ Hệ thống được thiết kế theo mô hình Microservices phân tách đ�
                   │    FastAPI Server    │
                   └────┬────────────┬────┘
        ┌────────────────┘            └────────────────┐
-       ▼ (Khoá chính — biển số)            ▼ (Tín hiệu phụ — màu xe)
+       ▼ (Khoá chính — biển số)            ▼ (Tín hiệu phụ — màu)
  ┌───────────┐                                  ┌───────────┐
- │  YOLOv8   │ (Cắt vùng biển số)               │MobileNetV3│ (Phân loại màu)
+ │  YOLOv8   │                                  │MobileNetV3│
  └─────┬─────┘                                  └─────┬─────┘
        ▼                                              │
  ┌───────────┐                                        │
- │ PaddleOCR │ (Đọc ký tự biển số)                    │
- └─────┬─────┘                                        │
-       ▼                                              │
- ┌───────────┐                                        │
- │  Spatial  │ (Sắp xếp 2 dòng)                       │
- │  Sorting  │                                        │
+ │ PaddleOCR │ (+ spatial sorting 2 dòng)             │
  └─────┬─────┘                                        │
        ▼                                              ▼
  ┌──────────────────────────────────────────────────────────┐
- │       Đối chiếu plate-primary với CSDL CSV lịch sử        │
- │  biển khớp ⇒ AUTHORIZED · màu lệch ⇒ cảnh báo MỀM         │
- │  biển không có ⇒ UNREGISTERED  (hãng: thử nghiệm, đã bỏ)  │
+ │  Plate-primary matcher (CSV)                              │
+ │  khớp biển ⇒ AUTHORIZED · màu lệch ⇒ cảnh báo mềm         │
+ │  không có biển ⇒ UNREGISTERED                             │
  └────────────────────────────┬─────────────────────────────┘
-                              │ Trả về trạng thái & Báo động
                               ▼
                   ┌──────────────────────┐
-                  │ Streamlit Dashboard  │ (Chớp đỏ nếu biển lệch / không hợp lệ)
+                  │ Streamlit Dashboard  │
                   └──────────────────────┘
 ```
 
 ---
 
-## 📊 Thống kê tập dữ liệu thực nghiệm (Dataset Metrics)
+## Thí nghiệm OCR nhẹ (CTC/ONNX) — chưa deploy
 
-Hệ thống được huấn luyện và đánh giá trên bộ dữ liệu thực tế đã qua tiền xử lý, loại bỏ hoàn toàn mock data:
+Ứng viên **MobileNetV3-Small + CTC → ONNX** chỉ thay Paddle khi ≥90% exact-match trên dữ liệu thật giữ kín — **chưa đạt**.
 
-*   **Tập phân loại hãng xe (Brands)**:
-    *   **Thô/đã thu thập**: ~1,209 ảnh trên 8 lớp — *Toyota (168), Hyundai (200), Kia (120), Mazda (120), Honda (161), VinFast (120 - cào từ Wikimedia), Ford (200), Mitsubishi (120)*.
-    *   **Dùng huấn luyện** (sau làm sạch & cân bằng ~100/lớp): **792 ảnh** — *Ford (100), Honda (99), Hyundai (99), Kia (99), Mazda (100), Mitsubishi (100), Toyota (95), VinFast (100)*.
-*   **Tập phân loại màu sắc xe (Colors)**:
-    *   **Thô/đã thu thập (ban đầu)**: ~1,130 ảnh trên 8 gam màu — *White (185), Black (200), Grey (200), Silver (175), Red (110), Blue (200), Brown (35), Yellow (25)*.
-    *   **Dùng huấn luyện (ban đầu, sau làm sạch & cân bằng ~100/lớp)**: 783 ảnh — *Black (100), Blue (100), Brown (91), Grey (100), Red (100), Silver (100), White (100), Yellow (92)*. Model này đạt **~55% test accuracy** (frozen backbone) — quá yếu để dùng thật.
-    *   **Mở rộng với VCoR (Kaggle) — model đang chạy ở runtime**: gộp thêm bộ **VCoR (Vehicle Color Recognition)** → **5,881 ảnh** hợp lệ trên 8 lớp. Full fine-tune MobileNetV3-Small + class-weighted loss + label smoothing + test-time augmentation (TTA) đẩy **test accuracy lên 86.3% (TTA)**, macro-F1 0.84 — xem `docs/benchmarks/color_finetune_report.md` (đánh giá tái lập trên model đã deploy) và [Report 3 §5.1](reports/documents/Report_3_Model_Results.md). *Lưu ý trung thực: 86% đo trên VCoR (ảnh web sạch); hiệu năng trên CCTV bãi xe thật sẽ thấp hơn do domain gap (ánh sáng/độ phân giải) — cần white-balance + thêm dữ liệu CCTV để bền khi triển khai.*
-*   **Dữ liệu biển số kiểm thử (License Plates)**: **5** hình ảnh xe thực tế tại Việt Nam kèm file nhãn định dạng YOLO tương ứng để đánh giá E2E.
+| Hạng mục | Chi tiết |
+|----------|----------|
+| Train | `task4_train` + `pseudo_vision` (conf ≥ 0.5) |
+| Val / giữ kín | `real_validation.csv` (64) · `expanded_real_test` (102) · `frozen_regression` (16) |
+| Kết quả | val exact-match **0/64** · CER **~0.659** · `deployment_ready: false` |
+| Runtime | **PaddleOCR** (~81% exact trên frozen 16) |
+
+Chính sách dữ liệu: [`main/data/plate_ocr/README.md`](main/data/plate_ocr/README.md).
 
 ---
 
-## 🛠️ Hướng dẫn cài đặt & Vận hành (Installation & Setup via Docker)
+## Dataset (tóm tắt)
 
-Hệ thống hỗ trợ cài đặt và chạy tức thời bằng Docker và Docker Compose trên mọi hệ điều hành (macOS, Windows, Linux) mà không cần cài đặt môi trường Python hay các thư viện OpenCV/Học sâu trên máy chủ:
+- **Hãng xe:** ~1.209 ảnh thô → **792** dùng train (8 lớp, ~100/lớp). Brand chỉ diagnostic (~35% test).
+- **Màu xe (runtime):** VCoR + tập nội bộ → **5.881** ảnh; MobileNetV3-Small **86.3% TTA** (macro-F1 0.84) — domain gap CCTV vẫn còn. Xem [`docs/benchmarks/color_finetune_report.md`](docs/benchmarks/color_finetune_report.md).
+- **Biển số kiểm thử E2E:** ảnh/xe thật VN + nhãn YOLO.
 
-### 1. Khởi động hệ thống (Start API & Dashboard)
-Chạy lệnh sau từ thư mục gốc của dự án:
+---
+
+## Chạy bằng Docker
+
 ```bash
 docker compose up --build
 ```
-*Lệnh này sẽ tự động tải các dependencies, tải trước các mô hình YOLOv8 và PaddleOCR (engine OCR chính; EasyOCR chỉ fallback) để chạy ngoại tuyến, khởi động Backend FastAPI (cổng 8000) và Dashboard Streamlit (cổng 8501) song song — cả hai dùng chung pipeline hợp nhất (`build_pipeline`/`infer_single_image`).*
 
-*   **API Documentation (Swagger UI)**: Truy cập tại `http://localhost:8000/docs`
-*   **Vận hành Dashboard UI**: Truy cập tại `http://localhost:8501`
+- API (Swagger): http://localhost:8000/docs  
+- Dashboard: http://localhost:8501  
 
-### 2. Dừng và dọn dẹp môi trường (Clear Environment)
-Để dừng các container và giải phóng bộ nhớ, chạy:
-```bash
-docker compose down
-```
+Dừng: `docker compose down`
+
+Upload Video dùng Product view đồng bộ (media clock trình duyệt). Cần truy cập được cả cổng **8501** và **8000** (`DPL_DEMO_API_URL` mặc định `http://localhost:8000`).
+
+Khi gate mở nhưng hết `collect_frames` mà OCR chưa đủ bằng chứng → verdict **UNCERTAIN** (`action=LOG`), không mở barrier.
 
 ---
 
-## 💻 Chạy trực tiếp trên máy — Native (macOS / Windows, không cần Docker)
+## Chạy native (Python 3.12)
 
-Yêu cầu: **Python 3.12**. Mô hình đã kèm trong repo (`main/data/models/`: `plate_yolov8n.onnx`, `color_MobileNetV3Small.pt`, `yolov8n.onnx`).
+### macOS / Linux
 
-### 🍎 macOS / Linux
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r main/requirements.txt
-
-# Chạy Dashboard (script tự dò interpreter + đặt biến môi trường)
 bash main/run_ui.sh
-# …hoặc chạy thủ công:
-KMP_DUPLICATE_LIB_OK=TRUE PYTHONPATH=main streamlit run main/src/ui/dashboard.py
 ```
 
-### 🪟 Windows (PowerShell)
+### Windows (PowerShell)
+
 ```powershell
 py -3.12 -m venv .venv ; .\.venv\Scripts\Activate.ps1
 pip install -r main\requirements.txt
-
-$env:KMP_DUPLICATE_LIB_OK = "TRUE" ; $env:PYTHONPATH = "main"
-streamlit run main\src\ui\dashboard.py
-# …hoặc: main\run_ui.bat
+main\run_ui.bat
 ```
 
-Dashboard mở tại `http://localhost:8501`. Chọn **Upload Video → “Play Default Parking Video”**, hoặc **Webcam**, để chạy pipeline end-to-end.
+Khởi động FastAPI song song (cổng 8000) trước khi test Upload Video:
 
-### 🧪 Chạy test
 ```bash
-cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q     # 76 passed, 7 skipped
+KMP_DUPLICATE_LIB_OK=TRUE PYTHONPATH=main uvicorn main.src.api.app:app --host 0.0.0.0 --port 8000
 ```
 
-### 🛠️ Khắc phục sự cố (Troubleshooting)
-| Triệu chứng | Nguyên nhân & cách xử lý |
-|---|---|
-| Tiến trình **treo 0% CPU** hoặc crash `mutex lock failed` | Xung đột OpenMP. **Bắt buộc** đặt `KMP_DUPLICATE_LIB_OK=TRUE`. Runtime không dùng TensorFlow (đã chuyển sang PyTorch) để tránh xung đột với PaddleOCR. |
-| Detector trả về rỗng (không phát hiện gì) | Thiếu `onnxruntime` → chạy lại `pip install -r main/requirements.txt`. |
-| Lần đầu chạy OCR hơi lâu / cần mạng | PaddleOCR tự tải model (~vài chục MB) lần đầu. Engine cấu hình ở `main/configs/config.yaml` (`ocr.engine: ppocr`, fallback `easyocr`). |
-| Cài `paddlepaddle` lỗi | Đảm bảo Python 3.12; trên Apple Silicon dùng bản CPU mặc định. Nếu không cài được, đặt `ocr.engine: easyocr` để dùng fallback. |
-| Webcam không hoạt động (macOS) | Cấp quyền **System Settings → Privacy & Security → Camera** cho terminal/trình duyệt. |
-| Sai góc camera (không bắt được xe đỗ) | Hiệu chỉnh ROI/ngưỡng không cần sửa code: `python main/scripts/calibrate_roi.py --source <clip> ` rồi chỉnh `pipeline.trigger` trong `config.yaml`. |
+### Video demo
+
+```bash
+python main/src/utils/download_sample_video.py
+python main/src/utils/download_sample_video.py --verify
+```
+
+### Tests
+
+```bash
+cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q
+# hoặc trong Docker:
+docker compose exec -T -w /app/main backend pytest -q
+```
+
+### Troubleshooting
+
+| Triệu chứng | Cách xử lý |
+|-------------|------------|
+| Treo 0% CPU / `mutex lock failed` | Đặt `KMP_DUPLICATE_LIB_OK=TRUE` |
+| Detector rỗng | Cài lại `onnxruntime` qua `main/requirements.txt` |
+| OCR lần đầu chậm | Docker đã mồi cache; native có thể tải model Paddle lần đầu |
+| Webcam (macOS) | System Settings → Privacy & Security → Camera |
+| Sai góc camera | `python main/scripts/calibrate_roi.py --source <clip>` rồi chỉnh `pipeline.trigger` trong `config.yaml` |
 
 ---
 
-## 🏃 Kiểm thử hệ thống (Running Tests inside Container)
+## Tối ưu CPU / offline
 
-Để thực thi bộ unit test tự động (hiện **76 passed, 7 skipped** — kiểm tra OCR, so khớp CSDL, logic tiền xử lý, đồng nhất pipeline API/Dashboard) bên trong môi trường Docker đang chạy:
+- Giới hạn thread (`OMP_NUM_THREADS=1`, …) trong `Dockerfile` / `docker-compose.yml` để tránh deadlock.
+- Steady-state: approach-lock ~**0.73 s**/xe; ảnh đơn `/verify` ~**0.96 s** sau warmup (cold-start lần đầu vẫn vài giây).
+- PaddleOCR cache mồi ở build-time; YOLO offline (`sync: false`, font local).
 
-```bash
-docker compose exec backend pytest main/tests/
-```
-
----
-
-## ⚡ Tối ưu hóa suy luận trên CPU ngoại tuyến (Offline CPU Optimizations)
-
-Để hệ thống hoạt động với hiệu năng ổn định nhất trên các PC bãi đỗ chạy CPU thông thường và không cần kết nối Internet, dự án tích hợp các giải pháp tối ưu sau:
-
-### 1. Khắc phục nghẽn luồng / Treo CPU (Thread Deadlock Fix)
-Khi TensorFlow và PyTorch chạy song song, việc tranh chấp luồng tính toán có thể làm đơ hệ thống. Chúng ta bắt buộc phải cấu hình giới hạn đơn luồng cho các thư viện xử lý trước khi chạy:
-*   Được tự động cấu hình trong `Dockerfile` và `docker-compose.yml` thông qua các biến môi trường:
-    *   `OMP_NUM_THREADS=1`
-    *   `MKL_NUM_THREADS=1`
-    *   `OPENBLAS_NUM_THREADS=1`
-    *   `VECLIB_MAXIMUM_THREADS=1`
-    *   `NUMEXPR_NUM_THREADS=1`
-*   *Giải pháp giới hạn luồng trên kết hợp với cơ chế bắt-biển tối ưu (đọc biển trong pha xe lùi vào + OCR một lần/xe + warmup model lúc khởi động) giúp hệ thống **đạt mục tiêu KPI <1.0 giây/xe** ở chế độ steady-state: đường bãi đỗ (approach-lock, video/CCTV) đo **0.73 s** từ lúc mở cổng tới lúc chốt biển; đường ảnh đơn (API `/verify`) đo **~0.96 s/ảnh** sau warmup (xem Report 4 §5.1, §4.1–4.2). Lưu ý trung thực: lệnh gọi đầu tiên sau khi khởi động tiến trình vẫn còn **cold-start ~vài giây** (đo thực tế 6.1 s) do nạp PaddleOCR lần đầu — chi phí một lần, không tái diễn ở các lượt xử lý sau.*
-
-### 2. Cấu hình chạy ngoại tuyến hoàn toàn (100% Offline Mode)
-*   **EasyOCR**: Tắt tính năng tự động tải hoặc kiểm tra mô hình qua mạng bằng cách khởi tạo: `easyocr.Reader(..., download_enabled=False)`.
-*   **YOLOv8**: Tắt tính năng đồng bộ telemetry của Ultralytics qua: `settings.update({"sync": False})`. Sao chép thủ công tệp font hệ thống `Arial.ttf` vào thư mục mặc định `~/.config/Ultralytics/` để chặn việc YOLOv8 tự động tải font mỗi lần suy luận.
-*   *Lưu ý: Dockerfile đã tự động tải trước các model weights này trong quá trình build để container hoạt động hoàn toàn ngoại tuyến.*
+Chi tiết số đo: Report 4 §4–§5.

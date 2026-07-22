@@ -22,6 +22,9 @@ class _FakeMatcher:
         self.registered = registered
         self.calls: list[tuple] = []
 
+    def is_registered(self, plate: str) -> bool:
+        return plate in self.registered
+
     def verify_vehicle(self, plate, color, color_conf=None):
         self.calls.append((plate, color, color_conf))
         reg_color = self.registered.get(plate)
@@ -149,10 +152,208 @@ def test_lock_aware_low_conf_cross_cluster_mismatch_no_warning():
     # Wired correctly, the engine's computed low color_conf reaches the real
     # gating logic and suppresses the warning (verdict stays a plain ALLOW).
     frames = [
-        {"plate_text": "51A-001", "plate_conf": 0.85, "color": "BLUE", "color_conf": 0.30},
-        {"plate_text": "51A-001", "plate_conf": 0.86, "color": "BLUE", "color_conf": 0.35},
+        {"plate_text": "51A10001", "plate_conf": 0.85, "color": "BLUE", "color_conf": 0.30},
+        {"plate_text": "51A10001", "plate_conf": 0.86, "color": "BLUE", "color_conf": 0.35},
     ]
-    eng = DecisionEngine(_GatingFakeMatcher(registered={"51A-001": "RED"}))
+    eng = DecisionEngine(_GatingFakeMatcher(registered={"51A10001": "RED"}))
     out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
     assert out["status"] == "AUTHORIZED"
     assert out["action"] == "ALLOW"
+
+
+def test_soft_lock_two_reads_at_soft_conf_when_allowed():
+    frames = [
+        {"plate_text": "30M71854", "plate_conf": 0.45, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.42, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30M71854": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        soft_conf=0.40,
+        allow_soft_lock=True,
+    )
+    assert out["plate"] == "30M71854"
+    assert out["status"] == "AUTHORIZED"
+
+
+def test_soft_lock_two_reads_uncertain_when_not_allowed():
+    frames = [
+        {"plate_text": "30M71854", "plate_conf": 0.45, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.42, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30M71854": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        soft_conf=0.40,
+        allow_soft_lock=False,
+    )
+    assert out["status"] == "UNCERTAIN"
+
+
+def test_soft_lock_single_high_conf_read_when_allowed():
+    frames = [
+        {"plate_text": "30M71854", "plate_conf": 0.90, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30M71854": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        single_lock_conf=0.85,
+        allow_soft_lock=True,
+    )
+    assert out["plate"] == "30M71854"
+    assert out["status"] == "AUTHORIZED"
+
+
+def test_soft_lock_unregistered_plate_via_matcher():
+    frames = [
+        {"plate_text": "99X99999", "plate_conf": 0.45, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "99X99999", "plate_conf": 0.42, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30M71854": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        soft_conf=0.40,
+        allow_soft_lock=True,
+    )
+    assert out["plate"] == "99X99999"
+    assert out["status"] == "UNREGISTERED"
+
+
+def test_soft_single_lock_rejects_incomplete_plate_format():
+    frames = [
+        {"plate_text": "30K", "plate_conf": 0.91, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        single_lock_conf=0.85,
+        allow_soft_lock=True,
+    )
+    assert out["status"] == "UNCERTAIN"
+    assert out["plate"] == ""
+
+
+def test_soft_single_lock_rejects_four_digit_suffix_fragment():
+    frames = [
+        {"plate_text": "30K4391", "plate_conf": 0.91, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        single_lock_conf=0.85,
+        allow_soft_lock=True,
+    )
+    assert out["status"] == "UNCERTAIN"
+    assert out["plate"] == ""
+
+
+def test_hard_lock_accepts_valid_full_plate():
+    frames = [
+        {"plate_text": "30K43936", "plate_conf": 0.85, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30K43936", "plate_conf": 0.86, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["plate"] == "30K43936"
+    assert out["status"] == "AUTHORIZED"
+
+
+def test_soft_single_lock_accepts_valid_full_plate():
+    frames = [
+        {"plate_text": "30K43936", "plate_conf": 0.91, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(
+        frames,
+        lock_conf=0.60,
+        lock_repeat=2,
+        single_lock_conf=0.85,
+        allow_soft_lock=True,
+    )
+    assert out["plate"] == "30K43936"
+    assert out["status"] == "AUTHORIZED"
+
+
+def test_two_valid_high_conf_reads_still_lock_via_matcher():
+    frames = [
+        {"plate_text": "30M71854", "plate_conf": 0.85, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.86, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["plate"] == "30M71854"
+    assert out["status"] == "UNREGISTERED"
+
+
+def test_near_duplicate_cluster_prefers_registered_variant():
+    frames = [
+        {"plate_text": "30K43930", "plate_conf": 0.85, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30K43930", "plate_conf": 0.86, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30K43936", "plate_conf": 0.80, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["plate"] == "30K43936"
+    assert out["status"] == "AUTHORIZED"
+
+
+def test_near_duplicate_cluster_locks_higher_conf_representative():
+    # 10 Hz-like split: noisy 30M71654 wins raw count but clustered conf
+    # sum favours the true 30M71854 variant once its reads carry higher conf.
+    frames = [
+        {"plate_text": "30M71654", "plate_conf": 0.62, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30M71654", "plate_conf": 0.64, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.88, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.87, "color": "YELLOW", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["plate"] == "30M71854"
+    assert out["status"] == "UNREGISTERED"
+
+
+def test_near_duplicate_cluster_locks_representative_when_conf_sums_tie_on_count():
+    frames = [
+        {"plate_text": "30M71654", "plate_conf": 0.61, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30M71654", "plate_conf": 0.63, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.90, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30M71854", "plate_conf": 0.89, "color": "YELLOW", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["plate"] == "30M71854"
+    assert out["status"] == "UNREGISTERED"
+
+
+def test_far_apart_plates_do_not_cluster():
+    frames = [
+        {"plate_text": "30M71854", "plate_conf": 0.85, "color": "YELLOW", "color_conf": 0.9},
+        {"plate_text": "30K43936", "plate_conf": 0.86, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["status"] == "UNCERTAIN"
+    assert out["plate"] == ""
+
+
+def test_incomplete_plate_not_lock_eligible_in_clustering():
+    frames = [
+        {"plate_text": "30K", "plate_conf": 0.91, "color": "WHITE", "color_conf": 0.9},
+        {"plate_text": "30K", "plate_conf": 0.92, "color": "WHITE", "color_conf": 0.9},
+    ]
+    eng = DecisionEngine(_FakeMatcher(registered={"30K43936": "WHITE"}))
+    out = eng.aggregate(frames, lock_conf=0.60, lock_repeat=2)
+    assert out["status"] == "UNCERTAIN"
+    assert out["plate"] == ""

@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: transparent; color: #747a82; }
+      .pane { margin: 0 0 24px; }
+      .caption { margin: 0 0 10px; font-size: 16px; }
+      .canvas-wrap { position: relative; width: 100%; }
+      canvas { display: block; width: 100%; max-width: 100%; background: #111; aspect-ratio: 16 / 9; }
+      .hud {
+        display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px;
+        font-size: 12px; font-variant-numeric: tabular-nums; color: #8a9098;
+      }
+      .hud span { white-space: nowrap; }
+      .error {
+        margin-top: 8px; padding: 10px 12px; border-radius: 8px;
+        background: #fff4f2; color: #b42318; font-size: 13px;
+      }
+      #live-video {
+        position: absolute; width: 1px; height: 1px; opacity: 0;
+        pointer-events: none; overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="pane">
+      <div class="caption">Live webcam — browser capture</div>
+      <div class="canvas-wrap">
+        <canvas id="live-canvas" aria-label="Live webcam with detection overlays"></canvas>
+        <video id="live-video" muted playsinline></video>
+      </div>
+      <div id="hud" class="hud" aria-live="polite">
+        <span id="hud-fps">Draw FPS: —</span>
+        <span id="hud-latency">Latency: —</span>
+        <span id="hud-time">Elapsed: 00:00.00</span>
+        <span id="hud-votes">Votes: —</span>
+      </div>
+      <div id="error-box" class="error" hidden></div>
+    </section>
+    <script>
+      (() => {
+        const video = document.getElementById("live-video");
+        const liveCanvas = document.getElementById("live-canvas");
+        const liveContext = liveCanvas.getContext("2d");
+        const sampleCanvas = document.createElement("canvas");
+        const sampleContext = sampleCanvas.getContext("2d");
+        const hudFps = document.getElementById("hud-fps");
+        const hudLatency = document.getElementById("hud-latency");
+        const hudTime = document.getElementById("hud-time");
+        const hudVotes = document.getElementById("hud-votes");
+        const errorBox = document.getElementById("error-box");
+
+        let apiBaseUrl = "http://localhost:8000";
+        let sessionId = null;
+        let frameEndpoint = null;
+        let sampleIntervalMs = 100;
+        let isRunning = false;
+        let mediaStream = null;
+        let startedAt = 0;
+        let lastSampleAttemptAt = 0;
+        let latestResult = null;
+        let requestInFlight = false;
+        let activeRequestController = null;
+        let pendingSample = null;
+        let sessionGeneration = 0;
+        let callbackScheduled = false;
+        let animationHandle = null;
+        const emittedEventIds = new Set();
+
+        let drawFrameTimestamps = [];
+        let lastDrawFps = 0;
+        let lastLatencyMs = null;
+        const latencyHistory = [];
+        let votesCount = null;
+        let votesTarget = null;
+
+        const OVERLAY_STALE_S = 0.75;
+
+        function post(type, payload) {
+          window.parent.postMessage({ isStreamlitMessage: true, type, ...payload }, "*");
+        }
+
+        function setFrameHeight() {
+          post("streamlit:setFrameHeight", { height: document.documentElement.scrollHeight });
+        }
+
+        function formatTime(value) {
+          const safe = Number.isFinite(value) && value >= 0 ? value : 0;
+          const minutes = Math.floor(safe / 60).toString().padStart(2, "0");
+          const seconds = (safe % 60).toFixed(2).padStart(5, "0");
+          return `${minutes}:${seconds}`;
+        }
+
+        function elapsedSeconds() {
+          if (!startedAt) return 0;
+          return (performance.now() - startedAt) / 1000;
+        }
+
+        function showError(message) {
+          if (!message) {
+            errorBox.hidden = true;
+            errorBox.textContent = "";
+            return;
+          }
+          errorBox.hidden = false;
+          errorBox.textContent = message;
+          setFrameHeight();
+        }
+
+        function fitCanvases() {
+          if (!video.videoWidth || !video.videoHeight) return false;
+          if (liveCanvas.width !== video.videoWidth || liveCanvas.height !== video.videoHeight) {
+            liveCanvas.width = video.videoWidth;
+            liveCanvas.height = video.videoHeight;
+            sampleCanvas.width = video.videoWidth;
+            sampleCanvas.height = video.videoHeight;
+          }
+          return true;
+        }
+
+        function recordDrawFps(wallNow) {
+          drawFrameTimestamps.push(wallNow);
+          const cutoff = wallNow - 1000;
+          while (drawFrameTimestamps.length && drawFrameTimestamps[0] < cutoff) {
+            drawFrameTimestamps.shift();
+          }
+          lastDrawFps = drawFrameTimestamps.length;
+        }
+
+        function recordLatency(latencyMs) {
+          if (!Number.isFinite(latencyMs) || latencyMs < 0) return;
+          lastLatencyMs = latencyMs;
+          latencyHistory.push(latencyMs);
+          if (latencyHistory.length > 20) latencyHistory.shift();
+        }
+
+        function averageLatency() {
+          if (!latencyHistory.length) return null;
+          return latencyHistory.reduce((sum, value) => sum + value, 0) / latencyHistory.length;
+        }
+
+        function updateHud() {
+          hudFps.textContent = `Draw FPS: ${lastDrawFps || "—"}`;
+          const avg = averageLatency();
+          if (lastLatencyMs == null) {
+            hudLatency.textContent = "Latency: —";
+          } else if (avg == null) {
+            hudLatency.textContent = `Latency: ${Math.round(lastLatencyMs)} ms`;
+          } else {
+            hudLatency.textContent =
+              `Latency: ${Math.round(lastLatencyMs)} ms · avg ${Math.round(avg)} ms`;
+          }
+          hudTime.textContent = `Elapsed: ${formatTime(elapsedSeconds())}`;
+          if (Number.isFinite(votesCount) && Number.isFinite(votesTarget) && votesTarget > 0) {
+            hudVotes.textContent = `Votes: ${votesCount}/${votesTarget}`;
+          } else {
+            hudVotes.textContent = "Votes: —";
+          }
+        }
+
+        function overlayIsStale(sourceTime) {
+          if (!latestResult || !Number.isFinite(latestResult.source_time_s)) return false;
+          return Math.abs(sourceTime - latestResult.source_time_s) > OVERLAY_STALE_S;
+        }
+
+        function drawOverlay(sourceTime) {
+          if (!latestResult || overlayIsStale(sourceTime)) return;
+
+          liveContext.save();
+          const lineWidth = Math.max(2, liveCanvas.width / 320);
+          const fontSize = Math.max(16, liveCanvas.width / 45);
+          liveContext.lineWidth = lineWidth;
+          liveContext.font = `${fontSize}px system-ui, sans-serif`;
+
+          for (const overlay of latestResult.overlay_results || []) {
+            if (!Array.isArray(overlay.bbox) || overlay.bbox.length !== 4) continue;
+            const [x1, y1, x2, y2] = overlay.bbox.map(Number);
+            if (![x1, y1, x2, y2].every(Number.isFinite)) continue;
+            liveContext.strokeStyle = "#64a70b";
+            liveContext.strokeRect(x1, y1, x2 - x1, y2 - y1);
+            const label = overlay.plate || overlay.text || overlay.class;
+            if (label != null && String(label).trim()) {
+              liveContext.fillStyle = "#64a70b";
+              liveContext.fillText(String(label), x1, Math.max(fontSize, y1 - 6));
+            }
+          }
+
+          liveContext.fillStyle = "#64a70b";
+          const state = String(latestResult.state || "IDLE").replaceAll("_", " ");
+          liveContext.fillText(`STATE: ${state}`, 12, 30);
+
+          const decision = latestResult.decision;
+          if (decision) {
+            if (decision.status) {
+              liveContext.fillText(String(decision.status), 12, 60);
+            }
+            const plate = decision.plate || decision.plate_text;
+            if (plate) {
+              liveContext.fillText(String(plate), 12, 90);
+            } else if (decision.message) {
+              liveContext.fillText(String(decision.message), 12, 90);
+            }
+          } else if (requestInFlight) {
+            liveContext.fillStyle = "#8a9098";
+            liveContext.fillText("processing…", 12, 60);
+          }
+
+          liveContext.restore();
+        }
+
+        function drawCurrentFrame(wallNow = performance.now()) {
+          if (!fitCanvases()) {
+            liveContext.fillStyle = "#111";
+            liveContext.fillRect(0, 0, liveCanvas.width || 640, liveCanvas.height || 360);
+            updateHud();
+            return;
+          }
+          const sourceTime = elapsedSeconds();
+          liveContext.drawImage(video, 0, 0, liveCanvas.width, liveCanvas.height);
+          drawOverlay(sourceTime);
+          recordDrawFps(wallNow);
+          updateHud();
+        }
+
+        function notifyFinalDecision(result) {
+          if (!result || !result.decision || !result.decision.status) return;
+          const evidenceTime = Number.isFinite(result.decision.evidence_time_s)
+            ? result.decision.evidence_time_s
+            : result.source_time_s;
+          const plate = result.decision.plate || result.decision.plate_text || "unknown";
+          const eventId = `${sessionId}:${Number(evidenceTime).toFixed(3)}:${result.decision.status}:${plate}`;
+          if (emittedEventIds.has(eventId)) return;
+          emittedEventIds.add(eventId);
+          post("streamlit:setComponentValue", {
+            value: {
+              event_id: eventId,
+              source_time_s: evidenceTime,
+              playback_time_s: elapsedSeconds(),
+              is_playing: isRunning,
+              decision: result.decision,
+              latency_ms: result.latency_ms,
+            },
+            dataType: "json",
+          });
+        }
+
+        function applyBackendResult(result) {
+          latestResult = result;
+          if (Number.isFinite(result.latency_ms)) recordLatency(result.latency_ms);
+          if (Number.isFinite(result.votes_count)) votesCount = result.votes_count;
+          if (Number.isFinite(result.votes_target)) votesTarget = result.votes_target;
+          notifyFinalDecision(result);
+        }
+
+        function finishRequest(generation) {
+          if (generation !== sessionGeneration) return;
+          requestInFlight = false;
+          activeRequestController = null;
+          if (pendingSample) {
+            const next = pendingSample;
+            pendingSample = null;
+            sendSample(next.sourceTime);
+          }
+        }
+
+        function sendSample(sourceTime) {
+          if (requestInFlight || !frameEndpoint || !sessionId || !isRunning) return;
+          if (!fitCanvases()) return;
+
+          requestInFlight = true;
+          const generation = sessionGeneration;
+          sampleContext.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+          sampleCanvas.toBlob(async (blob) => {
+            if (!blob || generation !== sessionGeneration) {
+              finishRequest(generation);
+              return;
+            }
+            const form = new FormData();
+            form.append("session_id", sessionId);
+            form.append("source_time_s", String(sourceTime));
+            form.append("file", blob, "frame.jpg");
+            const controller = new AbortController();
+            activeRequestController = controller;
+            try {
+              const response = await fetch(frameEndpoint, {
+                method: "POST",
+                body: form,
+                signal: controller.signal,
+              });
+              if (!response.ok) throw new Error(`Demo frame request failed: ${response.status}`);
+              const result = await response.json();
+              if (generation !== sessionGeneration) return;
+              applyBackendResult(result);
+            } catch (error) {
+              if (error.name !== "AbortError") console.error(error);
+            } finally {
+              finishRequest(generation);
+            }
+          }, "image/jpeg", 0.78);
+        }
+
+        function offerSample(sourceTime) {
+          if (!isRunning) return;
+          if (requestInFlight) {
+            pendingSample = { sourceTime };
+            return;
+          }
+          sendSample(sourceTime);
+        }
+
+        function onAnimationFrame(wallNow) {
+          callbackScheduled = false;
+          drawCurrentFrame(wallNow);
+          if (isRunning) {
+            if (wallNow - lastSampleAttemptAt >= sampleIntervalMs) {
+              lastSampleAttemptAt = wallNow;
+              offerSample(elapsedSeconds());
+            }
+            scheduleAnimationFrame();
+          }
+        }
+
+        function scheduleAnimationFrame() {
+          if (callbackScheduled) return;
+          callbackScheduled = true;
+          animationHandle = window.requestAnimationFrame(onAnimationFrame);
+        }
+
+        function cancelActiveRequest() {
+          sessionGeneration += 1;
+          if (activeRequestController) activeRequestController.abort();
+          activeRequestController = null;
+          requestInFlight = false;
+          pendingSample = null;
+        }
+
+        function resetSamplingState() {
+          lastSampleAttemptAt = 0;
+          pendingSample = null;
+          votesCount = null;
+          votesTarget = null;
+        }
+
+        function resetBackendSession(baseUrl = apiBaseUrl, id = sessionId) {
+          if (!baseUrl || !id) return Promise.resolve();
+          return fetch(`${baseUrl}/demo/session/${encodeURIComponent(id)}`, {
+            method: "DELETE",
+          }).then((response) => {
+            if (!response.ok && response.status !== 404) {
+              throw new Error(`Demo reset request failed: ${response.status}`);
+            }
+          }).catch((error) => console.error(error));
+        }
+
+        function stopTracks() {
+          if (!mediaStream) return;
+          for (const track of mediaStream.getTracks()) track.stop();
+          mediaStream = null;
+          video.srcObject = null;
+        }
+
+        async function stopCapture() {
+          isRunning = false;
+          if (animationHandle != null) {
+            window.cancelAnimationFrame(animationHandle);
+            animationHandle = null;
+          }
+          callbackScheduled = false;
+          cancelActiveRequest();
+          stopTracks();
+          latestResult = null;
+          resetSamplingState();
+          emittedEventIds.clear();
+          drawCurrentFrame();
+          await resetBackendSession();
+          setFrameHeight();
+        }
+
+        async function startCapture() {
+          if (isRunning) return;
+          showError("");
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showError("Camera API is not available in this browser context.");
+            return;
+          }
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          } catch (error) {
+            const denied = error && (error.name === "NotAllowedError" || error.name === "PermissionDeniedError");
+            showError(
+              denied
+                ? "Camera permission denied. Allow camera access for this site and retry."
+                : "Could not open the browser camera. Check that a camera is connected."
+            );
+            return;
+          }
+
+          isRunning = true;
+          startedAt = performance.now();
+          video.srcObject = mediaStream;
+          await video.play().catch(() => {});
+          cancelActiveRequest();
+          latestResult = null;
+          resetSamplingState();
+          emittedEventIds.clear();
+          await resetBackendSession();
+          fitCanvases();
+          scheduleAnimationFrame();
+          setFrameHeight();
+        }
+
+        async function render(args) {
+          const nextApiBase = args && args.api_base_url;
+          const nextSessionId = args && args.session_id;
+          const nextRunning = Boolean(args && args.is_running);
+          if (typeof nextApiBase !== "string" || !nextApiBase) return;
+          if (typeof nextSessionId !== "string" || !nextSessionId) return;
+
+          const sessionChanged = nextSessionId !== sessionId;
+          const previousApiBaseUrl = apiBaseUrl;
+          const previousSessionId = sessionId;
+
+          apiBaseUrl = nextApiBase.replace(/\/$/, "");
+          sessionId = nextSessionId;
+          frameEndpoint = `${apiBaseUrl}/demo/frame`;
+          const configuredInterval = Number(args.sample_interval_ms);
+          sampleIntervalMs = Number.isFinite(configuredInterval) && configuredInterval >= 50
+            ? configuredInterval
+            : 100;
+
+          if (sessionChanged && previousSessionId) {
+            await stopCapture();
+            resetBackendSession(previousApiBaseUrl, previousSessionId);
+          }
+
+          if (nextRunning && !isRunning) {
+            await startCapture();
+          } else if (!nextRunning && isRunning) {
+            await stopCapture();
+          } else if (!nextRunning) {
+            drawCurrentFrame();
+          }
+
+          setFrameHeight();
+        }
+
+        window.addEventListener("message", (event) => {
+          if (event.data && event.data.type === "streamlit:render") void render(event.data.args);
+        });
+        window.addEventListener("beforeunload", () => {
+          stopTracks();
+          if (sessionId && apiBaseUrl) {
+            navigator.sendBeacon(
+              `${apiBaseUrl}/demo/session/${encodeURIComponent(sessionId)}`,
+              new Blob([], { type: "text/plain" })
+            );
+          }
+        });
+        post("streamlit:componentReady", { apiVersion: 1 });
+        setFrameHeight();
+      })();
+    </script>
+  </body>
+</html>

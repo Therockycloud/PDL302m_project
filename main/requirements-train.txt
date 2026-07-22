@@ -5,3 +5,8 @@
 tensorflow>=2.10.0      # bundles Keras; used by brand/colour classifiers + trainer
 icrawler>=0.6.9         # used for automated image crawling
 ImageHash>=4.3.1        # used for image deduplication
+easyocr>=1.6.2          # benchmark/eval-only (scripts/benchmark_ocr.py, src/engine/run_evaluation.py); NOT used at runtime
+torch==2.12.1           # matched pair used for deterministic CPU OCR training/export
+torchvision==0.27.1     # MobileNetV3-Small backbone; must match torch above
+onnx>=1.16,<2           # offline artifact checker/export dependency
+onnxruntime>=1.18,<2    # offline fixed-batch Torch/ONNX parity check

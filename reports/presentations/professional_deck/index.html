@@ -251,7 +251,7 @@
   }
   .meta-row span:not(.dot){display:inline-block}
   .meta-row .dot{
-    display:inline-block;width:4px;height:4px;border-radius:50%;
+    display:inline-block;width:4px;height:4px;border-radius:0;
     background:currentColor;opacity:.5;vertical-align:middle
   }
 
@@ -492,10 +492,10 @@
   .ico-sm{width:1vw;height:1vw;stroke-width:1.8;display:inline-block;vertical-align:-.15em;opacity:.7}
 
   /* ============ 几何小图标 (装饰) ============ */
-  .geo-dot{width:.7vw;height:.7vw;border-radius:50%;background:var(--accent);display:inline-block;vertical-align:middle}
+  .geo-dot{width:.7vw;height:.7vw;border-radius:0;background:var(--accent);display:inline-block;vertical-align:middle}
   .geo-square{width:.7vw;height:.7vw;background:var(--accent);display:inline-block;vertical-align:middle}
   .geo-line{width:2vw;height:2px;background:var(--accent);display:inline-block;vertical-align:middle}
-  .geo-circle-o{width:.9vw;height:.9vw;border:2px solid currentColor;border-radius:50%;display:inline-block;vertical-align:middle}
+  .geo-circle-o{width:.9vw;height:.9vw;border:2px solid currentColor;border-radius:0;display:inline-block;vertical-align:middle}
 
   /* ============ 图片 frame-img ============ */
   .frame-img{overflow:hidden;position:relative;background:var(--paper);box-sizing:border-box;width:100%}
@@ -738,7 +738,7 @@
   /* 进度点: 纯色实心圆,无背景无描边,精确居中在 axis 列中线 */
   .tl-node .dot{
     width:var(--tl-dot);height:var(--tl-dot);
-    border-radius:50%;
+    border-radius:0;
     background:currentColor;
     justify-self:center;
     z-index:1
@@ -795,7 +795,7 @@
   /* 横向 dot: 8px 纯色实心,无描边无阴影 (与 P2 保持一致) */
   .timeline-h .th-node .dot{
     width:var(--tl-dot);height:var(--tl-dot);
-    border-radius:50%;
+    border-radius:0;
     background:var(--ink);
     z-index:1;position:relative
   }
@@ -836,7 +836,7 @@
     background:var(--grey-1);
     padding:2.4vh 1.6vw 2vh;
     display:flex;flex-direction:column;
-    position:relative;border-radius:3px;
+    position:relative;border-radius:0;
     min-height:0
   }
   .slide.dark .sub-card{background:rgba(255,255,255,.06)}
@@ -1296,7 +1296,7 @@
           <div>
             <div class="t-meta" style="margin-bottom:2vh">— 01 / OCR</div>
             <h3 style="font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:1.6vw;line-height:1.2;color:var(--text-primary);margin-bottom:1.5vh">Nhận diện biển</h3>
-            <p style="font-family:var(--sans),var(--sans-zh);font-size:16px;line-height:1.5;color:var(--text-secondary)">YOLOv8-nano cắt vùng biển số; PaddleOCR (PP-OCRv4) CRNN + BiLSTM sequence modeling nhận diện ký tự.</p>
+            <p style="font-family:var(--sans),var(--sans-zh);font-size:16px;line-height:1.5;color:var(--text-secondary)">YOLOv8-nano cắt vùng biển số; PaddleOCR CNN + CTC sequence modeling nhận diện ký tự.</p>
           </div>
           <div class="t-meta" style="color:var(--text-helper)">PRIMARY KEY</div>
         </div>
@@ -1349,9 +1349,9 @@
           <div class="note">Ultralytics, 6.24MB weight, mAP50 0.99, định vị vùng biển số trong 110ms/ảnh CPU.</div>
         </div>
         <div class="kpi-cell">
-          <div class="lbl">Plate OCR · PP-OCRv4</div>
-          <div class="nb">BiLSTM<span class="unit">Shi15</span></div>
-          <div class="note">CRNN + BiLSTM + CTC sequence modeling, đọc ký tự chính xác 81.2% (CER 0.031).</div>
+          <div class="lbl">Plate OCR · PaddleOCR</div>
+          <div class="nb">CNN+CTC<span class="unit">Shi15</span></div>
+          <div class="note">CNN + CTC sequence modeling, đọc ký tự chính xác 81.2% (CER 0.031).</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">Vehicle Color · MobileNetV3</div>
@@ -1366,7 +1366,7 @@
       </div>
 
       <div data-anim="foot" style="align-self:end;display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--border-subtle);padding-top:1.8vh">
-        <div class="t-helper" style="max-width:62ch">Kế thừa các kiến trúc mạng tích chập và mô hình chuỗi (BiLSTM) tiên tiến, tối ưu hóa kích thước và cấu trúc phần cứng giúp giảm thiểu thời gian suy luận trên CPU bãi giữ xe.</div>
+        <div class="t-helper" style="max-width:62ch">Kế thừa các kiến trúc mạng tích chập và mô hình chuỗi tiên tiến, tối ưu hóa kích thước và cấu trúc phần cứng giúp giảm thiểu thời gian suy luận trên CPU bãi giữ xe.</div>
         <div class="t-meta">DPL302m · CITATIONS</div>
       </div>
     </div>
@@ -1613,7 +1613,7 @@
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr;gap:3vh">
       <div data-anim="head" style="display:flex;flex-direction:column;gap:1.4vh">
-        <div class="t-meta">CRNN &amp; Bidirectional LSTM Sequence Modeling (CLO5)</div>
+        <div class="t-meta">PaddleOCR CNN &amp; Sequence Modeling (CLO5)</div>
         <h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.4vw,9.6vh);line-height:1;letter-spacing:-.03em">Mô hình hóa chuỗi ký tự</h2>
       </div>
 
@@ -1626,9 +1626,9 @@
         </div>
         <div class="stack-block b-accent">
           <div class="layer-nb">TẦNG 2 · RECURRENT CORE</div>
-          <div class="layer-ttl">BiLSTM hai chiều (CLO5)</div>
-          <div class="layer-desc">Mạng BiLSTM mô hình hóa ngữ cảnh hai chiều trái-phải, ghi nhớ mối quan hệ tuần tự giữa các chữ và số trên biển số.</div>
-          <div class="layer-tag">LSTM Cell · Bidirectional</div>
+          <div class="layer-ttl">Mạng hồi quy (CLO5)</div>
+          <div class="layer-desc">Mạng hồi quy mô hình hóa ngữ cảnh, ghi nhớ mối quan hệ tuần tự giữa các chữ và số trên biển số.</div>
+          <div class="layer-tag">Recurrent Core · Sequence Modeling</div>
         </div>
         <div class="stack-block b-ink" style="border:1px solid rgba(255,255,255,.18)">
           <div class="layer-nb">TẦNG 3 · TRANSCRIPTION</div>
@@ -2037,9 +2037,9 @@
 
       <!-- Q&A tag -->
       <div style="margin-top:1.5vh;display:flex;align-items:center;gap:1.6vw">
-        <div style="width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:.7"></div>
+        <div style="width:3px;height:3px;border-radius:0;background:var(--accent);opacity:.7"></div>
         <span style="font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55)">Hỏi &amp; Đáp mở</span>
-        <div style="width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:.7"></div>
+        <div style="width:3px;height:3px;border-radius:0;background:var(--accent);opacity:.7"></div>
       </div>
     </div>
 

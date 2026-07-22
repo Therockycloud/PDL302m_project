@@ -404,7 +404,7 @@
                     <ul>
                         <li><strong>Lỗ hổng biển số giả:</strong> Đầu đọc thẻ từ và camera biển số chỉ đối chiếu chuỗi văn bản, không đối chiếu loại xe thực tế.</li>
                         <li><strong>Thách thức thời gian:</strong> Quá trình kiểm tra thủ công bằng mắt thường gây ùn tắc giờ cao điểm.</li>
-                        <li><strong>Giải pháp cần có:</strong> Một hệ thống tự động đối chiếu chéo đồng thời 3 yếu tố: <strong>Biển số</strong>, <strong>Hãng xe (Brand)</strong> và <strong>Màu xe (Color)</strong>.</li>
+                        <li><strong>Giải pháp cần có:</strong> Hệ thống tự động đối chiếu — <strong>biển số là khoá chính</strong> (PaddleOCR), <strong>màu là cảnh báo mềm</strong>; hãng xe chỉ diagnostic (pivot plate-primary, Report 3).</li>
                     </ul>
                 </div>
                 <div class="slide-img-box">
@@ -453,7 +453,7 @@
             <img src="assets/diagram_decision.svg" alt="Cross-check decision logic flowchart" style="max-width:100%; max-height:380px; border-radius:12px; display:block; margin:12px auto;" />
             <div style="margin-top: 30px; padding: 15px; border-left: 4px solid var(--accent-red); background: #fdfdfb;">
                 <p style="font-family: var(--font-sans); font-style: italic; font-size: 1.05rem;">
-                    "Khi xe đi ra, hệ thống tự động đối chiếu thông tin biển số, hãng xe, và màu sắc với cơ sở dữ liệu đầu vào. Nếu có bất kỳ sự sai lệch nào, còi báo động sẽ rú lên và khóa barrier ngay lập tức."
+                    "Bản giao: biển số (PaddleOCR) quyết định khóa/mở; màu chỉ cảnh báo khi lệch; hãng không vào quyết định — không phải đối chiếu cứng 3 nhân tố như đề xuất ban đầu."
                 </p>
             </div>
         </div>
@@ -486,7 +486,7 @@
                         <td>Dùng YOLOv8-nano làm bộ định vị vùng chứa biển số (tối ưu hóa tốc độ).</td>
                     </tr>
                     <tr>
-                        <td><strong>PaddleOCR (PP-OCRv4)</strong></td>
+                        <td><strong>PaddleOCR</strong></td>
                         <td>CRNN + CTC</td>
                         <td>Đọc đúng 81% biển CCTV thật (Benchmark C) vs EasyOCR 0%. Vẫn cần xử lý lệch dòng cho biển 2 dòng VN.</td>
                         <td>Tích hợp lõi nhận diện ký tự, viết thêm giải thuật sắp xếp tọa độ dòng.</td>
@@ -526,9 +526,9 @@
                     <h3 style="margin-bottom: 15px;">Luồng xử lý từ Camera đến Cảnh báo</h3>
                     <ul>
                         <li><strong>Bước 1 (Đầu vào):</strong> Nhận hình ảnh luồng video hoặc ảnh chụp xe qua cổng API REST.</li>
-                        <li><strong>Bước 2 (Chạy mô hình song song):</strong> YOLOv8 cắt ảnh biển số gửi cho PaddleOCR. Đồng thời, toàn bộ khung hình xe được resize sang 224x224 để nạp vào EfficientNet-B0 và MobileNetV3-Small.</li>
-                        <li><strong>Bước 3 (Đối chiếu CSDL):</strong> Truy vấn trạng thái vé xe từ file CSV (đại diện cho CSDL bãi giữ xe lịch sử). Đối sánh biển số, hãng xe, màu xe.</li>
-                        <li><strong>Bước 4 (Đưa ra quyết định):</strong> Nếu khớp 100%, barrier mở. Nếu sai lệch, trả về cảnh báo an ninh, kích hoạt nhấp nháy còi trên giao diện Streamlit.</li>
+                        <li><strong>Bước 2 (Suy luận):</strong> YOLOv8 cắt ảnh biển số gửi cho <strong>PaddleOCR</strong> (runtime OCR duy nhất). Đồng thời, khung hình xe resize 224×224 cho MobileNetV3-Small (màu); EfficientNet-B0 (hãng) chỉ diagnostic.</li>
+                        <li><strong>Bước 3 (Đối chiếu CSDL):</strong> Tra cứu CSV — đối sánh <strong>biển số (khoá chính)</strong> và <strong>màu (cảnh báo mềm)</strong>; hãng không tham gia quyết định.</li>
+                        <li><strong>Bước 4 (Quyết định):</strong> Khớp biển → AUTHORIZED/ALLOW; lệch màu (ngoài cụm trung tính, conf ≥0.40) → ALLOW_WARN; biển lạ → DENY_ALERT.</li>
                     </ul>
                 </div>
             </div>
@@ -678,8 +678,8 @@ def sort_vietnamese_plate(ocr_results):
     <div class="slide-container" id="slide-10">
         <div class="slide-header">
             <div>
-                <div class="slide-subtitle">Kết quả thực nghiệm</div>
-                <h2 class="slide-title">Độ trễ & Độ chính xác thực tế</h2>
+                <div class="slide-subtitle">Block B · Baseline Paddle</div>
+                <h2 class="slide-title">PaddleOCR runtime — độ chính xác &amp; độ trễ</h2>
             </div>
             <div class="slide-number">10</div>
         </div>
@@ -818,7 +818,7 @@ def sort_vietnamese_plate(ocr_results):
                     <tr>
                         <td><strong>CLO7 - Ứng dụng công cụ AI tiên tiến</strong></td>
                         <td>Sử dụng Git quản lý phiên bản, FastAPI REST API, Streamlit Dashboard và Pytest cho kiểm thử tự động.</td>
-                        <td><span class="badge success">Đã Đạt</span> 76 passed, 7 skipped</td>
+                        <td><span class="badge success">Đã Đạt</span> 348 passed, 16 skipped</td>
                     </tr>
                 </tbody>
             </table>
@@ -934,7 +934,7 @@ def sort_vietnamese_plate(ocr_results):
                     <tr><td><strong>OCR</strong></td><td>CRNN+CTC: LPRNet, PP-OCR, Tesseract</td><td>PaddleOCR</td></tr>
                     <tr><td><strong>Thuộc tính</strong></td><td>NVIDIA DeepStream: VehicleMakeNet (ResNet18) + color</td><td>MobileNetV3 màu (phụ trợ)</td></tr>
                     <tr><td><strong>Video</strong></td><td>1 frame đại diện/xe (Visual Rhythm)</td><td>Gate "xe đã đỗ" + lấy mẫu</td></tr>
-                    <tr><td><strong>Phần cứng</strong></td><td>Jetson Nano/Orin, Raspberry Pi</td><td>ONNX/nano cùng lớp edge</td></tr>
+                    <tr><td><strong>Phần cứng</strong></td><td>Jetson Nano/Orin, Raspberry Pi</td><td>CPU cục bộ; ONNX chỉ thử nghiệm OCR CTC (chưa deploy)</td></tr>
                 </tbody>
             </table>
             <p style="font-size:0.86rem; line-height:1.6; margin-top:14px;">
@@ -944,8 +944,69 @@ def sort_vietnamese_plate(ocr_results):
         </div>
     </div>
 
-    <!-- SLIDE 17: Q&A -->
-    <div class="slide-container slide-bg-dark" id="slide-17" style="justify-content: center; align-items: center; text-align: center;">
+    <!-- SLIDE 17: Lightweight OCR experiment (CTC) — NOT deployed -->
+    <div class="slide-container" id="slide-17">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Block C · Thử nghiệm OCR nhẹ</div>
+                <h2 class="slide-title">MobileNetV3-Small + CTC → ONNX (chưa triển khai)</h2></div>
+            <div class="slide-number">17</div>
+        </div>
+        <div class="slide-body">
+            <p style="color:var(--text-muted); margin-bottom:14px; font-size:0.9rem;">
+                <strong>PaddleOCR vẫn là runtime.</strong> Thử nghiệm song song — huấn luyện synthetic + pseudo (conf≥0.5); val trên <code>real_validation</code> (64 biển ô tô). Tập <code>frozen_regression</code> (16) và <code>expanded_real_test</code> (102) <strong>giữ khoá</strong>, không dùng tune/chọn model.
+            </p>
+            <div class="grid-2">
+                <table style="font-size:0.82rem;">
+                    <thead><tr><th>Chỉ số (val n=64)</th><th>CTC thử nghiệm</th><th>Paddle baseline</th></tr></thead>
+                    <tbody>
+                        <tr><td>Exact-match</td><td style="color:var(--accent-red)"><strong>0% (0/64)</strong></td><td><strong>81%</strong> (frozen 16)</td></tr>
+                        <tr><td>CER</td><td><strong>0.66</strong></td><td>0.031 (Benchmark C)</td></tr>
+                        <tr><td><code>deployment_ready</code></td><td><strong>false</strong></td><td>đang chạy production</td></tr>
+                        <tr><td>Ngưỡng thay Paddle</td><td colspan="2">≥90% exact-match — <strong>không đạt</strong></td></tr>
+                    </tbody>
+                </table>
+                <ul style="font-size:0.86rem;">
+                    <li><strong>Domain gap:</strong> pseudo chủ yếu xe máy; val/test = biển ô tô.</li>
+                    <li><strong>Anti-leakage:</strong> ~140 identity <code>plate_det</code> khóa giữa train và reserved.</li>
+                    <li><strong>Vì sao không deploy:</strong> 0% exact-match, CER cao — không vượt gate ≥90%; ONNX artifact chỉ lưu nghiên cứu, không wire vào API.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 18: Lessons & future work -->
+    <div class="slide-container" id="slide-18">
+        <div class="slide-header">
+            <div><div class="slide-subtitle">Block D · Bài học &amp; hướng đi</div>
+                <h2 class="slide-title">Kết luận trung thực &amp; việc tiếp theo</h2></div>
+            <div class="slide-number">18</div>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Bài học chính</h3>
+                    <ul style="font-size:0.86rem;">
+                        <li>Đo baseline sớm → pivot plate-primary (Paddle 81%, hãng ~35%).</li>
+                        <li>False-alarm 14.5% → gate 0.40 → 2.5% FA, detection 69%.</li>
+                        <li>Thử OCR CTC trước khi thay Paddle — số liệu nói không deploy.</li>
+                        <li>Runtime: PaddleOCR + PyTorch màu; TF chỉ train/eval.</li>
+                    </ul>
+                </div>
+                <div class="card" style="box-shadow:4px 4px 0px var(--accent-green);">
+                    <h3>Hướng phát triển (ngắn)</h3>
+                    <ul style="font-size:0.86rem;">
+                        <li>Thu corpus biển <strong>ô tô in-domain</strong> tại site/bãi cụ thể.</li>
+                        <li>OCR CTC chỉ khi ≥90% exact trên frozen 16 — hiện 0% val 64.</li>
+                        <li>Kiểm chứng màu &amp; chống tráo biển trên CCTV bãi thật.</li>
+                        <li>Pilot: CSDL mở rộng + demo camera <strong>một khung đồng bộ</strong>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 19: Q&A -->
+    <div class="slide-container slide-bg-dark" id="slide-19" style="justify-content: center; align-items: center; text-align: center;">
         <div>
             <span class="badge success" style="margin-bottom: 20px;">Report 4: Final Defense</span>
             <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
@@ -963,13 +1024,13 @@ def sort_vietnamese_plate(ocr_results):
     <!-- Navigation Bar -->
     <div class="nav-bar">
         <button class="nav-btn" onclick="prevSlide()">← Slide trước</button>
-        <div class="nav-counter" id="slideCounter">1 / 17</div>
+        <div class="nav-counter" id="slideCounter">1 / 19</div>
         <button class="nav-btn" onclick="nextSlide()">Slide sau →</button>
     </div>
 
     <script>
         let currentSlide = 1;
-        const totalSlides = 17;
+        const totalSlides = 19;
 
         function showSlide(n) {
             // Hide all slides

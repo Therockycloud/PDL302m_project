@@ -8,7 +8,7 @@ What commercial and developed-country Automatic License-Plate Recognition (ALPR)
 | Stage | Industry / state-of-the-art | This project |
 |---|---|---|
 | **Detection** | Cascaded **vehicle → plate → character** with the **YOLO** family (v8/v9/nano); suppresses false positives, runs on constrained hardware | 2-stage **YOLOv8n** vehicle → plate (mAP50 0.99) |
-| **OCR** | **Segmentation-free CRNN + CTC** — LPRNet (first real-time), CR-NET/SCR-Net, or Tesseract/PaddleOCR for multi-script | **PaddleOCR (PP-OCRv4)**, a CRNN+CTC engine (Benchmark C: 81% vs EasyOCR 0%) |
+| **OCR** | **Segmentation-free CRNN + CTC** — LPRNet (first real-time), CR-NET/SCR-Net, or Tesseract/PaddleOCR for multi-script | **PaddleOCR**, a CRNN+CTC engine (Benchmark C: 81% vs EasyOCR 0%) |
 | **Attributes (make/colour/type)** | **Secondary classifiers** after the detector — NVIDIA **DeepStream** uses a primary detector (DashCamNet/TrafficCamNet) + secondary **VehicleMakeNet (ResNet18)** for make and a colour classifier | **MobileNetV3-Small** colour classifier on the vehicle crop (brand dropped) |
 | **Frame efficiency** | Process **one representative frame per vehicle** — *Visual Rhythm* / *Accumulative Line Analysis* cut compute ~3× vs naive per-frame | **Frame sampling + parking-trigger gate** — heavy pipeline runs once per parked car |
 | **Edge hardware** | **Jetson Nano/TX2/Orin, Raspberry Pi 4B, FPGA**; on-prem | Nano/mobile models exported to **ONNX**, sized for the same edge class |

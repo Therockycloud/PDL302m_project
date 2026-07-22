@@ -1,0 +1,20 @@
+.git
+.worktrees
+**/__pycache__
+**/*.pyc
+.pytest_cache
+**/.pytest_cache
+reports/
+course_details/
+main/data/raw/
+main/notebooks/
+**/.DS_Store
+
+# Non-runtime heavy model artifacts (kept out of build context)
+main/data/models/color_ResNet50.pt
+main/data/models/color_EfficientNetB0.pt
+main/data/models/color_MobileNetV3Small_cctv.pt
+main/data/models/brand_classifier.keras
+main/data/models/color_classifier.keras
+main/data/models/color_classifier.keras.bak
+main/yolov8n.pt

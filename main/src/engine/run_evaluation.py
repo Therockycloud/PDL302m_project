@@ -4,8 +4,10 @@ import sys
 import time
 import numpy as np
 
-# Add project root to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+# Project root (three levels up from main/src/engine/). Added to sys.path and
+# used as the base for every data/model path so the script runs from any CWD.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.append(PROJECT_ROOT)
 
 from main.src.models.detector import PlateDetector
 from main.src.models.ocr import PlateOCR
@@ -19,16 +21,20 @@ def main():
 
     brand_clf = BrandClassifier()
     brand_clf.build_model()
-    brand_clf.load_weights("main/data/models/brand_classifier.keras")
+    brand_clf.load_weights(
+        os.path.join(PROJECT_ROOT, "main", "data", "models", "brand_classifier.keras")
+    )
 
     color_clf = ColorClassifier()
     color_clf.build_model()
-    color_clf.load_weights("main/data/models/color_classifier.keras")
+    color_clf.load_weights(
+        os.path.join(PROJECT_ROOT, "main", "data", "models", "color_classifier.keras")
+    )
 
-    db_path = "main/data/database.csv"
+    db_path = os.path.join(PROJECT_ROOT, "main", "data", "database.csv")
     matcher = DatabaseMatcher(db_path)
 
-    image_dir = "main/data/raw/license_plates"
+    image_dir = os.path.join(PROJECT_ROOT, "main", "data", "raw", "license_plates")
     supported_ext = (".jpg", ".jpeg", ".png", ".bmp")
     image_files = sorted(
         f for f in os.listdir(image_dir)

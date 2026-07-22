@@ -71,6 +71,15 @@ class DatabaseMatcher:
         else:
             raise FileNotFoundError(f"Database file not found at: {self.db_path}")
 
+    def is_registered(self, plate: str) -> bool:
+        """Return True when *plate* matches a row in the registration DB."""
+        if self.db is None:
+            return False
+        clean_plate = (
+            str(plate).replace(" ", "").replace("-", "").replace(".", "").upper()
+        )
+        return not self.db[self.db["license_plate"] == clean_plate].empty
+
     def verify_vehicle(self, detected_plate: str, detected_color: str, color_conf: float = None) -> dict:
         """Verify a detected vehicle against the registered database.
 

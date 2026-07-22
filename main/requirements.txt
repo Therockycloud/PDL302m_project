@@ -1,10 +1,11 @@
 # Core Deep Learning & Computer Vision
 ultralytics>=8.0.0
+torch>=2.2              # runtime colour classifier (TorchColorClassifier); >=2.2 also fixes the old MPS-backward bug
+torchvision>=0.17       # MobileNetV3-Small backbone weights/transforms
 onnxruntime>=1.16.0
 opencv-python>=4.6.0
-easyocr>=1.6.2          # fallback OCR engine
 paddleocr>=3.0.0        # primary OCR engine (won Benchmark C)
-paddlepaddle>=3.0.0     # PaddleOCR backend (CPU)
+paddlepaddle>=3.0.0     # linux/aarch64 (Docker) segfaults on ALL available 3.x wheels -> Dockerfile overrides with the legacy 2.x stack; see Dockerfile comment
 
 # Data Processing & Utilities
 numpy>=1.21.6
@@ -19,7 +20,7 @@ uvicorn>=0.20.0
 python-multipart>=0.0.5
 
 # Deployment & Web UI
-streamlit>=1.15.0
+streamlit==1.35.0       # pinned to match the verified local runtime; newer versions deprecate use_column_width used by dashboard.py
 
 # Testing
 pytest>=7.0.0

@@ -1,8 +1,9 @@
 """YOLOv8 license plate detector wrapper.
 
-Wraps the Ultralytics YOLOv8 model for license plate detection
-with automatic device selection (MPS / CPU) and configurable
-confidence thresholds. Parameters are read from ``config.yaml``.
+Wraps the Ultralytics YOLOv8 model for license plate detection on CPU
+(GPU/MPS is deliberately disabled, see ``_select_device``) with
+configurable confidence thresholds. Parameters are read from
+``config.yaml``.
 """
 
 from __future__ import annotations
@@ -42,10 +43,13 @@ def _load_config() -> dict[str, Any]:
 
 
 def _select_device() -> str:
-    """Auto-detect the best available device (MPS or CPU).
+    """Return the inference device (always ``'cpu'``).
+
+    No auto-detection happens: GPU/MPS inference is deliberately disabled
+    because YOLO inference hung on macOS MPS drivers.
 
     Returns:
-        ``'cpu'`` to avoid driver hangs on macOS.
+        The literal string ``'cpu'``.
     """
     return "cpu"
 
@@ -59,7 +63,7 @@ class PlateDetector:
     Attributes:
         model: The loaded YOLOv8 model instance.
         conf_threshold: Minimum confidence for a detection to be kept.
-        device: Inference device (``'mps'`` or ``'cpu'``).
+        device: Inference device (always ``'cpu'``, see ``_select_device``).
         crop_padding: Fractional padding applied around each cropped plate.
 
     Example::

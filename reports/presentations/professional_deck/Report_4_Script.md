@@ -40,7 +40,7 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Để khắc phục lỗ hổng an ninh trên, chúng em đề xuất khung giải pháp đối chiếu chéo đa nhân tố. Hệ thống hoạt động dựa trên ba trụ cột kỹ thuật:
 >
-> 1. **Nhận diện biển số (OCR):** Cắt vùng biển số bằng YOLOv8-nano và giải mã ký tự qua PaddleOCR (PP-OCRv4) làm khóa chính.
+> 1. **Nhận diện biển số (OCR):** Cắt vùng biển số bằng YOLOv8-nano và giải mã ký tự qua PaddleOCR làm khóa chính.
 > 2. **Phân loại màu sắc (Color):** Nhận diện 8 hệ màu cơ bản bằng MobileNetV3-Small để đưa ra cảnh báo mềm khi lệch thông tin.
 > 3. **Đối chiếu cơ sở dữ liệu cục bộ:** So khớp tức thời biển số và màu sắc với tệp dữ liệu CSV lưu trữ lịch sử lúc xe vào bãi.
 >
@@ -49,7 +49,7 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 ### 🇬🇧 English Script
 > "To close this security gap, we propose a multi-factor cross-verification framework. The system operates on three technical pillars:
 >
-> 1. **License Plate OCR:** Extracts the plate region using YOLOv8-nano and decodes characters via PaddleOCR (PP-OCRv4) as the primary key.
+> 1. **License Plate OCR:** Extracts the plate region using YOLOv8-nano and decodes characters via PaddleOCR as the primary key.
 > 2. **Color Classification:** Identifies 8 base colors using MobileNetV3-Small to trigger soft warnings on mismatch.
 > 3. **Local Database Matcher:** Instantly matches the plate and color against a local CSV file storing check-in records.
 >
@@ -58,17 +58,17 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 ---
 
 ## Slide 4: Tổng quan nghiên cứu & Cơ sở khoa học (Tech Spec Sheet - Literature Review - S21)
-*   **Visual:** Bảng cơ sở khoa học và các bài báo khoa học được trích dẫn (YOLOv8, PP-OCRv4 BiLSTM, MobileNetV3, EfficientNet-B0).
+*   **Visual:** Bảng cơ sở khoa học và các bài báo khoa học được trích dẫn (YOLOv8, PaddleOCR CNN+CTC, MobileNetV3, EfficientNet-B0).
 
 ### 🇻🇳 Lời thoại tiếng Việt
 > "Về cơ sở khoa học, chúng em đã kế thừa và tích hợp các nghiên cứu học sâu tiên tiến nhất để tối ưu hóa tài nguyên phần cứng. 
 >
-> Đối với phát hiện biển số, chúng em sử dụng mô hình **YOLOv8-nano** của Jocher (2023) vì tốc độ phát hiện thời gian thực vượt trội trên thiết bị biên. Khâu nhận diện ký tự OCR sử dụng **PaddleOCR (PP-OCRv4)** tích hợp mạng hồi quy BiLSTM hai chiều theo nghiên cứu của Shi (2015) để mô hình hóa chuỗi ký tự, đem lại độ chính xác vượt trội trên dữ liệu CCTV thực tế. Cuối cùng, mô hình **MobileNetV3-Small** của Howard (2019) được lựa chọn cho phân loại màu sắc nhờ khả năng tối ưu hóa tính toán trên CPU bãi giữ xe."
+> Đối với phát hiện biển số, chúng em sử dụng mô hình **YOLOv8-nano** của Jocher (2023) vì tốc độ phát hiện thời gian thực vượt trội trên thiết bị biên. Khâu nhận diện ký tự OCR sử dụng **PaddleOCR** với mạng nhận diện chuỗi CNN + CTC theo hướng nghiên cứu của Shi (2015) để mô hình hóa chuỗi ký tự, đem lại độ chính xác vượt trội trên dữ liệu CCTV thực tế. Cuối cùng, mô hình **MobileNetV3-Small** của Howard (2019) được lựa chọn cho phân loại màu sắc nhờ khả năng tối ưu hóa tính toán trên CPU bãi giữ xe."
 
 ### 🇬🇧 English Script
 > "Regarding the scientific foundation, we integrated state-of-the-art deep learning architectures optimized for edge hardware.
 >
-> For plate detection, we utilized **YOLOv8-nano** (Jocher, 2023) due to its exceptional real-time inference speed on edge devices. For character recognition, we integrated **PaddleOCR (PP-OCRv4)**, which uses a bidirectional LSTM (BiLSTM) network (Shi, 2015) to model character sequences, yielding superior accuracy on real CCTV images. Finally, Howard's **MobileNetV3-Small** (2019) was selected for color classification due to its hardware-friendly computation on standard edge CPUs."
+> For plate detection, we utilized **YOLOv8-nano** (Jocher, 2023) due to its exceptional real-time inference speed on edge devices. For character recognition, we integrated **PaddleOCR**, which uses a CNN+CTC sequence-recognition model (in the spirit of Shi, 2015) to model character sequences, yielding superior accuracy on real CCTV images. Finally, Howard's **MobileNetV3-Small** (2019) was selected for color classification due to its hardware-friendly computation on standard edge CPUs."
 
 ---
 
@@ -155,21 +155,21 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 
 ---
 
-## Slide 10: Mô hình hóa chuỗi ký tự (Three Layers - PaddleOCR CRNN/BiLSTM modeling - S05)
-*   **Visual:** Sơ đồ 3 tầng mô hình hóa chuỗi ký tự (Tầng 1: PP-LCNet CNN Backbone, Tầng 2: Recurrent Core BiLSTM, Tầng 3: CTC Transcription).
+## Slide 10: Mô hình hóa chuỗi ký tự (Three Layers - PaddleOCR sequence-recognition modeling - S05)
+*   **Visual:** Sơ đồ 3 tầng mô hình hóa chuỗi ký tự (Tầng 1: PP-LCNet CNN Backbone, Tầng 2: Recurrent Core, Tầng 3: CTC Transcription).
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Tại khâu nhận diện ký tự OCR, chúng em áp dụng kiến trúc PP-OCRv4 của PaddleOCR nhằm đáp ứng chuẩn đầu ra CLO5 về mô hình hóa chuỗi ký tự. Quy trình giải mã gồm ba tầng:
+> "Tại khâu nhận diện ký tự OCR, chúng em áp dụng kiến trúc nhận dạng chuỗi của PaddleOCR nhằm đáp ứng chuẩn đầu ra CLO5 về mô hình hóa chuỗi ký tự. Quy trình giải mã gồm ba tầng:
 >
 > *   **Tầng 1 (CNN Backbone):** Mạng PP-LCNet trích xuất bản đồ đặc trưng từ ảnh biển số và cắt lát thành chuỗi vector từ trái sang phải.
-> *   **Tầng 2 (Recurrent Core):** Mạng BiLSTM hai chiều mô hình hóa ngữ cảnh và ghi nhớ mối liên hệ tuần tự của chuỗi ký tự theo cả hai hướng.
+> *   **Tầng 2 (Recurrent Core):** Mạng hồi quy mô hình hóa ngữ cảnh và ghi nhớ mối liên hệ tuần tự của chuỗi ký tự.
 > *   **Tầng 3 (Giải mã):** Tầng CTC căn chỉnh chuỗi ký tự ngõ ra mà không cần phân đoạn ký tự thủ công ở mức pixel."
 
 ### 🇬🇧 English Script
-> "For character recognition, we deployed PaddleOCR's PP-OCRv4 architecture to satisfy Course Learning Outcome 5 on sequence modeling. The pipeline operates in three layers:
+> "For character recognition, we deployed PaddleOCR's text-recognition architecture to satisfy Course Learning Outcome 5 on sequence modeling. The pipeline operates in three layers:
 >
 > *   **Layer 1 (CNN Backbone):** PP-LCNet extracts feature maps from the plate crop, slicing them into a sequence of vectors from left to right.
-> *   **Layer 2 (Recurrent Core):** A bidirectional LSTM (BiLSTM) network captures sequential dependencies and context from both left-to-right and right-to-left directions.
+> *   **Layer 2 (Recurrent Core):** A recurrent network captures sequential dependencies and context across the character sequence.
 > *   **Layer 3 (Transcription):** A Connectionist Temporal Classification (CTC) layer decodes the sequence without requiring manual pixel-level segmentation."
 
 ---
@@ -223,12 +223,12 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 *   **Visual:** Biểu đồ thanh ngang so sánh độ chính xác giữa các mô hình (YOLOv8: 99%, PaddleOCR: 81.2%, Color: 86.3%, Brand: 35.3%, EasyOCR: 0%).
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Đây là kết quả thực nghiệm chi tiết của các mô hình trên tập dữ liệu kiểm thử độc lập. Bộ định vị YOLOv8 đạt kết quả xuất sắc với mAP 99%. Với OCR, PaddleOCR (PP-OCRv4) đạt tỷ lệ khớp hoàn toàn 81% trên dữ liệu CCTV thật, trong khi EasyOCR chỉ đạt 0% do không thể xử lý ảnh thực tế từ camera bãi xe. 
+> "Đây là kết quả thực nghiệm chi tiết của các mô hình trên tập dữ liệu kiểm thử độc lập. Bộ định vị YOLOv8 đạt kết quả xuất sắc với mAP 99%. Với OCR, PaddleOCR đạt tỷ lệ khớp hoàn toàn 81% trên dữ liệu CCTV thật, trong khi EasyOCR chỉ đạt 0% do không thể xử lý ảnh thực tế từ camera bãi xe. 
 >
 > Độ chính xác của bộ phân loại màu, sau khi mở rộng dữ liệu VCoR và áp dụng test-time augmentation, đạt 86.3% (macro-F1 0.84) trên bản deploy cuối cùng — đây là một thành phần khá mạnh của hệ thống. Ngược lại, bộ phân loại thương hiệu EfficientNet-B0 chỉ đạt 35.3% do độ mờ ảnh CCTV. Sự chênh lệch này là căn cứ thực tế để chúng em loại hãng xe khỏi quyết định (chỉ giữ vai trò diagnostic), còn màu xe vẫn đóng vai trò cảnh báo mềm — không phải vì model yếu, mà vì 86.3% đo trên ảnh VCoR sạch, chưa kiểm chứng trên domain CCTV bãi xe thật. Hệ thống chuyển sang đối chiếu Plate-Primary để bảo vệ khỏi các lỗi khóa cổng nhầm."
 
 ### 🇬🇧 English Script
-> "These are the empirical benchmark results of our models on the independent test split. The YOLOv8 plate detector achieved an outstanding 99% mAP. In OCR, PaddleOCR (PP-OCRv4) reached an 81% exact-match accuracy on real CCTV images, whereas EasyOCR failed completely at 0% due to its inability to process noisy, low-resolution plate crops.
+> "These are the empirical benchmark results of our models on the independent test split. The YOLOv8 plate detector achieved an outstanding 99% mAP. In OCR, PaddleOCR reached an 81% exact-match accuracy on real CCTV images, whereas EasyOCR failed completely at 0% due to its inability to process noisy, low-resolution plate crops.
 >
 > The color classifier, after scaling up to the full VCoR dataset and applying test-time augmentation, reached 86.3% accuracy (macro-F1 0.84) in the final deployed model — a genuinely strong component. In contrast, the EfficientNet-B0 brand classifier reached only 35.3% due to CCTV blur. This gap justified demoting brand to diagnostic-only, while color still serves as a soft warning signal rather than a hard gate — not because the model is weak, but because the 86.3% was measured on clean VCoR images and has not yet been validated on real CCTV parking-lot footage. The system adopted a Plate-Primary matching logic to prevent false gate locking."
 
@@ -268,9 +268,9 @@ Tài liệu này chứa nội dung thuyết trình chi tiết bằng cả tiến
 *   **Visual:** Tóm tắt 3 điểm sáng (Hoàn thành đầy đủ CLO, Thực chứng thực tế <1 giây, Định hướng tương lai xác nhận domain CCTV) và lời cảm ơn Thầy Lương Trung Kiên.
 
 ### 🇻🇳 Lời thoại tiếng Việt
-> "Cuối cùng, em xin tổng kết lại các đóng góp của đồ án. Chúng em đã hoàn thành toàn diện hệ thống nhận diện và đối chiếu thuộc tính xe chạy 100% offline trên CPU, đáp ứng đầy đủ các chuẩn đầu ra từ CLO1 đến CLO7. Hệ thống được thực chứng kỹ lưỡng qua dữ liệu camera thực tế, giải quyết tốt các lỗi xung đột phần mềm và đạt độ trễ dưới 1 giây ở chế độ steady-state. 
+> "Cuối cùng, em xin tổng kết lại các đóng góp của đồ án. Chúng em đã hoàn thành toàn diện hệ thống nhận diện và đối chiếu thuộc tính xe chạy 100% offline trên CPU, đáp ứng đầy đủ các chuẩn đầu ra từ CLO1 đến CLO7. **OCR runtime vẫn là PaddleOCR** (~81% exact-match frozen 16); thử nghiệm MobileNetV3-Small+CTC→ONNX đạt 0% exact / CER ~0.66, `deployment_ready: false` — **chưa triển khai**. Hệ thống đạt độ trễ dưới 1 giây ở steady-state.
 >
-> Lộ trình phát triển tương lai của dự án tập trung vào việc thu thập thêm dữ liệu hình ảnh đặc thù CCTV bãi xe nội địa để xác nhận độ chính xác màu ~86% giữ vững ngoài tập VCoR, cùng với rút ngắn thời gian cold-start khi nạp PaddleOCR lần gọi đầu. Nhóm chúng em xin chân thành cảm ơn thầy Lương Trung Kiên đã tận tình hướng dẫn nhóm hoàn thành đồ án này. Kính mong nhận được ý kiến đóng góp từ thầy và các bạn."
+> Hướng tiếp theo (ngắn): thu corpus biển ô tô in-domain tại site cụ thể; tiếp tục CTC chỉ khi ≥90% exact trên frozen 16; kiểm chứng màu/chống tráo trên CCTV bãi thật; pilot demo camera một khung đồng bộ. Nhóm xin cảm ơn thầy Lương Trung Kiên. Kính mong nhận được ý kiến đóng góp."
 
 ### 🇬🇧 English Script
 > "In conclusion, I would like to summarize our project's deliverables. We successfully implemented a fully offline, CPU-based vehicle attribute recognition and cross-matching system, achieving full compliance with CLO1 through CLO7. The system was validated against real CCTV footage, resolved complex process conflict deadlocks, and achieves sub-1-second latency at steady-state.

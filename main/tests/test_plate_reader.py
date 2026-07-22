@@ -30,8 +30,24 @@ def test_reads_best_plate_box():
     reader = PlateReader(FakePlateDetector(dets), FakeOCR("51F12345"))
     out = reader.read(_crop())
     assert out["text"] == "51F12345"
-    assert out["conf"] == 0.8
+    assert out["ocr_conf"] == 0.0
+    assert out["plate_det_conf"] == 0.8
     assert out["plate_bbox"] == (2, 2, 8, 8)
+
+
+def test_keeps_detector_and_ocr_confidences_separate():
+    dets = [{"bbox": (1, 2, 3, 4), "conf": 0.95, "crop": _crop()}]
+    reader = PlateReader(
+        FakePlateDetector(dets),
+        FakeOCR({"text": "30M71854", "ocr_conf": 0.42}),
+    )
+
+    assert reader.read(_crop()) == {
+        "text": "30M71854",
+        "ocr_conf": 0.42,
+        "plate_det_conf": 0.95,
+        "plate_bbox": (1, 2, 3, 4),
+    }
 
 
 def test_no_ocr_fallback_when_no_plate_box():
@@ -41,4 +57,6 @@ def test_no_ocr_fallback_when_no_plate_box():
     reader = PlateReader(FakePlateDetector([]), FakeOCR("VF3"))
     out = reader.read(_crop())
     assert out["text"] == ""
+    assert out["ocr_conf"] == 0.0
+    assert out["plate_det_conf"] == 0.0
     assert out["plate_bbox"] is None

@@ -55,6 +55,10 @@ main/data/raw/car_colors/
 main/data/raw/plate_det/
 main/data/raw/brands/
 main/data/raw/colors/
+main/data/raw/license_plates_crawl_hf/
+main/data/raw/license_plates_crawl_trungdinh/
+main/data/raw/license_plates_kaggle/
+main/data/raw/**/_downloads/
 
 # Data-pipeline holding bins / intermediates (reject + dedup + balance leftovers)
 main/data/raw/garbage/
@@ -66,6 +70,11 @@ main/data/raw/_topup*/
 # Derived train/val/test split (regenerate with scripts/split_dataset.py)
 main/data/processed/
 
+# Reproducible OCR manifests are tracked; generated corpora and review caches are not
+main/data/plate_ocr/generated/
+main/data/plate_ocr/review/
+main/data/plate_ocr/**/*.cache
+
 # Large media (footage + downloaded sample clips)
 main/data/**/*.mp4
 main/data/**/*.mov
@@ -74,9 +83,13 @@ main/data/**/*.avi
 # Stray base weights downloaded by ultralytics into the repo root
 /yolov8n.pt
 
-# Model training runs (checkpoints/plots) and logs — keep only exported ONNX
+# Model training runs (checkpoints/plots) and logs — keep only exported metrics JSON/PNG
 main/data/models/plate_runs/
 main/data/models/logs/
+main/data/models/vn_plate_run/best.pt
+main/data/models/vn_plate_run/vn_plate_recognizer.onnx
+main/data/models/vn_plate_run_*/best.pt
+main/data/models/vn_plate_run_*/vn_plate_recognizer.onnx
 
 # Stray downloaded base weights
 main/yolov8n.pt
@@ -94,6 +107,21 @@ main/data/models/color_*.keras
 
 # Agent orchestration scratch
 .agents/
+
+# Local scratch / generated output
+tmp/
+output/
+
+# Word/Office lock files
+~$*
+*.tmp
+
+# Heavy presentation exports (source HTML is enough)
+reports/presentations/**/exported.pdf
+reports/presentations/**/SCRIPT.txt
+
+# Editor-local settings
+.vscode/
 
 # Per-user Claude settings (keep launch.json + run_dashboard.sh)
 .claude/settings.local.json

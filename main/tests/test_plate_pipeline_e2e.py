@@ -13,6 +13,13 @@ import pytest
 pytest.importorskip("onnxruntime")
 pytest.importorskip("ultralytics")
 
+try:
+    import easyocr  # noqa: F401
+    from src.models.ocr import PlateOCR  # noqa: F401
+    _EASYOCR_AVAILABLE = True
+except ImportError:
+    _EASYOCR_AVAILABLE = False
+
 MODEL = os.path.join("data", "models", "plate_yolov8n.onnx")
 IMG = os.path.join("data", "raw", "license_plates", "clip3_new_0.jpg")
 _HAVE = os.path.exists(MODEL) and os.path.exists(IMG)
@@ -33,6 +40,7 @@ def test_plate_detector_finds_plates_on_real_image():
 
 
 @pytest.mark.skipif(not _HAVE, reason="plate model or sample image not present")
+@pytest.mark.skipif(not _EASYOCR_AVAILABLE, reason="easyocr not installed (train/eval-only dependency)")
 def test_plate_reader_end_to_end_on_real_image():
     from src.models.vehicle_detector import VehicleDetector
     from src.models.plate_reader import PlateReader
@@ -42,5 +50,5 @@ def test_plate_reader_end_to_end_on_real_image():
     reader = PlateReader(det, PlateOCR())
     img = cv2.imread(IMG)
     out = reader.read(img)
-    assert set(("text", "conf", "plate_bbox")).issubset(out.keys())
+    assert set(("text", "ocr_conf", "plate_det_conf", "plate_bbox")).issubset(out.keys())
     assert isinstance(out["text"], str)

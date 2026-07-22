@@ -1,0 +1,92 @@
+{
+  "best_metrics": {
+    "epoch": 8,
+    "train_loss": 0.919092732667923,
+    "val_cer": 0.6594488188976378,
+    "val_exact_match": 0.0
+  },
+  "blank_index": 36,
+  "confidence_calibration": {
+    "available": false,
+    "coverage": 0.0,
+    "precision": null,
+    "support": 0,
+    "threshold": null,
+    "total": 64
+  },
+  "config": {
+    "batch_size": 32,
+    "epochs_requested": 40,
+    "learning_rate": 0.001,
+    "num_workers": 0,
+    "patience": 10,
+    "seed": 20260713,
+    "threads": 4
+  },
+  "dependencies": {
+    "matplotlib": "3.11.0",
+    "numpy": "1.26.4",
+    "onnx": "1.22.0",
+    "onnxruntime": "1.27.0",
+    "opencv": "4.6.0",
+    "python": "3.12.13",
+    "torch": "2.12.1+cu130",
+    "torchvision": "0.27.1"
+  },
+  "deployment_ready": false,
+  "environment": {
+    "cpu_count": 10,
+    "platform": "Linux-6.12.72-linuxkit-aarch64-with-glibc2.41",
+    "torch_deterministic_algorithms": true
+  },
+  "fixed_batch_size": 32,
+  "input_size": [
+    192,
+    64
+  ],
+  "input_tensor_shape": [
+    32,
+    3,
+    64,
+    192
+  ],
+  "mean": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "model_sha256": "83fcacee2784a3b36ce995f9850029908a8c2a1078d6016dcb6c255d386466ba",
+  "onnx_sha256": "f2f97fb0f5c23d9c0f533c37ca6b9a6e0f2684e9b1f3334cc1d3d730e1f7181b",
+  "recommended_lock_conf": null,
+  "reserved_manifests": [
+    {
+      "path": "/app/main/data/plate_ocr/expanded_real_test.csv",
+      "sha256": "04c95703a3e71aeccafb8394d069afc4f4ed1deadfa4fd7a2be981e7ad15b575"
+    },
+    {
+      "path": "/app/main/data/plate_ocr/frozen_regression.csv",
+      "sha256": "21bf99be329c836abf4d2fd0e9fad16e5945fc826176621f7e657e4438a0f9a9"
+    }
+  ],
+  "schema": "vn-plate-ctc-v1",
+  "std": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "train_manifests": [
+    {
+      "path": "/app/main/data/plate_ocr/generated/task4_train/manifest.csv",
+      "sha256": "7562e266ec5f0f78436af62e1cf9f455c269b4bef7055cced7aec7a45736fcb3"
+    },
+    {
+      "path": "/app/main/data/plate_ocr/generated/pseudo_vision/manifest_conf_ge_0.5.csv",
+      "sha256": "4a98e73b258f927575da0393afd92c86d65d78e57af8bbd32dcc04dc6549ac65"
+    }
+  ],
+  "validation_manifest": {
+    "path": "/app/main/data/plate_ocr/real_validation.csv",
+    "sha256": "71b5f5305867a8eb69c6f4da98025e8da4b05ac33f04468be0167ab2028214a2"
+  },
+  "vocabulary": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+}

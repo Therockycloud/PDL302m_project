@@ -1,14 +1,16 @@
 """Premium dark-theme Streamlit dashboard for the Vehicle Anti-Theft system.
 
-Supports three input modes (Webcam, Upload Image, Upload Video) and
+Supports four input modes (Upload Image, Upload Video, Webcam, Registry) and
 renders detection results in a glassmorphic UI with real-time metrics.
 """
 
+import hashlib
 import io
 import os
 import sys
 import time
 import logging
+import uuid
 from pathlib import Path
 from typing import Any, Optional
 
@@ -34,9 +36,42 @@ from src.utils.visual import (
 )
 from src.utils.matching import DatabaseMatcher
 from src.utils.warmup import warmup_models
-from src.engine.pipeline_factory import build_pipeline, infer_single_image
+from src.engine.pipeline_factory import build_parking_session, build_pipeline, infer_single_image
+from src.ui.live_webcam import live_webcam
+from src.ui.media_clock_video import (
+    clear_media_clock_source,
+    demo_component_key,
+    demo_session_id,
+    map_demo_decision,
+    media_clock_video,
+    media_url_for_file,
+)
+from src.utils.download_sample_video import validate_sample_video
+from src.utils.registry_store import (
+    DEFAULT_PHOTOS_DIR,
+    DuplicatePlateError,
+    add_vehicle,
+    delete_vehicle,
+    list_vehicles,
+)
 
 logger = logging.getLogger(__name__)
+
+# Bundled Upload Video demos — keep labels and wiring in sync.
+DEMO_LABEL_UNREGISTERED = "1. Unregistered"
+DEMO_LABEL_REGISTERED = "2. Registered"
+DEMO_LABEL_MISMATCHED = "3. Mismatched"
+DEMO_LABEL_REGISTERED_SEQ = "4. Registered (Seq)"
+_DEMO_TEST_DIR = _PROJECT_ROOT / "main" / "data" / "test"
+_DEMO_VIDEO_DIR = _PROJECT_ROOT / "main" / "data" / "demo_videos"
+_DEMO_VIDEO_UNREGISTERED = _DEMO_TEST_DIR / "parking_case_real.mp4"
+_DEMO_VIDEO_REGISTERED = _DEMO_TEST_DIR / "parking_case_real_v2.mp4"
+_DEMO_VIDEO_MISMATCHED = _DEMO_VIDEO_DIR / "sequence_01_1.mp4"
+_DEMO_VIDEO_REGISTERED_SEQ = _DEMO_VIDEO_DIR / "sequence_01_2.mp4"
+_DEMO_VIDEO_ID_UNREGISTERED = "demo-unregistered"
+_DEMO_VIDEO_ID_REGISTERED = "demo-registered"
+_DEMO_VIDEO_ID_MISMATCHED = "demo-mismatched"
+_DEMO_VIDEO_ID_REGISTERED_SEQ = "demo-registered-seq"
 
 # ---------------------------------------------------------------------------
 # Lazy model imports (graceful degradation)
@@ -51,19 +86,10 @@ try:
 except ImportError:
     PlateOCR = None  # type: ignore[assignment,misc]
 
-# Colour classifier. Per the DPL302m syllabus / Report 1 the classifiers are
-# TF/Keras, but TF crashes in-process with PaddleOCR (``mutex lock failed``), so
-# the Keras model is served OUT-OF-PROCESS (KerasColorClassifier -> worker in the
-# dpl-train env). TorchColorClassifier stays as a graceful fallback if the Keras
-# worker can't start (e.g. the dpl-train interpreter is missing).
-try:
-    from src.models.keras_color import KerasColorClassifier
-except Exception:  # noqa: BLE001
-    KerasColorClassifier = None  # type: ignore[assignment,misc]
-try:
-    from src.models.torch_color import TorchColorClassifier
-except Exception:  # noqa: BLE001
-    TorchColorClassifier = None  # type: ignore[assignment,misc]
+# Colour classification comes from the shared ``build_pipeline`` (PyTorch
+# MobileNetV3-Small fine-tuned on VCoR). The Keras colour model remains a
+# train/eval-side artefact in ``src/models/keras_color.py``, kept out of this
+# process because TF and PaddleOCR deadlock in-process.
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -119,13 +145,6 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
 
     # Two-stage parking session (best-effort; UI still works if parts missing)
     try:
-        from src.engine.parking_trigger import ParkingTrigger
-        from src.engine.parking_session import ParkingSession
-
-        pcfg = cfg.get("pipeline", {})
-        tcfg = pcfg.get("trigger", {})
-        lcfg = pcfg.get("lock", {})
-
         if pipeline is not None:
             plate_reader = pipeline["plate_reader"]
 
@@ -140,34 +159,44 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
                 ocr=plate_reader.ocr_reader,
             )
 
-            if (
-                plate_reader.ocr_reader is not None
-                and pipeline["color_clf"] is not None
-                and pipeline["matcher"] is not None
-            ):
-                session = ParkingSession(
-                    vehicle_detector=pipeline["vehicle_detector"],
-                    plate_reader=plate_reader,
-                    color_clf=pipeline["color_clf"],
-                    decision_engine=pipeline["decision_engine"],
-                    trigger=ParkingTrigger(
-                        roi=tcfg.get("roi"),
-                        min_area_ratio=tcfg.get("min_area_ratio", 0.15),
-                        stable_frames=tcfg.get("stable_frames", 5),
-                        move_eps=tcfg.get("move_eps", 0.02),
-                        min_persist_frames=tcfg.get("min_persist_frames", 3),
-                    ),
-                    sample_interval=pcfg.get("frame_sample_interval", 5),
-                    collect_frames=pcfg.get("collect_frames", 5),
-                    lock_conf=lcfg.get("lock_conf", 0.60),
-                    lock_repeat=lcfg.get("lock_repeat", 2),
-                )
+            session = build_parking_session(pipeline, cfg)
+            if session is not None:
                 models["session"] = session
     except Exception:
         logger.exception("ParkingSession construction failed.")
 
     st.session_state["models"] = models
     return models
+
+
+def _reload_registry_database(models: dict[str, Any], cfg: dict[str, Any]) -> None:
+    """Refresh the in-memory matcher after registry add/delete."""
+    matcher = models.get("matcher")
+    if matcher is not None:
+        matcher.load_database()
+    else:
+        models["matcher"] = DatabaseMatcher(
+            db_path=str(_PROJECT_ROOT / cfg["paths"]["database_csv"])
+        )
+    pipeline = models.get("pipeline")
+    if pipeline is not None:
+        pipeline["matcher"] = models["matcher"]
+        decision_engine = pipeline.get("decision_engine")
+        if decision_engine is not None:
+            decision_engine.matcher = models["matcher"]
+
+
+def _render_registry_results_panel_html() -> str:
+    return (
+        '<div class="card" style="min-height:420px;">'
+        '<div class="card-inner" style="min-height:408px;">'
+        '<div style="font-weight:700; font-size:1.05rem; margin-bottom:12px; '
+        'color:var(--ink);">Detection Results</div>'
+        '<div style="text-align:center; color:var(--muted); padding:60px 0;">'
+        "Registry mode — live detection idle.</div>"
+        "</div>"
+        "</div>"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +206,7 @@ def _load_models(cfg: dict[str, Any]) -> dict[str, Any]:
 def _run_pipeline(
     image: np.ndarray,
     models: dict[str, Any],
-    conf_threshold: float,  # noqa: ARG001 — kept for call-site compat; infer_single_image uses cfg-fixed confidence, not a runtime slider (known trade-off, see plan WS-4)
+    conf_threshold: float,
 ) -> tuple[list[dict[str, Any]], float]:
     """Execute the shared 2-stage vehicle->plate->OCR + colour-gated verify
     pipeline via ``infer_single_image`` (same function the API /verify
@@ -187,10 +216,10 @@ def _run_pipeline(
         image: BGR input image.
         models: Loaded model dict (must contain ``"pipeline"`` from
             ``build_pipeline``).
-        conf_threshold: Unused — ``infer_single_image`` reads a fixed
-            confidence from config.yaml at pipeline-build time, not at
-            call time. Kept in the signature so the existing call site
-            does not need to change.
+        conf_threshold: Stage-1 vehicle-detection confidence from the
+            sidebar slider, forwarded per call so the slider works at
+            runtime. The API /verify path passes no override and keeps
+            the config.yaml default, so UI and API agree by default.
 
     Returns:
         A tuple of (list with 0 or 1 result dict, latency in ms).
@@ -200,7 +229,7 @@ def _run_pipeline(
         return [], 0.0
 
     cfg = _load_config()
-    result = infer_single_image(image, pipeline, cfg)
+    result = infer_single_image(image, pipeline, cfg, conf_override=conf_threshold)
 
     brand_diagnostic = result.get("brand_diagnostic")
     if brand_diagnostic is not None:
@@ -218,7 +247,7 @@ def _run_pipeline(
         "brand_confidence": brand_confidence,
         "color": result["color"],
         "color_confidence": color_confidence,
-        "bbox": None,
+        "bbox": result.get("vehicle_bbox"),
         "status": result["status"],
         "action": result["action"],
         "message": result.get("message", ""),
@@ -266,6 +295,13 @@ def _render_result_card(result: dict[str, Any]) -> str:
     color = result.get("color", "—")
     color_conf = result.get("color_confidence", 0)
     message = result.get("message", "")
+    evidence_time = result.get("evidence_time_s")
+    evidence = (
+        f'<div style="color:var(--muted); font-size:0.8rem; margin-top:4px;">'
+        f"Evidence: {float(evidence_time):.2f}s</div>"
+        if evidence_time is not None
+        else ""
+    )
 
     # Design A verdict: bold colour TEXT, no box, no emoji.
     if status == "AUTHORIZED":
@@ -287,9 +323,82 @@ def _render_result_card(result: dict[str, Any]) -> str:
         f"      Colour: <strong>{color}</strong> ({color_conf:.1f}%)"
         f"    </div>"
         f'    <div style="margin-top:8px;">{verdict}</div>'
+        f"    {evidence}"
         f"    {soft}"
         f"  </div>"
         f"</div>"
+    )
+
+
+def _render_results_panel_html() -> str:
+    """Build the entire right-hand Detection Results panel as one HTML string.
+
+    Streamlit's markdown sanitizer processes each ``st.markdown()`` call
+    independently and auto-closes unclosed tags, so splitting the outer
+    card's open/close tags across separate calls left the card rendering as
+    an empty box with the heading and result cards as siblings below it.
+    Building the whole panel here and rendering it via a single
+    ``st.markdown()`` call keeps the card and its contents together.
+
+    Returns:
+        HTML string for the full results panel (card + heading + body).
+    """
+    results_log = st.session_state["results_log"]
+    if results_log:
+        body = "".join(_render_result_card(res) for res in results_log[:20])
+    else:
+        body = (
+            '<div style="text-align:center; color:var(--muted); padding:60px 0;">'
+            "No detections yet — process an image or video to begin.</div>"
+        )
+    return (
+        '<div class="card" style="min-height:420px;">'
+        '<div class="card-inner" style="min-height:408px;">'
+        '<div style="font-weight:700; font-size:1.05rem; margin-bottom:12px; '
+        'color:var(--ink);">Detection Results</div>'
+        f"{body}"
+        "</div>"
+        "</div>"
+    )
+
+
+def _render_metrics_html() -> str:
+    """Build the entire bottom metrics row as one HTML string.
+
+    Same one-``st.markdown``-call fix as ``_render_results_panel_html``: the
+    previous version opened the card in one ``st.markdown()`` call and
+    closed it in another, so the sanitizer auto-closed each call on its own
+    and the card rendered as an empty strip with the metric boxes floating
+    outside it instead of inside it.
+
+    Returns:
+        HTML string for the full metrics card (card + 4 metric boxes).
+    """
+    latencies = st.session_state["latencies"]
+    avg_latency = round(sum(latencies) / len(latencies), 1) if latencies else 0.0
+    # Honest FPS: wall_fps is the real display rate, measured by the video
+    # loop's own elapsed-time counter; 1000/avg_latency is pipeline
+    # throughput (frames can be processed faster than they're displayed) and
+    # is only used as a fallback when there's no live video loop driving it.
+    wall_fps = st.session_state.get("wall_fps")
+    if wall_fps is not None:
+        fps = wall_fps
+    else:
+        fps = round(1000.0 / avg_latency, 1) if avg_latency > 0 else 0.0
+    total_processed = st.session_state["total_processed"]
+    alert_count = st.session_state["alert_count"]
+
+    boxes = (
+        f'<div style="flex:1;">{_render_metric("FPS", f"{fps}")}</div>'
+        f'<div style="flex:1;">{_render_metric("Avg Latency", f"{avg_latency} ms")}</div>'
+        f'<div style="flex:1;">{_render_metric("Total Processed", str(total_processed))}</div>'
+        f'<div style="flex:1;">{_render_metric("Alerts", str(alert_count), is_alert=alert_count > 0)}</div>'
+    )
+    return (
+        '<div class="card"><div class="card-inner">'
+        '<div style="display:flex; gap:12px;">'
+        f"{boxes}"
+        "</div></div></div>"
     )
 
 
@@ -318,6 +427,8 @@ for _key, _default in (
 ):
     if _key not in st.session_state:
         st.session_state[_key] = _default
+if "demo_browser_id" not in st.session_state:
+    st.session_state["demo_browser_id"] = uuid.uuid4().hex
 
 
 # ---------------------------------------------------------------------------
@@ -336,7 +447,7 @@ with st.sidebar:
 
     mode = st.selectbox(
         "Input Mode",
-        options=["Upload Image", "Upload Video", "Webcam"],
+        options=["Upload Image", "Upload Video", "Webcam", "Registry"],
         index=0,
     )
 
@@ -346,6 +457,10 @@ with st.sidebar:
         max_value=0.95,
         value=0.25,
         step=0.05,
+        help="Minimum confidence for stage-1 vehicle detection. Applies "
+        "live to Upload Image and Webcam. Upload Video samples the backend "
+        "Product cam pipeline at ~10 Hz with the threshold from config.yaml. "
+        "The plate detector's threshold stays fixed in config.yaml.",
     )
 
     st.markdown("---")
@@ -379,6 +494,11 @@ with st.sidebar:
         st.session_state.pop("models", None)
         st.rerun()
 
+if mode not in ("Upload Video", "Webcam"):
+    st.session_state.pop("_demo_active_video_id", None)
+    if mode != "Webcam":
+        st.session_state.pop("_demo_last_event_id", None)
+
 
 # ---------------------------------------------------------------------------
 # Main area — header
@@ -404,9 +524,237 @@ col_feed, col_results = st.columns([3, 2], gap="medium")
 _current_results: list[dict[str, Any]] = []
 _current_latency: float = 0.0
 
+# Placeholder created before the feed block so the video loop below can push
+# live updates into the results panel as each car is decided, instead of
+# waiting for the whole run to finish.
+with col_results:
+    _results_panel_slot = st.empty()
+    # Stable home for alarm audio in video mode (image mode injects it inline
+    # via st.markdown; the video loop instead re-renders this slot per alert
+    # so a new sound replays for each new car, mirroring image mode).
+    _alarm_slot = st.empty()
+
+
+def _update_results_panel() -> None:
+    _results_panel_slot.markdown(_render_results_panel_html(), unsafe_allow_html=True)
+
+
+_update_results_panel()
+
+# Placeholder for the bottom metrics row. Created here — after st.columns()
+# has already reserved the feed/results row, but before the feed block
+# below runs — so it lands BELOW the columns in document order even though
+# the video loop inside col_feed updates it live via _update_metrics().
+_metrics_slot = st.empty()
+
+
+def _update_metrics() -> None:
+    _metrics_slot.markdown(_render_metrics_html(), unsafe_allow_html=True)
+
+
+_update_metrics()
+
+
+def _run_live_inference(
+    frame: np.ndarray,
+    session: Any,
+    confidence: float,
+) -> tuple[np.ndarray, dict[str, Any], float]:
+    """Run model work without touching Streamlit state."""
+    started = time.perf_counter()
+    out = session.process_frame(frame, conf_override=confidence)
+    latency = round((time.perf_counter() - started) * 1000, 2)
+    return frame, out, latency
+
+
+def _apply_live_result(
+    frame: np.ndarray,
+    out: dict[str, Any],
+    _frame_latency: float,
+) -> np.ndarray:
+    """Apply a completed inference result on Streamlit's main thread.
+
+    Shared by the Upload Video and Webcam (live) modes. Draws overlays on
+    ``frame`` in place, updates the latency/counter/results-log session
+    state, and pushes a results-panel update on each rising edge into
+    DECIDED — exactly the behaviour the video loop had inline.
+    """
+    # U2 — track per-frame latency (cap list to last 100)
+    _lat_list = st.session_state["latencies"]
+    _lat_list.append(_frame_latency)
+    if len(_lat_list) > 100:
+        st.session_state["latencies"] = _lat_list[-100:]
+
+    for d in out["overlay_results"]:
+        x1, y1, x2, y2 = d["bbox"]
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 135, 90), 2)
+    cv2.putText(
+        frame, f"STATE: {out['state']}", (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 135, 90), 2,
+    )
+    if out["decision"] is not None:
+        dec = out["decision"]
+        warn = dec.get("action") == "ALLOW_WARN"
+        # Overlay the verdict every frame while the gate is latched.
+        label = f"{dec['status']}: {dec['plate']}" + (" (colour?)" if warn else "")
+        cv2.putText(
+            frame, label, (10, 65),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
+        )
+        # Colour verdict line so fullscreen viewers (which only
+        # see this on-frame overlay) get the full result too.
+        _c = dec.get("color")
+        _cc = dec.get("color_conf")
+        if _c:
+            colour_label = f"Colour: {_c}" + (
+                f" ({float(_cc) * 100:.1f}%)" if _cc is not None else ""
+            )
+            cv2.putText(
+                frame, colour_label, (10, 100),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
+            )
+        # U1 — count ONCE per car: only on the rising edge into
+        # DECIDED. The gate latches DECIDED until the car leaves
+        # (parking_trigger.py) and _decision persists on every frame
+        # (parking_session.py), so a plain non-None check recounts
+        # every frame (the 334/334 bug seen in the live test).
+        if (
+            out["state"] == "DECIDED"
+            and st.session_state.get("_prev_gate_state") != "DECIDED"
+        ):
+            st.session_state["total_processed"] += 1
+            if dec["status"] == "UNREGISTERED" or warn:
+                st.session_state["alert_count"] += 1
+                # Parity with image mode: same helper, same
+                # statuses (MISMATCH/UNREGISTERED trigger a
+                # sound; a colour-only ALLOW_WARN stays
+                # status AUTHORIZED and get_alarm_html is a
+                # no-op for it, exactly as in image mode).
+                # Re-rendering the slot replaces the previous
+                # <audio> element so it replays per new alert.
+                _alarm_html = get_alarm_html(dec.get("status", ""))
+                if _alarm_html:
+                    _alarm_slot.markdown(_alarm_html, unsafe_allow_html=True)
+            # U4 — one results-log entry per car for the panel.
+            # Keys must match _render_result_card's contract
+            # (plate_text / color / color_confidence in PERCENT,
+            # same shape as the image-mode mapping); the session
+            # decision carries plate + color_conf as a 0-1 fraction.
+            _cconf = dec.get("color_conf")
+            _vid_res = {
+                "plate_text": dec.get("plate") or "—",
+                "status": dec.get("status", "UNKNOWN"),
+                "action": dec.get("action", ""),
+                "color": dec.get("color", ""),
+                "color_confidence": round(float(_cconf) * 100, 2)
+                if _cconf is not None
+                else 0.0,
+                "message": dec.get("message", ""),
+                "latency_ms": _frame_latency,
+            }
+            st.session_state["results_log"].insert(0, _vid_res)
+            del st.session_state["results_log"][50:]
+            _current_results.append(_vid_res)
+            # Rising-edge guard above means this fires once per
+            # car, so pushing a panel update here is cheap.
+            _update_results_panel()
+
+    # Track gate state across frames for the rising-edge test above.
+    st.session_state["_prev_gate_state"] = out["state"]
+    return frame
+
+
+def _process_live_frame(frame: np.ndarray, models: dict[str, Any]) -> np.ndarray:
+    """Synchronous wrapper retained for image/webcam paths."""
+    session = models.get("session")
+    if session is None:
+        return frame
+    completed = _run_live_inference(frame, session, conf_threshold)
+    return _apply_live_result(*completed)
+
+
 # ---- LEFT COLUMN: Camera / Image feed ------------------------------------
 with col_feed:
-    if mode == "Upload Image":
+    if mode == "Registry":
+        st.markdown("### Registered vehicles")
+        db_path = _PROJECT_ROOT / cfg["paths"]["database_csv"]
+        photos_dir = DEFAULT_PHOTOS_DIR
+
+        with st.form("registry_add_form", clear_on_submit=True):
+            plate_input = st.text_input("License plate", placeholder="30F-12345")
+            brand_input = st.text_input("Brand / model", placeholder="Toyota Vios")
+            color_classes = cfg.get("color_classifier", {}).get("classes") or []
+            if color_classes:
+                color_input = st.selectbox("Color", options=color_classes)
+            else:
+                color_input = st.text_input("Color", placeholder="White")
+            photo_upload = st.file_uploader(
+                "Reference photo (optional)",
+                type=["jpg", "jpeg", "png", "webp"],
+            )
+            submitted = st.form_submit_button("Add vehicle")
+
+        if submitted:
+            if not plate_input.strip():
+                st.error("License plate is required.")
+            elif not brand_input.strip():
+                st.error("Brand is required.")
+            elif not str(color_input).strip():
+                st.error("Color is required.")
+            else:
+                try:
+                    image_bytes = photo_upload.getvalue() if photo_upload is not None else None
+                    add_vehicle(
+                        plate_input,
+                        brand_input,
+                        str(color_input),
+                        image_bytes=image_bytes,
+                        db_path=db_path,
+                        photos_dir=photos_dir,
+                    )
+                    _reload_registry_database(models, cfg)
+                    st.success(f"Added {plate_input.strip()} to the registry.")
+                    st.rerun()
+                except DuplicatePlateError as exc:
+                    st.error(str(exc))
+                except ValueError as exc:
+                    st.error(str(exc))
+
+        vehicles = list_vehicles(db_path, photos_dir)
+        if not vehicles:
+            st.caption("No registered vehicles yet. Use the form above to add one.")
+        else:
+            cols_per_row = 3
+            for row_start in range(0, len(vehicles), cols_per_row):
+                row = vehicles[row_start : row_start + cols_per_row]
+                columns = st.columns(len(row))
+                for column, vehicle in zip(columns, row):
+                    with column:
+                        if vehicle["photo_path"]:
+                            st.image(vehicle["photo_path"], use_column_width=True)
+                        else:
+                            st.markdown(
+                                '<div style="background:#2a2f36; border-radius:8px; '
+                                'aspect-ratio:4/3; display:flex; align-items:center; '
+                                'justify-content:center; color:#8a9098; margin-bottom:8px;">'
+                                "No photo</div>",
+                                unsafe_allow_html=True,
+                            )
+                        st.markdown(
+                            f"**{vehicle['plate_display']}**  \n"
+                            f"{vehicle['brand']} · {vehicle['color']}"
+                        )
+                        delete_key = f"delete-{vehicle['plate_key']}"
+                        if st.button("Delete", key=delete_key):
+                            if delete_vehicle(
+                                vehicle["plate_display"],
+                                db_path=db_path,
+                                photos_dir=photos_dir,
+                            ):
+                                _reload_registry_database(models, cfg)
+                                st.rerun()
+
+    elif mode == "Upload Image":
         uploaded = st.file_uploader(
             "Drop an image",
             type=["jpg", "jpeg", "png", "bmp", "webp"],
@@ -419,6 +767,9 @@ with col_feed:
                 _current_results, _current_latency = _run_pipeline(
                     frame, models, conf_threshold
                 )
+                # Image mode has no live loop driving a wall-clock rate, so
+                # fall back to the latency-derived FPS in the metrics row.
+                st.session_state["wall_fps"] = None
                 # Draw overlay
                 if _current_results:
                     vr = _current_results[0]
@@ -431,176 +782,257 @@ with col_feed:
                 st.error("Could not decode the uploaded image.")
 
     elif mode == "Upload Video":
-        def _ensure_sample_video() -> str:
-            import urllib.request
-            dest_dir = _PROJECT_ROOT / "main" / "data" / "test"
-            dest_path = dest_dir / "sample_parking.mp4"
-            if dest_path.exists():
+        def _ensure_sample_video() -> str | None:
+            dest_path = _DEMO_TEST_DIR / "sample_parking.mp4"
+            if validate_sample_video(dest_path):
                 return str(dest_path)
-            dest_dir.mkdir(parents=True, exist_ok=True)
-            
-            urls = [
-                "https://github.com/intel-iot-devkit/sample-videos/raw/master/car-detection-courtyard.mp4",
-                "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/car-detection-courtyard.mp4",
-                "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/car-detection.mp4"
-            ]
-            
-            downloaded = False
-            for url in urls:
-                try:
-                    req = urllib.request.Request(
-                        url,
-                        headers={'User-Agent': 'Mozilla/5.0'}
-                    )
-                    with urllib.request.urlopen(req) as response:
-                        data = response.read()
-                        with open(dest_path, 'wb') as out_file:
-                            out_file.write(data)
-                    downloaded = True
-                    break
-                except Exception:
-                    continue
-            
-            if not downloaded:
-                st.error("Failed to auto-download sample video from all sources.")
-            return str(dest_path)
+            if _DEMO_VIDEO_UNREGISTERED.is_file():
+                return str(_DEMO_VIDEO_UNREGISTERED)
+            st.error(
+                "Default parking video is missing or invalid. Run "
+                "`python main/src/utils/download_sample_video.py` from the project root, "
+                "then retry."
+            )
+            return None
 
         uploaded_vid = st.file_uploader(
             "Drop a video",
             type=["mp4", "avi", "mov", "mkv"],
             label_visibility="collapsed",
         )
-        play_default = False
+        demo_choice = None
         if uploaded_vid is None:
-            play_default = st.checkbox("Play Default Parking Video")
+            demo_choice = st.radio(
+                "Demo video",
+                (
+                    "—",
+                    DEMO_LABEL_UNREGISTERED,
+                    DEMO_LABEL_REGISTERED,
+                    DEMO_LABEL_MISMATCHED,
+                    DEMO_LABEL_REGISTERED_SEQ,
+                ),
+                index=0,
+                key="demo_video_choice",
+            )
 
-        if uploaded_vid is not None or play_default:
-            video_path = None
-            tfile = None
+        demo_selected = demo_choice in (
+            DEMO_LABEL_UNREGISTERED,
+            DEMO_LABEL_REGISTERED,
+            DEMO_LABEL_MISMATCHED,
+            DEMO_LABEL_REGISTERED_SEQ,
+        )
+        if uploaded_vid is None and not demo_selected:
+            st.session_state.pop("_demo_active_video_id", None)
+            st.session_state.pop("_demo_last_event_id", None)
+            clear_media_clock_source(st.session_state)
+
+        if uploaded_vid is not None or demo_selected:
+            # Persist uploads across Streamlit reruns; playback and inference
+            # stay inside the browser component and therefore do not reopen
+            # OpenCV captures or drive reruns from the media clock.
             if uploaded_vid is not None:
-                import tempfile
-                tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-                tfile.write(uploaded_vid.read())
-                tfile.flush()
-                video_path = tfile.name
+                upload_bytes = uploaded_vid.getvalue()
+                video_id = f"upload-{hashlib.sha256(upload_bytes).hexdigest()}"
+                if st.session_state.get("_media_clock_video_id") != video_id:
+                    import tempfile
+
+                    old_upload = st.session_state.get("_media_clock_upload_path")
+                    if old_upload:
+                        try:
+                            os.unlink(old_upload)
+                        except OSError:
+                            pass
+                    suffix = Path(uploaded_vid.name).suffix or ".mp4"
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                        tmp.write(upload_bytes)
+                        video_path = tmp.name
+                    st.session_state["_media_clock_upload_path"] = video_path
+                else:
+                    video_path = st.session_state.get("_media_clock_video_path")
             else:
-                video_path = _ensure_sample_video()
+                if st.session_state.get("_media_clock_upload_path"):
+                    clear_media_clock_source(st.session_state)
+                if demo_choice == DEMO_LABEL_REGISTERED:
+                    video_path = str(_DEMO_VIDEO_REGISTERED)
+                    video_id = _DEMO_VIDEO_ID_REGISTERED
+                    if not os.path.exists(video_path):
+                        st.error(
+                            "Registered demo video is missing at "
+                            "`main/data/test/parking_case_real_v2.mp4`."
+                        )
+                        video_path = None
+                elif demo_choice == DEMO_LABEL_MISMATCHED:
+                    video_path = str(_DEMO_VIDEO_MISMATCHED)
+                    video_id = _DEMO_VIDEO_ID_MISMATCHED
+                    if not os.path.exists(video_path):
+                        st.error(
+                            "Mismatched demo video is missing at "
+                            "`main/data/demo_videos/sequence_01_1.mp4`."
+                        )
+                        video_path = None
+                elif demo_choice == DEMO_LABEL_REGISTERED_SEQ:
+                    video_path = str(_DEMO_VIDEO_REGISTERED_SEQ)
+                    video_id = _DEMO_VIDEO_ID_REGISTERED_SEQ
+                    if not os.path.exists(video_path):
+                        st.error(
+                            "Registered (Seq) demo video is missing at "
+                            "`main/data/demo_videos/sequence_01_2.mp4`."
+                        )
+                        video_path = None
+                else:
+                    video_path = str(_DEMO_VIDEO_UNREGISTERED)
+                    video_id = _DEMO_VIDEO_ID_UNREGISTERED
+                    if not os.path.exists(video_path):
+                        st.error(
+                            "Unregistered demo video is missing at "
+                            "`main/data/test/parking_case_real.mp4`."
+                        )
+                        video_path = None
 
             if video_path and os.path.exists(video_path):
-                cap = cv2.VideoCapture(video_path)
-                frame_slot = st.empty()
-                stop = st.button("⏹ Stop Processing")
+                st.session_state["_media_clock_video_id"] = video_id
+                st.session_state["_media_clock_video_path"] = video_path
+                media_url = media_url_for_file(video_path, video_id)
+                session_id = demo_session_id(
+                    video_id,
+                    st.session_state["demo_browser_id"],
+                )
+                if st.session_state.get("_demo_active_video_id") != video_id:
+                    st.session_state["_demo_active_video_id"] = video_id
+                    st.session_state["_demo_activation"] = (
+                        st.session_state.get("_demo_activation", 0) + 1
+                    )
+                    st.session_state.pop("_demo_last_event_id", None)
+                component_key = demo_component_key(
+                    video_id,
+                    st.session_state["_demo_activation"],
+                )
+                event = media_clock_video(
+                    media_url,
+                    api_base_url=os.getenv(
+                        "DPL_DEMO_API_URL",
+                        "http://localhost:8000",
+                    ),
+                    session_id=session_id,
+                    sample_interval_ms=100,
+                    key=component_key,
+                    resume_event=st.session_state.get(component_key),
+                )
 
-                while cap.isOpened() and not stop:
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
-
-                    session = models.get("session")
-                    if session is not None:
-                        _t0 = time.perf_counter()
-                        out = session.process_frame(frame)
-                        _frame_latency = round((time.perf_counter() - _t0) * 1000, 2)
-
-                        # U2 — track per-frame latency (cap list to last 100)
-                        _lat_list = st.session_state["latencies"]
-                        _lat_list.append(_frame_latency)
-                        if len(_lat_list) > 100:
-                            st.session_state["latencies"] = _lat_list[-100:]
-
-                        for d in out["overlay_results"]:
-                            x1, y1, x2, y2 = d["bbox"]
-                            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 135, 90), 2)
-                        cv2.putText(
-                            frame, f"STATE: {out['state']}", (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 135, 90), 2,
-                        )
-                        if out["decision"] is not None:
-                            dec = out["decision"]
-                            warn = dec.get("action") == "ALLOW_WARN"
-                            # Overlay the verdict every frame while the gate is latched.
-                            label = f"{dec['status']}: {dec['plate']}" + (" (colour?)" if warn else "")
-                            cv2.putText(
-                                frame, label, (10, 65),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
-                            )
-                            # U1 — count ONCE per car: only on the rising edge into
-                            # DECIDED. The gate latches DECIDED until the car leaves
-                            # (parking_trigger.py) and _decision persists on every frame
-                            # (parking_session.py), so a plain non-None check recounts
-                            # every frame (the 334/334 bug seen in the live test).
-                            if (
-                                out["state"] == "DECIDED"
-                                and st.session_state.get("_prev_gate_state") != "DECIDED"
-                            ):
-                                st.session_state["total_processed"] += 1
-                                if dec["status"] == "UNREGISTERED" or warn:
-                                    st.session_state["alert_count"] += 1
-                                # U4 — one results-log entry per car for the panel.
-                                _vid_res = {
-                                    "plate": dec.get("plate", "—"),
-                                    "status": dec.get("status", "UNKNOWN"),
-                                    "action": dec.get("action", ""),
-                                    "confidence": dec.get("confidence", 0.0),
-                                    "color": dec.get("color", ""),
-                                    "brand": dec.get("brand", ""),
-                                    "latency_ms": _frame_latency,
-                                }
-                                st.session_state["results_log"].insert(0, _vid_res)
-                                _current_results.append(_vid_res)
-
-                        # Track gate state across frames for the rising-edge test above.
-                        st.session_state["_prev_gate_state"] = out["state"]
-
-                    display_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    frame_slot.image(display_rgb, use_column_width=True)
-
-                cap.release()
-                if tfile is not None:
-                    try:
-                        os.unlink(tfile.name)
-                    except OSError:
-                        pass
+                if (
+                    event is not None
+                    and event["event_id"]
+                    != st.session_state.get("_demo_last_event_id")
+                ):
+                    st.session_state["_demo_last_event_id"] = event["event_id"]
+                    result = map_demo_decision(event)
+                    st.session_state["total_processed"] += 1
+                    latency_ms = result.get("latency_ms", 0.0)
+                    if latency_ms > 0:
+                        st.session_state["latencies"].append(latency_ms)
+                        st.session_state["latencies"] = st.session_state["latencies"][-100:]
+                    is_alert = (
+                        result["status"] == "UNREGISTERED"
+                        or result.get("action") == "ALLOW_WARN"
+                    )
+                    if is_alert:
+                        st.session_state["alert_count"] += 1
+                        alarm_html = get_alarm_html(result["status"])
+                        if alarm_html:
+                            _alarm_slot.markdown(alarm_html, unsafe_allow_html=True)
+                    st.session_state["results_log"].insert(0, result)
+                    del st.session_state["results_log"][50:]
+                    _current_results.append(result)
+                    _update_results_panel()
+                    _update_metrics()
             else:
                 st.error("Default parking video not found or could not be loaded.")
 
     elif mode == "Webcam":
-        cam_input = st.camera_input("Capture a frame")
-        if cam_input is not None:
-            file_bytes = np.frombuffer(cam_input.getvalue(), np.uint8)
-            frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            session = models.get("session")
-            if session is not None and frame is not None:
-                out = session.process_frame(frame)
-                for d in out["overlay_results"]:
-                    x1, y1, x2, y2 = d["bbox"]
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 135, 90), 2)
-                if out["decision"] is not None:
-                    dec = out["decision"]
-                    cv2.putText(
-                        frame, f"{dec['status']}: {dec['plate']}", (10, 35),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (222, 53, 11), 2,
-                    )
-                st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), use_column_width=True)
+        # Browser capture posts frames to the same /demo/frame path as Upload
+        # Video, so live detection works when Streamlit runs inside Docker.
+        if models.get("session") is None:
+            st.warning("Parking session unavailable — live detection disabled.")
+        run_live = st.checkbox("Start Live Detection", key="webcam_run_live")
+        st.caption(
+            "Browser camera permission is required. Capture runs in your browser, "
+            "so Docker does not need access to the host webcam."
+        )
+        webcam_id = "webcam-live"
+        session_id = demo_session_id(webcam_id, st.session_state["demo_browser_id"])
+        if run_live:
+            if st.session_state.get("_demo_active_video_id") != webcam_id:
+                st.session_state["_demo_active_video_id"] = webcam_id
+                st.session_state["_demo_activation"] = (
+                    st.session_state.get("_demo_activation", 0) + 1
+                )
+                st.session_state.pop("_demo_last_event_id", None)
+            component_key = demo_component_key(
+                webcam_id,
+                st.session_state["_demo_activation"],
+            )
+            event = live_webcam(
+                api_base_url=os.getenv(
+                    "DPL_DEMO_API_URL",
+                    "http://localhost:8000",
+                ),
+                session_id=session_id,
+                is_running=True,
+                sample_interval_ms=100,
+                key=component_key,
+                resume_event=st.session_state.get(component_key),
+            )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+            if (
+                event is not None
+                and event["event_id"] != st.session_state.get("_demo_last_event_id")
+            ):
+                st.session_state["_demo_last_event_id"] = event["event_id"]
+                result = map_demo_decision(event)
+                st.session_state["total_processed"] += 1
+                latency_ms = result.get("latency_ms", 0.0)
+                if latency_ms > 0:
+                    st.session_state["latencies"].append(latency_ms)
+                    st.session_state["latencies"] = st.session_state["latencies"][-100:]
+                is_alert = (
+                    result["status"] == "UNREGISTERED"
+                    or result.get("action") == "ALLOW_WARN"
+                )
+                if is_alert:
+                    st.session_state["alert_count"] += 1
+                    alarm_html = get_alarm_html(result["status"])
+                    if alarm_html:
+                        _alarm_slot.markdown(alarm_html, unsafe_allow_html=True)
+                st.session_state["results_log"].insert(0, result)
+                del st.session_state["results_log"][50:]
+                _current_results.append(result)
+                _update_results_panel()
+                _update_metrics()
+        else:
+            st.session_state.pop("_demo_active_video_id", None)
+            component_key = demo_component_key(webcam_id, st.session_state.get("_demo_activation", 0))
+            live_webcam(
+                api_base_url=os.getenv(
+                    "DPL_DEMO_API_URL",
+                    "http://localhost:8000",
+                ),
+                session_id=session_id,
+                is_running=False,
+                sample_interval_ms=100,
+                key=component_key,
+            )
 
 # ---- RIGHT COLUMN: Detection results log ---------------------------------
 with col_results:
-    st.markdown(
-        '<div class="card" style="min-height:420px;">'
-        '<div class="card-inner" style="min-height:408px;">',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div style="font-weight:700; font-size:1.05rem; margin-bottom:12px; '
-        'color:var(--ink);">Detection Results</div>',
-        unsafe_allow_html=True,
-    )
-
-    if mode == "Upload Image" and _current_results:
-        # Update session counters (image mode only — video mode updates them
-        # inside the video loop to avoid double-counting)
+    if mode == "Registry":
+        _results_panel_slot.markdown(
+            _render_registry_results_panel_html(),
+            unsafe_allow_html=True,
+        )
+    elif mode == "Upload Image" and _current_results:
+        # Update session counters (image mode only — the video and webcam live
+        # loops update them per rising edge inside _process_live_frame to
+        # avoid double-counting)
         st.session_state["total_processed"] += 1
         st.session_state["latencies"].append(_current_latency)
         # Cap latencies list to avoid unbounded growth
@@ -609,6 +1041,7 @@ with col_results:
 
         for res in _current_results:
             st.session_state["results_log"].insert(0, res)
+            del st.session_state["results_log"][50:]
             if res.get("status") == "UNREGISTERED" or res.get("action") == "ALLOW_WARN":
                 st.session_state["alert_count"] += 1
                 # Inject alarm audio
@@ -616,52 +1049,9 @@ with col_results:
                 if alarm_html:
                     st.markdown(alarm_html, unsafe_allow_html=True)
 
-    if not st.session_state["results_log"]:
-        st.markdown(
-            '<div style="text-align:center; color:var(--muted); padding:60px 0;">'
-            "No detections yet — process an image or video to begin.</div>",
-            unsafe_allow_html=True,
-        )
-    else:
-        # Render the most recent 20 results
-        for res in st.session_state["results_log"][:20]:
-            st.markdown(_render_result_card(res), unsafe_allow_html=True)
-
-    st.markdown("</div></div>", unsafe_allow_html=True)
-
-
-# ---------------------------------------------------------------------------
-# Bottom metrics row
-# ---------------------------------------------------------------------------
-
-st.markdown('<div class="card"><div class="card-inner">', unsafe_allow_html=True)
-
-m1, m2, m3, m4 = st.columns(4, gap="small")
-
-latencies = st.session_state["latencies"]
-avg_latency = round(sum(latencies) / len(latencies), 1) if latencies else 0.0
-fps = round(1000.0 / avg_latency, 1) if avg_latency > 0 else 0.0
-
-with m1:
-    st.markdown(
-        _render_metric("FPS", f"{fps}"),
-        unsafe_allow_html=True,
-    )
-with m2:
-    st.markdown(
-        _render_metric("Avg Latency", f"{avg_latency} ms"),
-        unsafe_allow_html=True,
-    )
-with m3:
-    st.markdown(
-        _render_metric("Total Processed", str(st.session_state["total_processed"])),
-        unsafe_allow_html=True,
-    )
-with m4:
-    alert_cnt = st.session_state["alert_count"]
-    st.markdown(
-        _render_metric("Alerts", str(alert_cnt), is_alert=alert_cnt > 0),
-        unsafe_allow_html=True,
-    )
-
-st.markdown("</div></div>", unsafe_allow_html=True)
+    # Refresh so image mode (and the post-loop rerun for video mode) shows
+    # the freshest log. The panel is one HTML string in one st.markdown call
+    # (the sanitizer auto-closes tags split across separate calls).
+    if mode != "Registry":
+        _update_results_panel()
+        _update_metrics()

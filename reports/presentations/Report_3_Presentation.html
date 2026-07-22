@@ -365,14 +365,53 @@
         </div>
     </div>
 
-    <!-- SLIDE 2: Model Architectures Overview -->
+    <!-- SLIDE 2: Literature Review -->
     <div class="slide-container" id="slide-2">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">Cơ sở khoa học</div>
+                <h2 class="slide-title">Nghiên cứu tài liệu tham khảo (Literature Review)</h2>
+            </div>
+            <div class="slide-number">02</div>
+        </div>
+        <div class="slide-body">
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;">
+                Trong quá trình thiết kế mô hình, nhóm dựa trên ba cơ sở lý thuyết và nghiên cứu thực nghiệm sau:
+            </p>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>YOLOv8 (Jocher et al., 2023)</h3>
+                    <div class="card-body">
+                        <p style="margin-bottom: 8px;"><em>Ultralytics — YOLOv8 Architecture.</em></p>
+                        <p><strong>Vai trò:</strong> Bộ phát hiện biển số anchor-free, thời gian thực trên CPU.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Deep Residual Learning (He et al., 2016)</h3>
+                    <div class="card-body">
+                        <p style="margin-bottom: 8px;"><em>ResNet — shortcut connections.</em></p>
+                        <p><strong>Vai trò:</strong> Nền tảng transfer learning / shortcut connections; tham chiếu khi chọn EfficientNet-B0 cho phân loại hãng.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Searching for MobileNetV3 (Howard et al., 2019)</h3>
+                    <div class="card-body">
+                        <p style="margin-bottom: 8px;"><em>NAS + NetAdapt.</em></p>
+                        <p><strong>Vai trò:</strong> Cơ sở chọn MobileNetV3-Small cho phân loại màu trên thiết bị biên.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: Model Architectures Overview -->
+    <div class="slide-container" id="slide-3">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Tổng quan kiến trúc</div>
                 <h2 class="slide-title">Hệ thống mạng nơ-ron đa nhiệm song song</h2>
             </div>
-            <div class="slide-number">02</div>
+            <div class="slide-number">03</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -394,14 +433,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 3: License Plate Detection Config -->
-    <div class="slide-container" id="slide-3">
+    <!-- SLIDE 4: License Plate Detection Config -->
+    <div class="slide-container" id="slide-4">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Định vị biển số xe</div>
                 <h2 class="slide-title">Huấn luyện & Cấu hình YOLOv8</h2>
             </div>
-            <div class="slide-number">03</div>
+            <div class="slide-number">04</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -432,14 +471,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 4: YOLOv8 Bounding Box Localization Results -->
-    <div class="slide-container" id="slide-4">
+    <!-- SLIDE 5: YOLOv8 Bounding Box Localization Results -->
+    <div class="slide-container" id="slide-5">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Định vị biển số xe</div>
                 <h2 class="slide-title">Kết quả định vị Bounding Box (YOLOv8)</h2>
             </div>
-            <div class="slide-number">04</div>
+            <div class="slide-number">05</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -485,14 +524,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 5: Character Recognition (EasyOCR) -->
-    <div class="slide-container" id="slide-5">
+    <!-- SLIDE 6: Character Recognition (EasyOCR) -->
+    <div class="slide-container" id="slide-6">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Nhận diện ký tự biển số</div>
                 <h2 class="slide-title">PaddleOCR & Hậu xử lý hình học</h2>
             </div>
-            <div class="slide-number">05</div>
+            <div class="slide-number">06</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -502,7 +541,7 @@
                         Ký tự biển số xe Việt Nam thường gồm cả chữ cái vùng miền và các số series dài phân tách bởi dấu gạch ngang/dấu chấm.
                     </p>
                     <ul>
-                        <li><strong>Kiến trúc PaddleOCR (PP-OCRv4):</strong> CRNN + CTC. Benchmark C: PaddleOCR đọc đúng 81% (exact-match) vs EasyOCR 0%, nên PaddleOCR là engine chính, EasyOCR fallback.</li>
+                        <li><strong>Kiến trúc PaddleOCR:</strong> CRNN + CTC. Benchmark C: PaddleOCR đọc đúng 81% (exact-match) vs EasyOCR 0%, nên PaddleOCR là engine OCR duy nhất ở runtime (hard error nếu không khả dụng); EasyOCR chỉ còn dùng cho benchmark/đánh giá.</li>
                         <li><strong>Khắc phục lệch dòng:</strong> Thuật toán **Spatial Sorting** gom nhóm tọa độ Y trung tâm của các hộp ký tự để tách thành dòng trên và dòng dưới chuẩn xác.</li>
                         <li><strong>Chuẩn hóa Regex:</strong> `[A-Z0-9]` loại bỏ dấu chấm và khoảng trắng nhiễu. Ví dụ: `30K.123-45` được chuẩn hóa thành `30K12345`.</li>
                     </ul>
@@ -522,14 +561,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 6: OCR Performance Metrics -->
-    <div class="slide-container" id="slide-6">
+    <!-- SLIDE 7: OCR Performance Metrics -->
+    <div class="slide-container" id="slide-7">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Nhận diện ký tự biển số</div>
                 <h2 class="slide-title">Đánh giá hiệu năng nhận diện OCR</h2>
             </div>
-            <div class="slide-number">06</div>
+            <div class="slide-number">07</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -561,7 +600,7 @@
                             <td>31.7 ms</td>
                         </tr>
                         <tr>
-                            <td><strong>PaddleOCR (PP-OCRv4)</strong></td>
+                            <td><strong>PaddleOCR</strong></td>
                             <td><strong>81.2%</strong></td>
                             <td><strong>0.031</strong></td>
                             <td>423.2 ms</td>
@@ -577,14 +616,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 7: Vehicle Brand Classifier (EfficientNet-B0) -->
-    <div class="slide-container" id="slide-7">
+    <!-- SLIDE 8: Vehicle Brand Classifier (EfficientNet-B0) -->
+    <div class="slide-container" id="slide-8">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Phân loại thương hiệu xe</div>
                 <h2 class="slide-title">Thương hiệu xe: Transfer Learning từ EfficientNet-B0</h2>
             </div>
-            <div class="slide-number">07</div>
+            <div class="slide-number">08</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -614,14 +653,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 8: Brand Classifier Training Logs -->
-    <div class="slide-container" id="slide-8">
+    <!-- SLIDE 9: Brand Classifier Training Logs -->
+    <div class="slide-container" id="slide-9">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Phân loại thương hiệu xe</div>
                 <h2 class="slide-title">Biểu đồ huấn luyện & Kết quả (Brand)</h2>
             </div>
-            <div class="slide-number">08</div>
+            <div class="slide-number">09</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -643,14 +682,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 9: Vehicle Color Classifier -->
-    <div class="slide-container" id="slide-9">
+    <!-- SLIDE 10: Vehicle Color Classifier -->
+    <div class="slide-container" id="slide-10">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Phân loại màu sắc xe</div>
                 <h2 class="slide-title">Màu sắc xe: MobileNetV3-Small siêu nhẹ</h2>
             </div>
-            <div class="slide-number">09</div>
+            <div class="slide-number">10</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -679,14 +718,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 10: Color Classifier Training Logs -->
-    <div class="slide-container" id="slide-10">
+    <!-- SLIDE 11: Color Classifier Training Logs -->
+    <div class="slide-container" id="slide-11">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Phân loại màu sắc xe</div>
                 <h2 class="slide-title">Biểu đồ huấn luyện & Kết quả (Color)</h2>
             </div>
-            <div class="slide-number">10</div>
+            <div class="slide-number">11</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -708,14 +747,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 11: Hyperparameter Tuning Experiments -->
-    <div class="slide-container" id="slide-11">
+    <!-- SLIDE 12: Hyperparameter Tuning Experiments -->
+    <div class="slide-container" id="slide-12">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Tối ưu hóa siêu tham số</div>
                 <h2 class="slide-title">Các thử nghiệm tinh chỉnh siêu tham số</h2>
             </div>
-            <div class="slide-number">11</div>
+            <div class="slide-number">12</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -751,14 +790,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 12: Integrated Pipeline Test Metrics -->
-    <div class="slide-container" id="slide-12">
+    <!-- SLIDE 13: Integrated Pipeline Test Metrics -->
+    <div class="slide-container" id="slide-13">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Thử nghiệm liên kết</div>
                 <h2 class="slide-title">Hiệu năng tích hợp toàn chuỗi (End-to-End)</h2>
             </div>
-            <div class="slide-number">12</div>
+            <div class="slide-number">13</div>
         </div>
         <div class="slide-body">
             <div class="grid-3">
@@ -787,14 +826,14 @@
         </div>
     </div>
 
-    <!-- SLIDE 13: Model Failures & Error Analysis -->
-    <div class="slide-container" id="slide-13">
+    <!-- SLIDE 14: Model Failures & Error Analysis -->
+    <div class="slide-container" id="slide-14">
         <div class="slide-header">
             <div>
                 <div class="slide-subtitle">Phân tích lỗi chẩn đoán</div>
                 <h2 class="slide-title">Chẩn đoán lỗi & Điểm hạn chế (CLO3)</h2>
             </div>
-            <div class="slide-number">13</div>
+            <div class="slide-number">14</div>
         </div>
         <div class="slide-body">
             <div class="grid-2">
@@ -819,12 +858,12 @@
         </div>
     </div>
 
-    <!-- SLIDE 14: Cập nhật so với thiết kế ban đầu (Mô hình) -->
-    <div class="slide-container" id="slide-14">
+    <!-- SLIDE 15: Cập nhật so với thiết kế ban đầu (Mô hình) -->
+    <div class="slide-container" id="slide-15">
         <div class="slide-header">
             <div><div class="slide-subtitle">Quá trình phát triển</div>
                 <h2 class="slide-title">Cập nhật về Mô hình — vì sao khác ban đầu</h2></div>
-            <div class="slide-number">14</div>
+            <div class="slide-number">15</div>
         </div>
         <div class="slide-body">
             <p style="font-size:1rem; line-height:1.6; margin-bottom:14px;">
@@ -845,8 +884,8 @@
         </div>
     </div>
 
-    <!-- SLIDE 15: Q&A -->
-    <div class="slide-container slide-bg-dark" id="slide-15" style="justify-content: center; align-items: center; text-align: center;">
+    <!-- SLIDE 16: Q&A -->
+    <div class="slide-container slide-bg-dark" id="slide-16" style="justify-content: center; align-items: center; text-align: center;">
         <div>
             <span class="badge success" style="margin-bottom: 20px;">Report 3: Model & Results</span>
             <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Q&A (Hỏi & Đáp)</h1>
@@ -864,13 +903,13 @@
     <!-- Navigation Bar -->
     <div class="nav-bar">
         <button class="nav-btn" onclick="prevSlide()">← Slide trước</button>
-        <div class="nav-counter" id="slideCounter">1 / 15</div>
+        <div class="nav-counter" id="slideCounter">1 / 16</div>
         <button class="nav-btn" onclick="nextSlide()">Slide sau →</button>
     </div>
 
     <script>
         let currentSlide = 1;
-        const totalSlides = 15;
+        const totalSlides = 16;
 
         function showSlide(n) {
             document.querySelectorAll('.slide-container').forEach(s => s.classList.remove('active'));

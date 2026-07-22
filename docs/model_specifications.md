@@ -24,7 +24,7 @@ main/
         ├── classifiers.py   # EfficientNet-B0 (Brand, TF/Keras) & MobileNetV3-Small (Color, TF/Keras training; PyTorch runtime) classifiers
         ├── torch_color.py   # PyTorch MobileNetV3-Small runtime colour classifier
         ├── detector.py      # Ultralytics YOLOv8 vehicle plate detection wrapper
-        └── ocr.py           # EasyOCR character recognition engine wrapper
+        └── ocr.py           # PaddleOCR runtime OCR (EasyOCR train/eval-only)
 ```
 
 ---
@@ -63,10 +63,10 @@ main/
   * **Confidence Threshold:** 0.25
 * **Processing:** Crops the detected bounding box of the license plate with a safety margin (padding of $5\%$) to avoid clipping plate characters.
 
-### B. Character Recognition (PaddleOCR — primary; EasyOCR — fallback)
+### B. Character Recognition (PaddleOCR — runtime only)
 * **Model Class:** `OCRReader` (`main/src/models/ocr.py`)
-* **Primary Backend:** PaddleOCR (PP-OCRv4, CRNN+CTC) — configured via `main/configs/config.yaml` (`ocr.engine: ppocr`). Benchmark C: 81% exact-match on real CCTV plates vs. EasyOCR 0%.
-* **Fallback Backend:** EasyOCR — activated by setting `ocr.engine: easyocr` in config.
+* **Primary Backend:** PaddleOCR (CRNN+CTC) — configured via `main/configs/config.yaml` (`ocr.engine: ppocr`). Benchmark C: 81% exact-match on real CCTV plates vs. EasyOCR 0%.
+* **Runtime fallback:** none — runtime is 100% PaddleOCR (hard error if unavailable); EasyOCR is train/eval-only (benchmark scripts).
 * **Post-processing:**
   * Alphanumeric character cleaning (removes punctuation, dashes, spaces, and dots).
   * 2-line plate correction: sorts the bounding boxes based on vertical and horizontal coordinates to read the top line first, then the bottom line.

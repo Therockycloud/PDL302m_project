@@ -152,3 +152,63 @@ def test_infer_single_image_no_plate(fake_db):
     assert result["status"] == "NO_PLATE"
     assert result["action"] == "LOG"
     assert calls == []  # matcher.verify_vehicle must NOT be called
+
+
+class ConfSpyVehicleDetector:
+    """Fake accepting the per-call conf kwarg, recording what each call got."""
+
+    def __init__(self, dets):
+        self._dets = dets
+        self.confs = []
+
+    def detect(self, image, conf=None):
+        self.confs.append(conf)
+        return self._dets
+
+
+def test_infer_single_image_forwards_conf_override(fake_db):
+    from src.engine.pipeline_factory import infer_single_image
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    pipeline = _make_fake_pipeline(fake_db)
+    spy = ConfSpyVehicleDetector([{"bbox": (0, 0, 10, 10), "conf": 0.9, "crop": img}])
+    pipeline["vehicle_detector"] = spy
+    infer_single_image(img, pipeline, cfg={}, conf_override=0.9)
+    assert spy.confs == [0.9]
+
+
+def test_infer_single_image_default_does_not_pass_conf(fake_db):
+    """No override -> detector is called WITHOUT the conf kwarg, so the API
+    default path keeps working with detectors that don't accept it
+    (FakeVehicleDetector.detect has no conf parameter)."""
+    from src.engine.pipeline_factory import infer_single_image
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    pipeline = _make_fake_pipeline(fake_db)  # detect(self, image) only
+    result = infer_single_image(img, pipeline, cfg={})  # must not raise
+    assert result["status"] == "AUTHORIZED"
+
+
+def test_infer_single_image_returns_vehicle_bbox(fake_db):
+    from src.engine.pipeline_factory import infer_single_image
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    pipeline = _make_fake_pipeline(fake_db)
+    result = infer_single_image(img, pipeline, cfg={})
+    assert result["vehicle_bbox"] == (0, 0, 10, 10)
+
+
+def test_infer_single_image_vehicle_bbox_none_when_no_detection(fake_db):
+    from src.engine.pipeline_factory import infer_single_image
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    pipeline = _make_fake_pipeline(fake_db)
+    pipeline["vehicle_detector"] = FakeVehicleDetector([])
+    result = infer_single_image(img, pipeline, cfg={})
+    assert result["vehicle_bbox"] is None
+
+
+def test_infer_single_image_no_plate_includes_vehicle_bbox(fake_db):
+    from src.engine.pipeline_factory import infer_single_image
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    pipeline = _make_fake_pipeline(fake_db)
+    pipeline["plate_reader"] = FakePlateReader({"text": "", "conf": 0.0, "plate_bbox": None})
+    result = infer_single_image(img, pipeline, cfg={})
+    assert result["status"] == "NO_PLATE"
+    assert result["vehicle_bbox"] == (0, 0, 10, 10)

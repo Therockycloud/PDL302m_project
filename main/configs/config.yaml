@@ -15,7 +15,7 @@ detector:
 ocr:
   languages: ["en"]  # English is standard for alphanumeric plates
   gpu: false         # Toggle CPU vs GPU for OCR
-  engine: "ppocr"   # ppocr | easyocr  (PaddleOCR won Benchmark C: 81% vs 0% exact-match)
+  engine: "ppocr"   # runtime engine is PaddleOCR-only (Benchmark C: 81% vs 0% exact-match); easyocr is benchmark/eval-only, not a runtime option
 
 # Keras EfficientNet-B0 Brand Classifier Parameters
 brand_classifier:
@@ -85,18 +85,22 @@ color_classifier:
 #     min_area_ratio: 0.20           # car fills more of the frame when backed in
 pipeline:
   frame_sample_interval: 5
-  collect_frames: 5
+  collect_frames: 10
+  max_collect_frames: 50
+  max_ready_samples: 300
   trigger:
-    min_area_ratio: 0.15   # default demo clip (test/sample_parking.mp4 = real reverse-park footage) peaks ~0.99, fires the full pipeline at this calibrated value
+    min_area_ratio: 0.10   # wider defaults for real-footage approaches
     stable_frames: 5       # kept for backward compatibility; no longer gates readiness (see WS-1 note above)
     move_eps: 0.02         # kept for backward compatibility; no longer gates readiness (see WS-1 note above)
-    roi: [0.35, 0.30, 0.65, 1.0]   # own-slot ROI for the default demo clip; calibrate per camera
-    approach_min_area: 0.15        # area ratio at which the reverse-approach window opens
+    roi: [0.20, 0.20, 0.80, 1.0]   # wider catch zone for real-world demo clips
+    approach_min_area: 0.10        # area ratio at which the reverse-approach window opens
     min_persist_frames: 3          # consecutive in-ROI samples required before READY_TO_DECIDE
   lock:
     capture_conf: 0.50   # minimum plate-detect conf to attempt OCR on a frame
-    lock_conf: 0.60       # minimum OCR conf for a read to count toward locking
+    lock_conf: 0.50       # minimum OCR conf for a read to count toward hard locking
     lock_repeat: 2        # number of matching high-conf reads required to lock the plate
+    soft_conf: 0.40       # minimum OCR conf for a read to count toward soft expire lock
+    single_lock_conf: 0.85  # single-read conf threshold for soft expire lock
     late_area: 0.85       # area ratio past which an un-locked plate is logged as "read late"
 
 # Dedicated license-plate detector (stage 2)

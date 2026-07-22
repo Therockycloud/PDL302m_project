@@ -40,12 +40,16 @@ class VehicleDetector:
         except Exception as exc:  # noqa: BLE001
             print(f"[VehicleDetector] WARNING: could not load '{model_path}': {exc}")
 
-    def detect(self, frame: np.ndarray) -> list[dict[str, Any]]:
+    def detect(self, frame: np.ndarray, conf: float | None = None) -> list[dict[str, Any]]:
+        """``conf`` overrides the constructor threshold for THIS call only
+        (dashboard's live confidence slider); ``None`` keeps the configured
+        default, so existing callers are unaffected."""
         if self.model is None:
             return []
+        effective_conf = self.conf if conf is None else conf
         try:
             results = self.model.predict(
-                source=frame, conf=self.conf, device="cpu", verbose=False
+                source=frame, conf=effective_conf, device="cpu", verbose=False
             )
         except Exception as exc:  # noqa: BLE001
             print(f"[VehicleDetector] inference error: {exc}")

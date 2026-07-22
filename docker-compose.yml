@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -37,6 +35,10 @@ services:
       - OPENBLAS_NUM_THREADS=1
       - VECLIB_MAXIMUM_THREADS=1
       - NUMEXPR_NUM_THREADS=1
+      - DPL_DISABLE_WARMUP=1
+      # Browser-facing URL: this must be reachable from the user's browser,
+      # not only from the frontend container.
+      - DPL_DEMO_API_URL=http://localhost:8000
     depends_on:
       - backend
     restart: unless-stopped

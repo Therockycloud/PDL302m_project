@@ -120,7 +120,7 @@ def get_status_css(status: str) -> str:
             "background: rgba(21, 128, 61, 0.1); "
             "border: none; "
             "color: #15803d; "
-            "padding: 6px 18px; border-radius: 8px; "
+            "padding: 6px 18px; border-radius: 0; "
             "font-weight: 700; display: inline-block;"
         )
     if status_upper in ("MISMATCH", "UNREGISTERED"):
@@ -128,7 +128,7 @@ def get_status_css(status: str) -> str:
             "background: rgba(185, 28, 28, 0.1); "
             "border: none; "
             "color: #b91c1c; "
-            "padding: 6px 18px; border-radius: 8px; "
+            "padding: 6px 18px; border-radius: 0; "
             "font-weight: 700; display: inline-block; "
             "animation: pulse-red 1s ease-in-out infinite;"
         )
@@ -136,7 +136,7 @@ def get_status_css(status: str) -> str:
         "background: rgba(0, 0, 0, 0.05); "
         "border: none; "
         "color: #475569; "
-        "padding: 6px 18px; border-radius: 8px; "
+        "padding: 6px 18px; border-radius: 0; "
         "font-weight: 600; display: inline-block;"
     )
 
@@ -202,7 +202,7 @@ def get_alarm_html(status: str) -> str:
         '</audio>'
         '<div style="'
         "text-align:center; padding:10px; margin:8px 0; "
-        "border-radius:8px; font-weight:700; font-size:1.1rem; "
+        "border-radius:0; font-weight:700; font-size:1.1rem; "
         "background:rgba(185,28,28,0.1); color:#b91c1c; "
         "border:none; "
         'animation: pulse-red 0.8s ease-in-out infinite;">'
@@ -221,7 +221,7 @@ def build_theme_css() -> str:
     Design tokens:
         * Warm-paper background (``--bg``) with soft green/teal/lime radial
           glows, white surfaces, near-black ink, forest-green accent.
-        * Plus Jakarta Sans for UI text, JetBrains Mono for metric numerals.
+        * System font stack for UI text and metric numerals (no network fonts).
         * Borderless, layered cards with low-spread tinted drop shadows.
         * Forest-green AUTHORIZED verdicts, deep-red alerts, amber soft warns.
         * Dark camera-feed surface with corner framing brackets.
@@ -233,8 +233,6 @@ def build_theme_css() -> str:
     """
     return """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-
     :root {
         --bg: #fafaf9;
         --surface: #ffffff;
@@ -247,7 +245,7 @@ def build_theme_css() -> str:
         --warn-fg: #b45309;
         --warn-bg: #fffbeb;
         --feed-dark: #0b0f14;
-        --radius: 12px;
+        --radius: 0;
     }
 
     /* ---- App shell ---- */
@@ -257,7 +255,7 @@ def build_theme_css() -> str:
             radial-gradient(circle at 90% 6%, rgba(21,128,61,0.32), transparent 48%),
             radial-gradient(circle at 6% 94%, rgba(13,148,136,0.24), transparent 50%),
             radial-gradient(circle at 50% 50%, rgba(132,204,22,0.16), transparent 62%);
-        font-family: 'Plus Jakarta Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
         color: var(--ink);
     }
     header[data-testid="stHeader"] {
@@ -269,12 +267,12 @@ def build_theme_css() -> str:
     .app-subtitle { font-size: 0.95rem; color: var(--muted); font-weight: 500; }
 
     /* ---- Cards (borderless, layered) ---- */
-    .card { background: rgba(0,0,0,0.04); padding: 6px; border-radius: 14px; }
-    .card > .card-inner { background: var(--surface); border-radius: 10px; padding: 16px; box-shadow: 0 18px 40px -22px rgba(21,128,61,0.3); }
+    .card { background: rgba(0,0,0,0.04); padding: 6px; border-radius: 0; }
+    .card > .card-inner { background: var(--surface); border-radius: 0; padding: 16px; box-shadow: 0 18px 40px -22px rgba(21,128,61,0.3); }
 
     /* ---- Metric boxes ---- */
-    .metric-box { background: var(--surface); border-radius: 8px; padding: 10px 12px; box-shadow: 0 8px 20px -16px rgba(21,128,61,0.3); }
-    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+    .metric-box { background: var(--surface); border-radius: 0; padding: 10px 12px; box-shadow: 0 8px 20px -16px rgba(21,128,61,0.3); }
+    .metric-value { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
     .metric-value.alert { color: var(--alert); }
     .metric-label { font-size: 0.5rem; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; }
 
@@ -289,10 +287,10 @@ def build_theme_css() -> str:
     /* ---- Verdicts ---- */
     .verdict-ok { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
     .verdict-bad { font-size: 1.2rem; font-weight: 800; color: var(--alert); }
-    .plate { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; color: var(--ink); }
+    .plate { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; color: var(--ink); }
 
     /* ---- Soft warning ---- */
-    .soft-warn { color: var(--warn-fg); background: var(--warn-bg); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; }
+    .soft-warn { color: var(--warn-fg); background: var(--warn-bg); padding: 8px 12px; border-radius: 0; font-size: 0.8rem; }
 
     /* ---- Animations ---- */
     @keyframes fade-in {
@@ -302,13 +300,13 @@ def build_theme_css() -> str:
     .animate-in { animation: fade-in 0.4s ease-out; }
 
     /* ---- Streamlit overrides ---- */
-    .stButton > button { background: var(--accent) !important; color: #fff !important; border: none !important; border-radius: 8px !important; font-weight: 700 !important; transition: transform 0.2s cubic-bezier(0.32,0.72,0,1) !important; }
+    .stButton > button { background: var(--accent) !important; color: #fff !important; border: none !important; border-radius: 0 !important; font-weight: 700 !important; transition: transform 0.2s cubic-bezier(0.32,0.72,0,1) !important; }
     .stButton > button:active { transform: scale(0.98) !important; }
     section[data-testid="stSidebar"] { background: #f4f4f5 !important; border-right: none !important; }
     section[data-testid="stSidebar"] .stMarkdown p,
     section[data-testid="stSidebar"] .stMarkdown span,
     section[data-testid="stSidebar"] label { color: var(--muted) !important; }
-    div[data-testid="stFileUploader"] { border: none !important; border-radius: 12px !important; background: var(--surface) !important; }
+    div[data-testid="stFileUploader"] { border: none !important; border-radius: 0 !important; background: var(--surface) !important; }
     .stSlider > div > div > div { background: var(--accent) !important; }
     </style>
     """

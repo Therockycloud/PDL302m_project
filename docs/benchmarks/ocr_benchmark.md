@@ -25,5 +25,7 @@ Eval set: `data/test/ocr_eval` (16 hand-labelled real CCTV plate crops, incl. on
   YOLO stage already localises the plate) and/or with the mobile model — both cut
   latency substantially without losing accuracy.
 
-**Decision: adopt PaddleOCR** (`ocr.engine: "ppocr"`), no enhancement. EasyOCR is
-kept as a graceful fallback when PaddlePaddle is not installed.
+**Decision: adopt PaddleOCR** (`ocr.engine: "ppocr"`), no enhancement. EasyOCR has
+since been removed as a runtime fallback; deployed system is 100% PaddleOCR (hard
+error if PaddleOCR is unavailable). EasyOCR remains available only for
+training/evaluation.

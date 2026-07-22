@@ -14,6 +14,7 @@ must never block warmup of the others, nor crash dashboard startup.
 from __future__ import annotations
 
 import logging
+import os
 
 import numpy as np
 
@@ -43,7 +44,19 @@ def warmup_models(
     Each argument is optional — pass only the models that were
     successfully constructed. A model that raises during warmup is
     logged and skipped; it does not prevent warming up the rest.
+
+    If the ``DPL_DISABLE_WARMUP`` env var is set (e.g. in Docker on a
+    low-RAM VPS), this function returns immediately without touching any
+    model. Forcing every model — especially PaddleOCR's doc-orientation and
+    unwarping sub-models, unneeded for already axis-aligned plate crops —
+    through a throwaway inference at container startup is what OOMs/hangs
+    the box. Skipping warmup lets each model load lazily on first real use
+    instead.
     """
+    if os.environ.get("DPL_DISABLE_WARMUP", "").lower() in ("1", "true", "yes"):
+        logger.info("Warmup disabled via DPL_DISABLE_WARMUP")
+        return
+
     if vehicle_detector is not None:
         try:
             vehicle_detector.detect(_WARMUP_FRAME)

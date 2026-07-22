@@ -1,0 +1,17 @@
+image_path,label,source_type,group_id,split,verified,source_note,source_sha256
+../test/ocr_eval/00.png,51G10096,real,frozen-ocr-eval-00,test,true,original frozen 16 only; excluded from training and tuning,4c00b74b580c4a26735b68b7ab4993d77b5ef9e8ef7fe64242fd26374ab0dbb3
+../test/ocr_eval/01.png,51G49539,real,frozen-ocr-eval-01,test,true,original frozen 16 only; excluded from training and tuning,5f6c852cc8f8dcfd3e8ea0572f75cf4f478ea8ee317af3281c3f91824e166e27
+../test/ocr_eval/02.png,51A02923,real,frozen-ocr-eval-02,test,true,original frozen 16 only; excluded from training and tuning,5b5064db2509c14bc5b291296779dade3a17722f2b3e81f4ddca7a48a3d666a6
+../test/ocr_eval/03.png,51F07973,real,frozen-ocr-eval-03,test,true,original frozen 16 only; excluded from training and tuning,08b17c823cab216901bb78bf6db939f19dcc6738dcd65b8baa589d60534e4ff4
+../test/ocr_eval/04.png,52Y6490,real,frozen-ocr-eval-04,test,true,original frozen 16 only; excluded from training and tuning,97f492f1b94bcc2307666fc25361c581a5aa1154ec599a40a70f4a01d3487d72
+../test/ocr_eval/05.png,51F82606,real,frozen-ocr-eval-05,test,true,original frozen 16 only; excluded from training and tuning,1a3794215644cac524bd4c016595b1423bc5355fc8887306370bbd397660d7c8
+../test/ocr_eval/06.png,51G37307,real,frozen-ocr-eval-06,test,true,original frozen 16 only; excluded from training and tuning,cfdc8048a1d1c012aacc240cbc1ff446fc0af47153c17f0a8a96d0de467624a9
+../test/ocr_eval/07.png,51F16159,real,frozen-ocr-eval-07,test,true,original frozen 16 only; excluded from training and tuning,3aa7ce90defa1ff3c73ed0101960d8959f308ec2c3947da3e5bc44fb8f7675d2
+../test/ocr_eval/08.png,51F73420,real,frozen-ocr-eval-08,test,true,original frozen 16 only; excluded from training and tuning,37ae201fdffc8ddde13961ad30fe6a663c56e6e1d7a41b93e0a84b8bb626c15f
+../test/ocr_eval/09.png,93LD00103,real,frozen-ocr-eval-09,test,true,original frozen 16 only; excluded from training and tuning,194dbde92a3b5c606ee1183cdea3055eff9cd72119f140b0dbfe30ae38d8805f
+../test/ocr_eval/10.png,51G51332,real,frozen-ocr-eval-10,test,true,original frozen 16 only; excluded from training and tuning,81f27094c5869f687db2ae9da685a25a0eba5b4dbc31fc5046162fba63f2f03b
+../test/ocr_eval/11.png,51G59323,real,frozen-ocr-eval-11,test,true,original frozen 16 only; excluded from training and tuning,29965f6560c79b2617884d6378a5d79c9b1e0e251a1b6dffbde8fd973c92193e
+../test/ocr_eval/12.png,29A51796,real,frozen-ocr-eval-12,test,true,original frozen 16 only; excluded from training and tuning,38d52d30400551c36fe3cc8245339fadae5a84d354845764ef057c32327bcb64
+../test/ocr_eval/13.png,51G47281,real,frozen-ocr-eval-13,test,true,original frozen 16 only; excluded from training and tuning,0e5212a4fc2b13f4ad2e29693269bf2e78539dd3046966d2859a265f891d010f
+../test/ocr_eval/14.png,60LD00584,real,frozen-ocr-eval-14,test,true,original frozen 16 only; excluded from training and tuning,76a5cb658e79638c59522e7c4a9844a9f03ef4400a97e530b8425fd072d274f1
+../test/ocr_eval/15.png,72S14860,real,frozen-ocr-eval-15,test,true,original frozen 16 only; excluded from training and tuning,296bf0c196b73a93d964dc0636965b3e1706844b2bd359b24ea2e5bd560834d9

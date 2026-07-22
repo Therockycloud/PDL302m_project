@@ -1,0 +1,116 @@
+{
+  "best_epoch": 8,
+  "best_val_cer": 0.6594488188976378,
+  "best_val_exact_match": 0.0,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 3.3331893947389393,
+      "val_cer": 1.0,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.5796722915437487,
+      "val_cer": 1.0,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 3,
+      "train_loss": 2.399920932451884,
+      "val_cer": 1.0,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 4,
+      "train_loss": 2.0740149974823,
+      "val_cer": 1.0,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.6629259917471144,
+      "val_cer": 0.9980314960629921,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 6,
+      "train_loss": 1.359066657225291,
+      "val_cer": 0.8228346456692913,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 7,
+      "train_loss": 1.1154448303911422,
+      "val_cer": 0.7125984251968503,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.919092732667923,
+      "val_cer": 0.6594488188976378,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.767336474524604,
+      "val_cer": 0.7440944881889764,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.6258935242891311,
+      "val_cer": 0.6830708661417323,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.5207409292459488,
+      "val_cer": 0.7440944881889764,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.4396399815877279,
+      "val_cer": 0.7539370078740157,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.36483306007252797,
+      "val_cer": 0.7303149606299213,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.31361356890863845,
+      "val_cer": 0.7145669291338582,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.23802766419119306,
+      "val_cer": 0.687007874015748,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.22763799958758885,
+      "val_cer": 0.6811023622047244,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.19861658728784984,
+      "val_cer": 0.7086614173228346,
+      "val_exact_match": 0.0
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.1725228152341313,
+      "val_cer": 0.6830708661417323,
+      "val_exact_match": 0.0
+    }
+  ],
+  "selection_source": "real_validation_only"
+}

@@ -102,12 +102,9 @@ class TestNeutralClusterAndConfidenceGating(unittest.TestCase):
 
 
 class TestRealDatabaseDemoPlate(unittest.TestCase):
-    """WS-1 Task 6: the live demo plate (30M71854, locked at frame 510 of
-    sample_parking.mp4) must be registered AUTHORIZED with no colour
-    warning against the REAL main/data/database.csv (not a temp fixture).
-    Colour ground truth: TorchColorClassifier (color_MobileNetV3Small.pt)
-    predicted Yellow at conf 0.82-0.95 across 8/9 sampled frames
-    (492-534) of the vehicle's own crop.
+    """Unregistered demo plate (30M71854 from parking_case_real.mp4) must
+    not appear in the REAL main/data/database.csv so the demo yields
+    UNREGISTERED. Registered demo plate 30K43936 must stay AUTHORIZED.
     """
 
     @classmethod
@@ -117,16 +114,18 @@ class TestRealDatabaseDemoPlate(unittest.TestCase):
         )
         cls.matcher = DatabaseMatcher(db_path)
 
-    def test_demo_plate_is_authorized_with_correct_color(self):
+    def test_unregistered_demo_plate_not_in_database(self):
         result = self.matcher.verify_vehicle("30M71854", "Yellow")
-        self.assertEqual(result['status'], 'AUTHORIZED')
-        self.assertFalse(result['color_warning'])
+        self.assertEqual(result["status"], "UNREGISTERED")
 
-    def test_demo_plate_matches_with_dashes_and_dots(self):
-        # Matcher strips space/dash/dot, so the CSV's dashed form must
-        # round-trip with the OCR's bare-digits form.
+    def test_unregistered_demo_plate_dashed_form_not_in_database(self):
         result = self.matcher.verify_vehicle("30M-718.54", "Yellow")
-        self.assertEqual(result['status'], 'AUTHORIZED')
+        self.assertEqual(result["status"], "UNREGISTERED")
+
+    def test_registered_demo_plate_is_authorized(self):
+        result = self.matcher.verify_vehicle("30K43936", "White")
+        self.assertEqual(result["status"], "AUTHORIZED")
+        self.assertFalse(result["color_warning"])
 
 
 if __name__ == '__main__':
