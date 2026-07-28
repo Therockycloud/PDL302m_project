@@ -1,5 +1,11 @@
 # Báo cáo kỹ thuật Giai đoạn 3: Huấn luyện Mô hình Học sâu và Kết quả Thực nghiệm (Model & Results)
 
+**Môn học:** DPL302m – Deep Learning · **Nhóm:** Nhóm 7
+**Repository (GitHub):** [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project)
+**Clone:** `git clone https://github.com/Therockycloud/PDL302m_project.git`
+
+---
+
 ## 1. Đặt vấn đề và Mục tiêu huấn luyện (Objective)
 Giai đoạn 3 tập trung vào thiết kế kiến trúc, cấu hình siêu tham số, thực thi huấn luyện và đánh giá chi tiết các mô hình học máy thành phần trong pipeline xác thực phương tiện. Mục tiêu là xây dựng và tối ưu hóa các mô hình nhận diện biển số (YOLOv8-nano), trích xuất văn bản biển số (ban đầu EasyOCR, sau chuyển sang **PaddleOCR** — xem §3.2) và các mô hình học sâu phân loại đặc trưng phương tiện (Hãng xe và Màu sắc xe) sử dụng phương pháp Học chuyển vị (Transfer Learning) nhằm tối ưu hóa độ trễ và tài nguyên phần cứng.
 

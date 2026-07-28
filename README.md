@@ -18,6 +18,8 @@ API `/verify` và Dashboard Streamlit dùng chung pipeline hợp nhất (`main/s
 
 | Tài liệu | Mô tả |
 |----------|--------|
+| **Repository** | [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project) (`main`) |
+| **Clone** | `git clone https://github.com/Therockycloud/PDL302m_project.git` |
 | [Report 1 — Proposal](reports/documents/Report_1_Proposal.md) | Vấn đề an ninh, kiến trúc, phân công |
 | [Report 2 — Data Tasks](reports/documents/Report_2_Data_Tasks.md) | Thu thập, EDA, tiền xử lý |
 | [Report 3 — Model & Results](reports/documents/Report_3_Model_Results.md) | YOLO, PaddleOCR, màu xe, benchmark |
@@ -32,12 +34,12 @@ API `/verify` và Dashboard Streamlit dùng chung pipeline hợp nhất (`main/s
 
 ## Đóng góp thành viên (Nhóm 7)
 
-| Họ và tên | MSSV | Vai trò chính | Tỷ lệ |
-|-----------|------|---------------|-------|
-| Đỗ Manh Chung | HE201350 | Đề xuất / Literature / Thách thức | ~22% |
-| Đồng Minh Đức | HE201707 | Thiết kế hệ thống / E2E eval | ~22% |
-| Phạm Hoàng Hải | HE201680 | Tích hợp / An ninh / UI / Kết luận | ~34% |
-| Trần Lê Sơn | HE200407 | Hiệu năng CPU / Offline / KPI | ~22% |
+| Họ và tên | Vai trò chính | Tỷ lệ |
+|-----------|---------------|-------|
+| Đỗ Manh Chung | Đề xuất / Literature / Thách thức | ~22% |
+| Đồng Minh Đức | Thiết kế hệ thống / E2E eval | ~22% |
+| Phạm Hoàng Hải | Tích hợp / An ninh / UI / Kết luận | ~34% |
+| Trần Lê Sơn | Hiệu năng CPU / Offline / KPI | ~22% |
 
 Chi tiết phân công theo đầu mục Report 4: [`reports/documents/Bang_Dong_Gop_Du_An.md`](reports/documents/Bang_Dong_Gop_Du_An.md).
 
@@ -106,8 +108,8 @@ Chính sách dữ liệu: [`main/data/plate_ocr/README.md`](main/data/plate_ocr/
 docker compose up --build
 ```
 
-- API (Swagger): http://localhost:8000/docs  
-- Dashboard: http://localhost:8501  
+- API (Swagger): http://localhost:8000/docs
+- Dashboard: http://localhost:8501
 
 Dừng: `docker compose down`
 

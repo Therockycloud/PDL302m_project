@@ -1,5 +1,11 @@
 # Báo cáo kỹ thuật Giai đoạn 2: Quy trình thu thập và Xử lý dữ liệu thực tế (Data Tasks)
 
+**Môn học:** DPL302m – Deep Learning · **Nhóm:** Nhóm 7
+**Repository (GitHub):** [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project)
+**Clone:** `git clone https://github.com/Therockycloud/PDL302m_project.git`
+
+---
+
 ## 1. Đặt vấn đề và Mục tiêu nghiên cứu (Problem & Objective)
 Trong các hệ thống giám sát an ninh bãi giữ xe truyền thống, nhận dạng biển số xe (LPR) bằng OCR là cơ chế duy nhất để xác thực phương tiện ra vào. Tuy nhiên, phương thức này dễ bị qua mặt bằng các thủ thuật như tráo đổi biển số hoặc làm giả biển số. Nhằm khắc phục lỗ hổng an ninh này, dự án DPL302m đề xuất hệ thống đối chiếu chéo đa nhân tố dựa trên ba đặc trưng sinh trắc học trực quan của phương tiện: **Biển số xe (License Plate)**, **Hãng sản xuất (Brand)**, và **Màu sắc xe (Color)**.
 

@@ -1,8 +1,11 @@
 # Report 1: Project Proposal
 ## Hệ thống chống trộm xe thông minh bằng đối chiếu chéo thông tin xe (Smart Anti-Theft Vehicle Verification System)
 
-**Môn học:** DPL302m – Deep Learning (Học sâu)  
-**Trường:** FPT University  
+**Môn học:** DPL302m – Deep Learning (Học sâu)
+**Trường:** FPT University
+**Nhóm:** Nhóm 7 — Đỗ Manh Chung, Đồng Minh Đức, Phạm Hoàng Hải, Trần Lê Sơn
+**Repository (GitHub):** [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project)
+**Clone:** `git clone https://github.com/Therockycloud/PDL302m_project.git`
 
 > **🔄 Ghi chú phiên bản (đọc trước):** Đây là **đề xuất ban đầu** (Giai đoạn 1) mô tả hướng *xác thực đa nhân tố (biển số + hãng + màu)* với ResNet50/MobileNetV2/EasyOCR. Trong quá trình thực nghiệm (Report 3) các bộ phân loại hãng (~29%) và màu (~14% lúc đầu) cho thấy quá yếu để chặn cứng, nên **bản giao cuối đã pivot sang quyết định *plate-primary*** (OCR là khoá chính bằng **PaddleOCR**, màu chỉ là **cảnh báo mềm**, bỏ phân loại hãng), và đổi backbone sang **EfficientNet-B0/MobileNetV3-Small**. Xem hành trình & lý do trong Report 3 và Report 4.
 

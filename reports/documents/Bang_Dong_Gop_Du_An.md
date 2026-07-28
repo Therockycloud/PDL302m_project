@@ -1,18 +1,21 @@
 # Bảng phân công và đóng góp dự án
 
-**DPL302m — Deep Learning | Report 4 / Tổng kết dự án**  
+**DPL302m — Deep Learning | Report 4 / Tổng kết dự án**
 **Đề tài:** Hệ thống đỗ xe thông minh bằng xác thực chéo thông tin xe
+**Repository (GitHub):** [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project)
+**Clone:** `git clone https://github.com/Therockycloud/PDL302m_project.git` · nhánh `main`
+**README:** [README.md](https://github.com/Therockycloud/PDL302m_project/blob/main/README.md)
 
 Tài liệu này ghi nhận phân công công việc và mức đóng góp của từng thành viên (Report 1–4), trọng tâm ở Giai đoạn 4 (tích hợp, đánh giá E2E, tối ưu offline/CPU, demo). Bản Word tương ứng: [`Bang_Dong_Gop_Du_An.docx`](Bang_Dong_Gop_Du_An.docx) · [`reports/release/`](../release/Bang_Dong_Gop_Du_An.docx).
 
 ## 1. Danh sách thành viên
 
-| STT | Họ và tên | MSSV | Vai trò chính | Tỷ lệ đóng góp |
-|-----|-----------|------|---------------|----------------|
-| 1 | Đỗ Manh Chung | HE201350 | Đề xuất / Literature / Thách thức | ~22% |
-| 2 | Đồng Minh Đức | HE201707 | Thiết kế hệ thống / E2E eval | ~22% |
-| 3 | Phạm Hoàng Hải | HE201680 | Tích hợp / An ninh / UI / Kết luận | ~34% |
-| 4 | Trần Lê Sơn | HE200407 | Hiệu năng CPU / Offline / KPI | ~22% |
+| STT | Họ và tên | Vai trò chính | Tỷ lệ đóng góp |
+|-----|-----------|---------------|----------------|
+| 1 | Đỗ Manh Chung | Đề xuất / Literature / Thách thức | ~22% |
+| 2 | Đồng Minh Đức | Thiết kế hệ thống / E2E eval | ~22% |
+| 3 | Phạm Hoàng Hải | Tích hợp / An ninh / UI / Kết luận | ~34% |
+| 4 | Trần Lê Sơn | Hiệu năng CPU / Offline / KPI | ~22% |
 
 > Tỷ lệ ~22/22/34/22 chia đều các đầu mục cốt lõi; Hải đảm nhận thêm các hạng mục kỹ thuật then chốt ở Giai đoạn 4.
 
@@ -40,7 +43,7 @@ Tài liệu này ghi nhận phân công công việc và mức đóng góp của
 
 ## 3. Chi tiết theo thành viên
 
-### 3.1. Đỗ Manh Chung — HE201350 (~22%)
+### 3.1. Đỗ Manh Chung (~22%)
 
 Phụ trách khung vấn đề, nghiên cứu tài liệu và phần thách thức/retrospective.
 
@@ -50,7 +53,7 @@ Phụ trách khung vấn đề, nghiên cứu tài liệu và phần thách th�
 - Hỗ trợ nội dung đề xuất Report 1 và đồng bộ câu chuyện pivot plate-primary
 - Review số liệu KPI cho khớp Report 3
 
-### 3.2. Đồng Minh Đức — HE201707 (~22%)
+### 3.2. Đồng Minh Đức (~22%)
 
 Phụ trách thiết kế hệ thống tích hợp và đánh giá E2E trên ảnh thật.
 
@@ -60,7 +63,7 @@ Phụ trách thiết kế hệ thống tích hợp và đánh giá E2E trên ả
 - Giải thích UNREGISTERED vs AUTHORIZED trên Dashboard
 - Kiểm thử đường hợp nhất `build_pipeline` / `infer_single_image`
 
-### 3.3. Phạm Hoàng Hải — HE201680 (~34%)
+### 3.3. Phạm Hoàng Hải (~34%)
 
 Đảm nhận hạng mục kỹ thuật then chốt ở Giai đoạn 4 và điều phối tích hợp.
 
@@ -71,7 +74,7 @@ Phụ trách thiết kế hệ thống tích hợp và đánh giá E2E trên ả
 - Điều phối tích hợp pipeline/API/Dashboard (plate-primary)
 - Nội dung bảo vệ (script/slide R4) liên quan an ninh và demo
 
-### 3.4. Trần Lê Sơn — HE200407 (~22%)
+### 3.4. Trần Lê Sơn (~22%)
 
 Phụ trách tối ưu hiệu năng CPU, offline-first và bảng đối chiếu KPI.
 

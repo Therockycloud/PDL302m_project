@@ -1,5 +1,22 @@
 # Báo cáo kỹ thuật Giai đoạn 4: Tích hợp Hệ thống và Đánh giá hiệu năng Đầu cuối (Final Report)
 
+| | |
+|---|---|
+| **Môn học** | DPL302m – Deep Learning |
+| **Trường** | FPT University |
+| **Nhóm** | Nhóm 7 |
+| **Thành viên** | Đỗ Manh Chung, Đồng Minh Đức, Phạm Hoàng Hải, Trần Lê Sơn |
+| **Repository** | [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project) |
+| **Clone** | `git clone https://github.com/Therockycloud/PDL302m_project.git` |
+| **Nhánh chính** | `main` |
+| **README / hướng dẫn chạy** | [README.md](https://github.com/Therockycloud/PDL302m_project/blob/main/README.md) |
+| **Bảng đóng góp** | [Bang_Dong_Gop_Du_An.md](https://github.com/Therockycloud/PDL302m_project/blob/main/reports/documents/Bang_Dong_Gop_Du_An.md) |
+| **Slides bảo vệ (Swiss R4)** | [reports/presentations/swiss_r4/](https://github.com/Therockycloud/PDL302m_project/tree/main/reports/presentations/swiss_r4) |
+
+> Mã nguồn, báo cáo, slide và artifact nộp bài đều nằm trên GitHub ở repository trên (nhánh `main`).
+
+---
+
 ## 1. Đặt vấn đề và Mục tiêu tích hợp (Objective)
 Giai đoạn cuối cùng của dự án DPL302m tập trung vào tích hợp các mô hình học sâu thành phần (YOLOv8, **PaddleOCR**, MobileNetV3-Small) thành một hệ thống an ninh bãi xe khép kín, tự động. Sau thực nghiệm (Report 3), hệ thống dùng quyết định **plate-primary**: biển số (PaddleOCR) là khoá chính, **màu xe là cảnh báo mềm**, và **bỏ phân loại hãng**; đối chiếu với cơ sở dữ liệu mẫu để đưa ra lệnh điều khiển barrier bãi xe (Cho phép mở hoặc Cảnh báo xâm nhập).
 
@@ -289,6 +306,16 @@ Song song với PaddleOCR đang chạy ở runtime, nhóm thử nghiệm một *
 ---
 
 ## 7. Kết luận
+
+### 7.1. Nguồn mã và tài liệu công khai
+Toàn bộ mã nguồn, cấu hình, báo cáo và slide của dự án được lưu trữ công khai tại:
+
+*   **GitHub:** [https://github.com/Therockycloud/PDL302m_project](https://github.com/Therockycloud/PDL302m_project)
+*   **Clone:** `git clone https://github.com/Therockycloud/PDL302m_project.git`
+*   **Chạy nhanh:** xem [README.md](https://github.com/Therockycloud/PDL302m_project/blob/main/README.md) (`docker compose up --build` hoặc native Python 3.12)
+*   **Phân công / đóng góp:** [Bang_Dong_Gop_Du_An.md](https://github.com/Therockycloud/PDL302m_project/blob/main/reports/documents/Bang_Dong_Gop_Du_An.md)
+
+### 7.2. Tổng kết kỹ thuật
 Hệ thống đã hoàn thiện một **pipeline ALPR biên, ngoại tuyến, plate-primary**: phát hiện biển số (YOLOv8n, mAP@0.5 ~0.98) và đọc biển bằng **PaddleOCR** (Benchmark C: 81% exact-match trên 16 crop giữ khoá) hoạt động tốt và là **engine OCR duy nhất ở runtime**. Thử nghiệm **MobileNetV3-Small + CTC → ONNX** (§5.4) đạt **0% exact-match** và CER **~0,66** trên `real_validation` (64 mẫu), `deployment_ready: false` — **không được triển khai**; ngưỡng nội bộ ≥90% exact-match để thay Paddle không đạt. Phân loại **màu** (runtime: **PyTorch MobileNetV3-Small**, `color_MobileNetV3Small.pt`) đã được nâng cấp đáng kể: từ baseline lịch sử ~55% (frozen-backbone, data cũ) lên **86,3% TTA (85,3% plain)** trên tập test giữ-riêng VCoR sau full fine-tune + class-weight + label-smoothing + TTA (chi tiết: Report 3 §5.1). Màu xe nay là một **thành phần mạnh** của hệ thống (~86%), nhưng **vẫn giữ vai trò "cảnh báo mềm"** thay vì khoá chính — không phải vì model yếu, mà vì số 86% đo trên ảnh VCoR sạch (web/marketplace), **chưa được kiểm chứng trên domain CCTV bãi xe thật** (ánh sáng yếu, nhiễu, góc nghiêng — xem caveat Report 3 §5.1); phân loại **hãng** (TF/Keras EfficientNet-B0, ~**35%** — *diagnostic only — đã loại khỏi quyết định*) bị loại khỏi quyết định do còn yếu. Classifier màu phục vụ runtime qua `torch_color.py` để đồng tồn với PaddleOCR mà không cần cách ly tiến trình TF. So với đề xuất ban đầu (đa nhân tố chặn cứng, mục tiêu ≥95%), bản giao đã **pivot có chủ đích** sang plate-primary — trung thực với năng lực thực đo của từng mô hình. Hệ thống chạy ổn định ngoại tuyến 100% trên CPU, đạt độ trễ **<1 giây/xe ở chế độ steady-state** sau WS-1 (đường bãi đỗ approach-lock: 0.73 s; đường ảnh đơn API: ~0.96 s — xem §5.1), chỉ còn cold-start vài giây ở lệnh gọi đầu tiên do nạp PaddleOCR; giao diện Streamlit (demo camera đồng bộ một khung nhìn) cảnh báo trực quan khi biển không khớp hoặc màu lệch.
 
 **Hướng phát triển (ngắn gọn, không cam kết lộ trình giả):**
