@@ -1,5 +1,10 @@
 # Smart Parking Security System via Cross-Verification
 
+> **DPL302m course team project at FPT University.** The repository name is
+> retained for course traceability. Phạm Hoàng Hải's documented contribution
+> focused on system integration, security evaluation, UI, and final synthesis
+> (approximately 34%); the complete system is team work.
+
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg?logo=docker)](https://www.docker.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg?style=flat&logo=FastAPI)](https://fastapi.tiangolo.com/)
@@ -8,9 +13,9 @@
 
 Hệ thống giám sát an ninh bãi đỗ xe thông minh (DPL302m) dùng học sâu để chống tráo biển số. Pipeline runtime: **YOLOv8n (xe → biển) → PaddleOCR → màu xe (MobileNetV3, PyTorch)** với quyết định **plate-primary** — biển khớp ⇒ `AUTHORIZED`; màu lệch chỉ **cảnh báo mềm**; biển không có trong CSDL ⇒ `UNREGISTERED`. Hãng xe chỉ diagnostic, không vào quyết định.
 
-API `/verify` và Dashboard Streamlit dùng chung pipeline hợp nhất (`main/src/engine/pipeline_factory.py`). Gate “xe đã đỗ” (approach-lock) chỉ chạy suy luận nặng một lần mỗi xe để đạt độ trễ steady-state &lt; 1 giây.
+API `/verify` và Dashboard Streamlit dùng chung pipeline hợp nhất (`main/src/engine/pipeline_factory.py`). Gate “xe đã đỗ” (approach-lock) chỉ chạy suy luận nặng một lần mỗi xe để tránh lặp lại toàn bộ pipeline trên từng frame.
 
-> **OCR runtime:** chỉ **PaddleOCR** (`ocr.engine: ppocr`). Thí nghiệm CTC/ONNX nhẹ **chưa đạt** ngưỡng deploy — xem mục dưới. Chi tiết pivot & benchmark: [`docs/related_work.md`](docs/related_work.md), [`docs/benchmarks/`](docs/benchmarks/).
+> **OCR runtime:** chỉ **PaddleOCR** (`ocr.engine: ppocr`). Thí nghiệm CTC/ONNX nhẹ **chưa đạt** ngưỡng deploy — xem mục dưới. Quyết định này dựa trên [OCR Benchmark C](docs/benchmarks/ocr_benchmark.md); bối cảnh pivot nằm trong [`docs/related_work.md`](docs/related_work.md).
 
 ---
 
@@ -87,8 +92,8 @@ Chi tiết phân công theo đầu mục Report 4: [`reports/documents/Bang_Dong
 |----------|----------|
 | Train | `task4_train` + `pseudo_vision` (conf ≥ 0.5) |
 | Val / giữ kín | `real_validation.csv` (64) · `expanded_real_test` (102) · `frozen_regression` (16) |
-| Kết quả | val exact-match **0/64** · CER **~0.659** · `deployment_ready: false` |
-| Runtime | **PaddleOCR** (~81% exact trên frozen 16) |
+| Kết quả | Chưa đạt ngưỡng thay thế; `deployment_ready: false` ([Report 4 §5.4](reports/documents/Report_4_Final_Report.md)) |
+| Runtime | **PaddleOCR** (~81% exact trên frozen 16; [benchmark](docs/benchmarks/ocr_benchmark.md)) |
 
 Chính sách dữ liệu: [`main/data/plate_ocr/README.md`](main/data/plate_ocr/README.md).
 
@@ -96,9 +101,18 @@ Chính sách dữ liệu: [`main/data/plate_ocr/README.md`](main/data/plate_ocr/
 
 ## Dataset (tóm tắt)
 
-- **Hãng xe:** ~1.209 ảnh thô → **792** dùng train (8 lớp, ~100/lớp). Brand chỉ diagnostic (~35% test).
+- **Hãng xe:** ~1.209 ảnh thô → **792** dùng train (8 lớp, ~100/lớp). Brand chỉ phục vụ diagnostic và không tham gia quyết định.
 - **Màu xe (runtime):** VCoR + tập nội bộ → **5.881** ảnh; MobileNetV3-Small **86.3% TTA** (macro-F1 0.84) — domain gap CCTV vẫn còn. Xem [`docs/benchmarks/color_finetune_report.md`](docs/benchmarks/color_finetune_report.md).
 - **Biển số kiểm thử E2E:** ảnh/xe thật VN + nhãn YOLO.
+
+---
+
+## Giới hạn và quyền riêng tư
+
+- Các số đo màu được thực hiện trên VCoR held-out; ảnh CCTV bãi xe thật có thể kém hơn do ánh sáng, góc chụp và nén ảnh. Xem [color benchmark](docs/benchmarks/color_benchmark.md).
+- Đối chiếu màu chỉ là cảnh báo mềm: xe dùng biển tráo nhưng cùng màu có thể không bị phát hiện. Xem [security evaluation và limitations](docs/benchmarks/security_eval.md#limitations-đọc-trước-khi-trích-số-liệu).
+- Dữ liệu nhận diện như khuôn mặt, biển số thật và thông tin đăng ký xe là dữ liệu nhạy cảm. Không commit dữ liệu cá nhân mới; khi demo công khai, dùng dữ liệu tổng hợp hoặc đã được đồng ý và làm mờ thông tin không cần thiết.
+- Student ID đã được loại khỏi bản tài liệu hiện tại. Tên thành viên được giữ lại để ghi nhận đóng góp; lịch sử Git cũ vẫn có thể chứa metadata học phần và cần được đánh giá riêng trước khi dùng repo ngoài bối cảnh portfolio.
 
 ---
 
@@ -152,11 +166,18 @@ python main/src/utils/download_sample_video.py --verify
 
 ### Tests
 
+Full suite (bao gồm CTC training/export và kiểm tra ONNX) cần bộ dependency
+training đã pin:
+
 ```bash
+pip install -r main/requirements-train.txt
 cd main && KMP_DUPLICATE_LIB_OK=TRUE python -m pytest -q
-# hoặc trong Docker:
-docker compose exec -T -w /app/main backend pytest -q
+# Container runtime không cài training/export extras:
+docker compose exec -T -w /app/main backend pytest -q --ignore=tests/test_vn_plate_ctc.py
 ```
+
+Không dùng virtualenv được tạo với `--system-site-packages`: PyTorch cũ từ
+Python/Conda base có thể ghi đè cặp `torch`/`torchvision` đã pin.
 
 ### Troubleshooting
 
@@ -173,7 +194,7 @@ docker compose exec -T -w /app/main backend pytest -q
 ## Tối ưu CPU / offline
 
 - Giới hạn thread (`OMP_NUM_THREADS=1`, …) trong `Dockerfile` / `docker-compose.yml` để tránh deadlock.
-- Steady-state: approach-lock ~**0.73 s**/xe; ảnh đơn `/verify` ~**0.96 s** sau warmup (cold-start lần đầu vẫn vài giây).
+- Approach-lock tránh chạy lại pipeline nặng trên mọi frame; cold-start lần đầu vẫn có thể chậm do nạp PaddleOCR.
 - PaddleOCR cache mồi ở build-time; YOLO offline (`sync: false`, font local).
 
-Chi tiết số đo: Report 4 §4–§5.
+Chi tiết phương pháp và số đo: [Report 4 §4–§5](reports/documents/Report_4_Final_Report.md).
